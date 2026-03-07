@@ -1,0 +1,425 @@
+import 'dart:developer';
+
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart' as p;
+
+/// Singleton helper that owns the SQLite database for branches & messages.
+class DatabaseHelper {
+  DatabaseHelper._();
+  static final DatabaseHelper instance = DatabaseHelper._();
+
+  Database? _db;
+
+  /// Returns the open database, creating it on first access.
+  Future<Database> get database async {
+    if (_db != null) return _db!;
+    await initDB();
+    return _db!;
+  }
+
+  /// Opens (or creates) the 'chat_history.db' file and runs table creation.
+  Future<void> initDB() async {
+    try {
+      final dbPath = await getDatabasesPath();
+      final path = p.join(dbPath, 'chat_history.db');
+
+      _db = await openDatabase(
+        path,
+        version: 2,
+        onCreate: (db, version) async {
+          await db.execute('''
+            CREATE TABLE branches (
+              id         TEXT PRIMARY KEY,
+              entity_id  TEXT    NOT NULL,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              preview    TEXT
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE messages (
+              id          TEXT PRIMARY KEY,
+              branch_id   TEXT    NOT NULL,
+              persona_id  TEXT,
+              sender_name TEXT    NOT NULL,
+              content     TEXT    NOT NULL,
+              is_user     INTEGER NOT NULL,
+              timestamp   INTEGER NOT NULL,
+              FOREIGN KEY (branch_id) REFERENCES branches(id)
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE gallery_images (
+              id           TEXT    PRIMARY KEY,
+              persona_id   TEXT    NOT NULL,
+              template_id  INTEGER NOT NULL,
+              local_path   TEXT    NOT NULL,
+              generated_at INTEGER NOT NULL
+            )
+          ''');
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS gallery_images (
+                id           TEXT    PRIMARY KEY,
+                persona_id   TEXT    NOT NULL,
+                template_id  INTEGER NOT NULL,
+                local_path   TEXT    NOT NULL,
+                generated_at INTEGER NOT NULL
+              )
+            ''');
+          }
+        },
+      );
+    } catch (e) {
+      print('DatabaseHelper.initDB error: $e');
+      rethrow;
+    }
+  }
+
+  // ── BRANCHES ────────────────────────────────────────────────────────────
+
+  /// Returns all branches for a given entity, newest-updated first.
+  Future<List<Map<String, dynamic>>> getBranchesForEntity(
+      String entityId) async {
+    try {
+      final db = await database;
+      log('SELECT branches WHERE entity_id=$entityId ORDER BY updated_at DESC', name: 'DB_READ');
+      final results = await db.query(
+        'branches',
+        where: 'entity_id = ?',
+        whereArgs: [entityId],
+        orderBy: 'updated_at DESC',
+      );
+      log('getBranchesForEntity result count: ${results.length}', name: 'DB_READ');
+      return results;
+    } catch (e) {
+      log('getBranchesForEntity error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getBranchesForEntity error: $e');
+      rethrow;
+    }
+  }
+
+  /// Inserts a new branch row.
+  Future<void> insertBranch(
+      String id, String entityId, String? preview) async {
+    try {
+      final db = await database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final data = {
+        'id': id,
+        'entity_id': entityId,
+        'created_at': now,
+        'updated_at': now,
+        'preview': preview,
+      };
+      log('INSERT INTO branches: $data', name: 'DB_WRITE');
+      await db.insert('branches', data);
+    } catch (e) {
+      log('insertBranch error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.insertBranch error: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates the preview text of a branch.
+  Future<void> updateBranchPreview(String branchId, String preview) async {
+    try {
+      final db = await database;
+      log('UPDATE branches SET preview WHERE id=$branchId, data: {preview: $preview}', name: 'DB_WRITE');
+      await db.update(
+        'branches',
+        {'preview': preview},
+        where: 'id = ?',
+        whereArgs: [branchId],
+      );
+    } catch (e) {
+      log('updateBranchPreview error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.updateBranchPreview error: $e');
+      rethrow;
+    }
+  }
+
+  /// Touches the updated_at timestamp of a branch to now.
+  Future<void> updateBranchTimestamp(String branchId) async {
+    try {
+      final db = await database;
+      log('UPDATE branches SET updated_at=now WHERE id=$branchId', name: 'DB_WRITE');
+      await db.update(
+        'branches',
+        {'updated_at': DateTime.now().millisecondsSinceEpoch},
+        where: 'id = ?',
+        whereArgs: [branchId],
+      );
+    } catch (e) {
+      log('updateBranchTimestamp error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.updateBranchTimestamp error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a branch and all its messages.
+  Future<void> deleteBranch(String branchId) async {
+    try {
+      final db = await database;
+      log('DELETE messages WHERE branch_id=$branchId + DELETE branches WHERE id=$branchId', name: 'DB_DELETE');
+      await db.transaction((txn) async {
+        await txn.delete('messages',
+            where: 'branch_id = ?', whereArgs: [branchId]);
+        await txn
+            .delete('branches', where: 'id = ?', whereArgs: [branchId]);
+      });
+    } catch (e) {
+      log('deleteBranch error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteBranch error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes all branches and their messages for a given entity.
+  Future<void> deleteAllForEntity(String entityId) async {
+    try {
+      final db = await database;
+      log('DELETE all branches+messages for entity_id=$entityId', name: 'DB_DELETE');
+      await db.transaction((txn) async {
+        // Fetch branch ids first.
+        final branches = await txn.query(
+          'branches',
+          columns: ['id'],
+          where: 'entity_id = ?',
+          whereArgs: [entityId],
+        );
+        for (final branch in branches) {
+          final branchId = branch['id'] as String;
+          log('DELETE messages WHERE branch_id=$branchId', name: 'DB_DELETE');
+          await txn.delete('messages',
+              where: 'branch_id = ?', whereArgs: [branchId]);
+        }
+        await txn.delete('branches',
+            where: 'entity_id = ?', whereArgs: [entityId]);
+      });
+    } catch (e) {
+      log('deleteAllForEntity error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteAllForEntity error: $e');
+      rethrow;
+    }
+  }
+
+  // ── MESSAGES ────────────────────────────────────────────────────────────
+
+  /// Returns all messages for a branch, ordered by timestamp ascending.
+  Future<List<Map<String, dynamic>>> getMessages(String branchId) async {
+    try {
+      final db = await database;
+      log('SELECT messages WHERE branch_id=$branchId ORDER BY timestamp ASC', name: 'DB_READ');
+      final results = await db.query(
+        'messages',
+        where: 'branch_id = ?',
+        whereArgs: [branchId],
+        orderBy: 'timestamp ASC',
+      );
+      log('getMessages result count: ${results.length}', name: 'DB_READ');
+      return results;
+    } catch (e) {
+      log('getMessages error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getMessages error: $e');
+      rethrow;
+    }
+  }
+
+  /// Inserts a single message row.
+  Future<void> insertMessage(
+      Map<String, dynamic> message, String branchId) async {
+    try {
+      final db = await database;
+      final row = Map<String, dynamic>.from(message);
+      row['branch_id'] = branchId;
+      log('INSERT INTO messages: $row', name: 'DB_WRITE');
+      await db.insert('messages', row);
+    } catch (e) {
+      log('insertMessage error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.insertMessage error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a single message by id.
+  Future<void> deleteMessage(String messageId) async {
+    try {
+      final db = await database;
+      log('DELETE messages WHERE id=$messageId', name: 'DB_DELETE');
+      await db.delete('messages', where: 'id = ?', whereArgs: [messageId]);
+    } catch (e) {
+      log('deleteMessage error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteMessage error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes the message with [messageId] and every message after it
+  /// (by timestamp) within the same branch.
+  Future<void> deleteMessagesFromId(
+      String messageId, String branchId) async {
+    try {
+      final db = await database;
+      // Find the target message's timestamp.
+      final rows = await db.query(
+        'messages',
+        columns: ['timestamp'],
+        where: 'id = ?',
+        whereArgs: [messageId],
+      );
+      if (rows.isEmpty) return;
+      final ts = rows.first['timestamp'] as int;
+
+      log('DELETE messages WHERE branch_id=$branchId AND timestamp>=$ts (from messageId=$messageId)', name: 'DB_DELETE');
+      await db.delete(
+        'messages',
+        where: 'branch_id = ? AND timestamp >= ?',
+        whereArgs: [branchId, ts],
+      );
+    } catch (e) {
+      log('deleteMessagesFromId error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteMessagesFromId error: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates the content of an existing message.
+  Future<void> updateMessageContent(
+      String messageId, String newContent) async {
+    try {
+      final db = await database;
+      log('UPDATE messages SET content WHERE id=$messageId, data: {content: $newContent}', name: 'DB_WRITE');
+      await db.update(
+        'messages',
+        {'content': newContent},
+        where: 'id = ?',
+        whereArgs: [messageId],
+      );
+    } catch (e) {
+      log('updateMessageContent error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.updateMessageContent error: $e');
+      rethrow;
+    }
+  }
+
+  // ── GALLERY IMAGES ───────────────────────────────────────────────────────
+
+  /// Returns all gallery image rows for [personaId].
+  Future<List<Map<String, dynamic>>> getGalleryForPersona(
+      String personaId) async {
+    try {
+      final db = await database;
+      log('SELECT gallery_images WHERE persona_id=$personaId', name: 'DB_READ');
+      return await db.query(
+        'gallery_images',
+        where: 'persona_id = ?',
+        whereArgs: [personaId],
+      );
+    } catch (e) {
+      log('getGalleryForPersona error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getGalleryForPersona error: $e');
+      rethrow;
+    }
+  }
+
+  /// Returns a single gallery image row by [id], or null if not found.
+  Future<Map<String, dynamic>?> getGalleryImageById(String id) async {
+    try {
+      final db = await database;
+      log('SELECT gallery_images WHERE id=$id', name: 'DB_READ');
+      final rows = await db.query(
+        'gallery_images',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      return rows.isEmpty ? null : rows.first;
+    } catch (e) {
+      log('getGalleryImageById error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getGalleryImageById error: $e');
+      rethrow;
+    }
+  }
+
+  /// Inserts a new gallery image record.
+  Future<void> insertGalleryImage(
+    String id,
+    String personaId,
+    int templateId,
+    String localPath,
+    int generatedAt,
+  ) async {
+    try {
+      final db = await database;
+      final data = {
+        'id': id,
+        'persona_id': personaId,
+        'template_id': templateId,
+        'local_path': localPath,
+        'generated_at': generatedAt,
+      };
+      log('INSERT INTO gallery_images: $data', name: 'DB_WRITE');
+      await db.insert('gallery_images', data);
+    } catch (e) {
+      log('insertGalleryImage error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.insertGalleryImage error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a single gallery image record by [id].
+  Future<void> deleteGalleryImage(String id) async {
+    try {
+      final db = await database;
+      log('DELETE gallery_images WHERE id=$id', name: 'DB_DELETE');
+      await db.delete('gallery_images', where: 'id = ?', whereArgs: [id]);
+    } catch (e) {
+      log('deleteGalleryImage error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteGalleryImage error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes all gallery image records for [personaId].
+  Future<void> deleteAllGalleryForPersona(String personaId) async {
+    try {
+      final db = await database;
+      log('DELETE gallery_images WHERE persona_id=$personaId', name: 'DB_DELETE');
+      await db.delete(
+        'gallery_images',
+        where: 'persona_id = ?',
+        whereArgs: [personaId],
+      );
+    } catch (e) {
+      log('deleteAllGalleryForPersona error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteAllGalleryForPersona error: $e');
+      rethrow;
+    }
+  }
+
+  /// Returns the list of template_ids already used for [personaId].
+  Future<List<int>> getUsedTemplateIds(String personaId) async {
+    try {
+      final db = await database;
+      log('SELECT template_id FROM gallery_images WHERE persona_id=$personaId', name: 'DB_READ');
+      final rows = await db.query(
+        'gallery_images',
+        columns: ['template_id'],
+        where: 'persona_id = ?',
+        whereArgs: [personaId],
+      );
+      return rows
+          .map((r) => r['template_id'] as int)
+          .toList();
+    } catch (e) {
+      log('getUsedTemplateIds error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getUsedTemplateIds error: $e');
+      rethrow;
+    }
+  }
+}

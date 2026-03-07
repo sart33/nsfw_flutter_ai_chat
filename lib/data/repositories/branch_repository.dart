@@ -1,0 +1,83 @@
+import 'package:uuid/uuid.dart';
+import 'package:nsfw_chat/core/factory/database_helper.dart';
+import 'package:nsfw_chat/domain/entities/branch_entity.dart';
+
+/// Repository that manages conversation branches via SQLite.
+class BranchRepository {
+  final DatabaseHelper _db;
+
+  BranchRepository({DatabaseHelper? db})
+      : _db = db ?? DatabaseHelper.instance;
+
+  /// Returns all branches for [entityId], newest-updated first.
+  Future<List<BranchEntity>> getBranchesForEntity(String entityId) async {
+    try {
+      final rows = await _db.getBranchesForEntity(entityId);
+      return rows.map(_mapRowToEntity).toList();
+    } catch (e) {
+      print('BranchRepository.getBranchesForEntity error: $e');
+      rethrow;
+    }
+  }
+
+  /// Creates a new branch for [entityId], inserts it, and returns the entity.
+  Future<BranchEntity> createBranch(String entityId) async {
+    try {
+      final id = const Uuid().v4();
+      await _db.insertBranch(id, entityId, null);
+      final now = DateTime.now();
+      return BranchEntity(
+        id: id,
+        entityId: entityId,
+        createdAt: now,
+        updatedAt: now,
+        preview: null,
+      );
+    } catch (e) {
+      print('BranchRepository.createBranch error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a branch and all its messages.
+  Future<void> deleteBranch(String branchId) async {
+    try {
+      await _db.deleteBranch(branchId);
+    } catch (e) {
+      print('BranchRepository.deleteBranch error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes all branches (and their messages) for a given entity.
+  Future<void> deleteAllForEntity(String entityId) async {
+    try {
+      await _db.deleteAllForEntity(entityId);
+    } catch (e) {
+      print('BranchRepository.deleteAllForEntity error: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates the preview text of a branch.
+  Future<void> updatePreview(String branchId, String preview) async {
+    try {
+      await _db.updateBranchPreview(branchId, preview);
+    } catch (e) {
+      print('BranchRepository.updatePreview error: $e');
+      rethrow;
+    }
+  }
+
+  // ── INTERNAL ────────────────────────────────────────────────────────────
+
+  BranchEntity _mapRowToEntity(Map<String, dynamic> row) {
+    return BranchEntity(
+      id: row['id'] as String,
+      entityId: row['entity_id'] as String,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
+      preview: row['preview'] as String?,
+    );
+  }
+}
