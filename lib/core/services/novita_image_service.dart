@@ -63,7 +63,7 @@ class NovitaImageService {
         'seed': -1,
         'size': '1024*1024',
         'prompt': finalPrompt,
-        'negative_prompt': _negativePrompt,
+        // 'negative_prompt': _negativePrompt,
       }),
     );
 

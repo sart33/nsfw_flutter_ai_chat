@@ -117,7 +117,7 @@ class PersonaViewScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'Генерация... (~15-40 сек)',
+                            'Генерация... (~4-12 сек)',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,

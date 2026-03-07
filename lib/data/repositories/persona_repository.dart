@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -69,7 +70,18 @@ class PersonaRepository {
   Future<Result<bool>> delete(String id) async {
     try {
       final personas = await _readAll();
+      // Достаём путь к аватару ДО удаления из списка
+      final matches = personas.where((p) => p.id == id).toList();  // если не найден — null
+
+      if (matches.isNotEmpty && matches.first.avatarPath != null) {
+        try {
+          final f = File(matches.first.avatarPath!);
+          if (f.existsSync()) f.deleteSync();
+        } catch (_) {}
+      }
+
       personas.removeWhere((p) => p.id == id);
+
       await _writeAll(personas);
       // Clean up all SQLite branches & messages for this persona.
       await DatabaseHelper.instance.deleteAllForEntity('single:$id');

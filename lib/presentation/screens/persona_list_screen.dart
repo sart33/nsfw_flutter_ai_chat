@@ -43,7 +43,19 @@ class PersonaListScreen extends ConsumerWidget {
                   },
                   child: PersonaCard(
                     persona: persona,
-                    onTap: () => _showOptions(context, ref, persona),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BranchListScreen(
+                          entityId: 'single:${persona.id}',
+                          entityName: persona.name,
+                          isMulti: false,
+                          greeting: persona.greeting,
+                        ),
+                      ),
+                    ),
+                    // onLongPress: () => _showOptions(context, ref, persona.id),
+                    // onTap: () => _showOptions(context, ref, persona),
                     onLongPress: () => _showOptions(context, ref, persona),
                   ),
                 );
