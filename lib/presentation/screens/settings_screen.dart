@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 
-/// Settings screen with two sliders for adjusting limits.
+/// Settings screen with sliders and toggles for adjusting limits and features.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -12,9 +12,12 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
 
+    const whiteStyle = TextStyle(color: AppTheme.textPrimary);
+    const graySmall = TextStyle(color: AppTheme.textSecondary, fontSize: 12);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Настройки')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +107,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
-            // ── AI response limit ────────────────────────────────
+            // ── Reminder interval ────────────────────────────────
             const Text(
               'Частота повтора промпта.',
               style: TextStyle(
@@ -125,7 +128,7 @@ class SettingsScreen extends ConsumerWidget {
               value: settings.reminderInterval.toDouble(),
               min: 1,
               max: 20,
-              divisions: 60,
+              divisions: 19,
               label: '${settings.reminderInterval}',
               onChanged: (v) => notifier.setReminderInterval(v.round()),
             ),
@@ -156,6 +159,39 @@ class SettingsScreen extends ConsumerWidget {
               divisions: 12,
               activeColor: AppTheme.primaryAccent,
               onChanged: (v) => notifier.setChatFontSize(v),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ── Reminder toggle ──────────────────────────────────
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Напоминание о личности персонажа',
+                  style: whiteStyle),
+              subtitle: const Text(
+                'Каждые N сообщений добавляет напоминание в промпт '
+                '(не сохраняется в историю)',
+                style: graySmall,
+              ),
+              value: settings.reminderEnabled,
+              onChanged: (v) => notifier.setReminderEnabled(v),
+              activeColor: const Color(0xFF7c4dff),
+            ),
+
+            const SizedBox(height: 8),
+
+            // ── YAML persona toggle ──────────────────────────────
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('YAML-профиль персонажа', style: whiteStyle),
+              subtitle: const Text(
+                'Если включено и файл assets/characters/character_{id}.yaml '
+                'существует — использовать как системный промпт',
+                style: graySmall,
+              ),
+              value: settings.yamlPersonaEnabled,
+              onChanged: (v) => notifier.setYamlPersonaEnabled(v),
+              activeColor: const Color(0xFF7c4dff),
             ),
           ],
         ),

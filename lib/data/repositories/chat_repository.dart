@@ -2,11 +2,20 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/factory/dio_factory.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// NOTE: YAML files must be added to pubspec.yaml assets manually per persona.
+// File naming: assets/characters/character_{persona.id}.yaml
+// If YAML feature causes issues, disable via Settings toggle — no code changes needed.
+// Reminder counter is global (resets on any chat entry), not per-chat.
+// Future improvement: per-branch counter in SQLite.
 
 /// Handles DeepSeek API calls for chat completions and SQLite message persistence.
 /// No streaming. No content filtering — explicit content is allowed.
@@ -14,16 +23,47 @@ import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 class ChatRepository {
   final Dio _dio;
   final DatabaseHelper _db;
+  final SharedPreferences _prefs;
 
-  ChatRepository({Dio? dio, DatabaseHelper? db})
-      : _dio = dio ?? DioFactory.create(),
-        _db = db ?? DatabaseHelper.instance;
+  ChatRepository._({required Dio dio, required DatabaseHelper db, required SharedPreferences prefs})
+      : _dio = dio,
+        _db = db,
+        _prefs = prefs;
+
+  /// Factory constructor — must be called with [create()] to get an instance.
+  static Future<ChatRepository> create({Dio? dio, DatabaseHelper? db}) async {
+    final prefs = await SharedPreferences.getInstance();
+    return ChatRepository._(
+      dio: dio ?? DioFactory.create(),
+      db: db ?? DatabaseHelper.instance,
+      prefs: prefs,
+    );
+  }
+
+  // ── REMINDER COUNTER ───────────────────────────────────────────────────
+
+  Future<void> setReminderCounter(int value) async {
+    await _prefs.setInt('reminder_counter', value);
+    debugPrint('[Reminder] Counter set to $value');
+  }
+
+  int _getReminderCounter() => _prefs.getInt('reminder_counter') ?? 0;
+
+  void _setReminderCounter(int value) =>
+      _prefs.setInt('reminder_counter', value);
+
+  // /// Resets the reminder counter to 0. Call on chat init.
+  // void resetReminderCounter() {
+  //   _setReminderCounter(0);
+  //   debugPrint('[Reminder] Counter reset to 0');
+  // }
 
   // ── SINGLE PERSONA CHAT ────────────────────────────────────────────────
 
   /// Sends the conversation history to DeepSeek for a single-persona chat.
   ///
-  /// System prompt = persona.description + persona.behavior (if set).
+  /// System prompt = persona.description + persona.behavior (if set),
+  /// unless YAML override is enabled and a matching YAML file exists.
   /// The first assistant message is persona.greeting.
   Future<String> sendMessage({
     required List<ChatMessageModel> history,
@@ -31,8 +71,20 @@ class ChatRepository {
     required int maxTokens,
   }) async {
     try {
-      final systemPrompt = _buildSingleSystemPrompt(persona);
-      final messages = _buildApiMessages(systemPrompt, history, persona);
+      final reminderEnabled =
+          _prefs.getBool('settings_reminder_enabled') ?? true;
+      final reminderInterval =
+          _prefs.getInt('settings_reminder_interval') ?? 10;
+
+      final systemPrompt = await _buildSingleSystemPrompt(persona);
+      final messages = await _buildApiMessages(
+        systemPrompt,
+        history,
+        persona,
+        reminderEnabled: reminderEnabled,
+        reminderInterval: reminderInterval,
+        behaviorReminder: persona.behavior,
+      );
 
       final requestBody = {
         'model': AppConfig.deepSeekModel,
@@ -53,7 +105,9 @@ class ChatRepository {
           response.data['choices'][0]['message']['content'] as String;
       return content.trim();
     } on DioException catch (e) {
-      log('DioException in sendMessage: ${e.message} | response: ${e.response?.data}', name: 'API_ERROR');
+      log(
+          'DioException in sendMessage: ${e.message} | response: ${e.response?.data}',
+          name: 'API_ERROR');
       throw Exception('Ошибка API: ${e.message}');
     } catch (e) {
       log('Unexpected error in sendMessage: $e', name: 'API_ERROR');
@@ -75,9 +129,23 @@ class ChatRepository {
     required int maxTokens,
   }) async {
     try {
-      final systemPrompt =
-          _buildMultiSystemPrompt(personas, behavior);
-      final messages = _buildApiMessagesMulti(systemPrompt, history);
+      final reminderEnabled =
+          _prefs.getBool('settings_reminder_enabled') ?? true;
+      final reminderInterval =
+          _prefs.getInt('settings_reminder_interval') ?? 10;
+
+      // Combined behavior for the reminder — all personas' behaviors joined.
+      final behaviorReminder =
+          personas.map((p) => p.behavior ?? '').where((b) => b.isNotEmpty).join(' ');
+
+      final systemPrompt = _buildMultiSystemPrompt(personas, behavior);
+      final messages = await _buildApiMessagesMulti(
+        systemPrompt,
+        history,
+        reminderEnabled: reminderEnabled,
+        reminderInterval: reminderInterval,
+        behaviorReminder: behaviorReminder,
+      );
 
       final requestBody = {
         'model': AppConfig.deepSeekModel,
@@ -98,7 +166,9 @@ class ChatRepository {
           response.data['choices'][0]['message']['content'] as String;
       return content.trim();
     } on DioException catch (e) {
-      log('DioException in sendMultiMessage: ${e.message} | response: ${e.response?.data}', name: 'API_ERROR');
+      log(
+          'DioException in sendMultiMessage: ${e.message} | response: ${e.response?.data}',
+          name: 'API_ERROR');
       throw Exception('Ошибка API: ${e.message}');
     } catch (e) {
       log('Unexpected error in sendMultiMessage: $e', name: 'API_ERROR');
@@ -152,8 +222,33 @@ class ChatRepository {
 
   // ── PROMPT BUILDERS ────────────────────────────────────────────────────
 
-  /// SINGLE: system = persona.description + '\n' + persona.behavior (if set).
-  String _buildSingleSystemPrompt(PersonaEntity persona) {
+  /// Tries to load a YAML profile for [persona] from assets.
+  /// Returns the file content as a String, or null if not found.
+  Future<String?> _buildYamlSystemPrompt(PersonaEntity persona) async {
+    try {
+      final content = await rootBundle
+          .loadString('assets/characters/character_${persona.id}.yaml');
+      return content;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// SINGLE: system = YAML profile (if enabled + exists) OR
+  /// persona.description + '\n' + persona.behavior (if set).
+  Future<String> _buildSingleSystemPrompt(PersonaEntity persona) async {
+    final yamlEnabled =
+        _prefs.getBool('settings_yaml_persona_enabled') ?? false;
+
+    if (yamlEnabled) {
+      final yaml = await _buildYamlSystemPrompt(persona);
+      if (yaml != null) {
+        debugPrint('[YAML] Using YAML profile for ${persona.name}');
+        return yaml;
+      }
+    }
+
+    // Fallback: description + behavior.
     final buffer = StringBuffer(persona.description);
     if (persona.behavior != null && persona.behavior!.isNotEmpty) {
       buffer.write('\n${persona.behavior}');
@@ -188,13 +283,17 @@ class ChatRepository {
     return buffer.toString();
   }
 
-  /// Converts chat history into the OpenAI-compatible messages format.
+  /// Converts chat history into the OpenAI-compatible messages format (single persona).
   /// First message prepends persona.greeting as an assistant message.
-  List<Map<String, String>> _buildApiMessages(
+  /// Appends a reminder system message every [reminderInterval] calls if enabled.
+  Future<List<Map<String, String>>> _buildApiMessages(
     String systemPrompt,
     List<ChatMessageModel> history,
-    PersonaEntity persona,
-  ) {
+    PersonaEntity persona, {
+    required bool reminderEnabled,
+    required int reminderInterval,
+    String? behaviorReminder,
+  }) async {
     final messages = <Map<String, String>>[
       {'role': 'system', 'content': systemPrompt},
     ];
@@ -214,14 +313,34 @@ class ChatRepository {
       });
     }
 
+    // ── Reminder injection ───────────────────────────────────────────────
+    if (reminderEnabled &&
+        behaviorReminder != null &&
+        behaviorReminder.isNotEmpty) {
+      final counter = _getReminderCounter() + 1;
+      _setReminderCounter(counter);
+      debugPrint('[Reminder] Counter: $counter / $reminderInterval');
+      if (counter >= reminderInterval) {
+        _setReminderCounter(0);
+        final reminderText =
+            'Помни свою личность и поведение: $behaviorReminder\n';
+        messages.add({'role': 'system', 'content': reminderText});
+        debugPrint('[Reminder] Injected reminder for counter=$counter: $reminderText');
+      }
+    }
+
     return messages;
   }
 
   /// Converts multi-chat history into OpenAI-compatible messages.
-  List<Map<String, String>> _buildApiMessagesMulti(
+  /// Appends a reminder system message every [reminderInterval] calls if enabled.
+  Future<List<Map<String, String>>> _buildApiMessagesMulti(
     String systemPrompt,
-    List<ChatMessageModel> history,
-  ) {
+    List<ChatMessageModel> history, {
+    required bool reminderEnabled,
+    required int reminderInterval,
+    String? behaviorReminder,
+  }) async {
     final messages = <Map<String, String>>[
       {'role': 'system', 'content': systemPrompt},
     ];
@@ -229,8 +348,28 @@ class ChatRepository {
     for (final msg in history) {
       messages.add({
         'role': msg.isUser ? 'user' : 'assistant',
-        'content': msg.isUser ? msg.content : '[${msg.senderName}]: ${msg.content}',
+        'content': msg.isUser
+            ? msg.content
+            : '[${msg.senderName}]: ${msg.content}',
       });
+    }
+
+    // ── Reminder injection ───────────────────────────────────────────────
+    if (reminderEnabled &&
+        behaviorReminder != null &&
+        behaviorReminder.isNotEmpty) {
+      final counter = _getReminderCounter() + 1;
+      _setReminderCounter(counter);
+      debugPrint('[Reminder] Counter: $counter / $reminderInterval');
+      if (counter >= reminderInterval) {
+        _setReminderCounter(0);
+        final reminderText =
+            'Помни свою личность и поведение: $behaviorReminder\n'
+            'Не теряй тон, не морализируй, не отказывай в consensual интиме без причины.\n'
+            'Описывай ощущения и действия подробно.';
+        messages.add({'role': 'system', 'content': reminderText});
+        debugPrint('[Reminder] Injected reminder for counter=$counter');
+      }
     }
 
     return messages;

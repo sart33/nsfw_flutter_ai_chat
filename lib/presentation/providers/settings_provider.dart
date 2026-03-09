@@ -7,12 +7,16 @@ class SettingsState {
   final int aiResponseLimit;
   final double chatFontSize;
   final int reminderInterval;
+  final bool reminderEnabled;
+  final bool yamlPersonaEnabled;
 
   const SettingsState({
     this.userInputLimit = 2000,
     this.aiResponseLimit = 4000,
     this.chatFontSize = 16.0,
-    this.reminderInterval = 10,  // default 10
+    this.reminderInterval = 10,   // default 10
+    this.reminderEnabled = true,  // default true
+    this.yamlPersonaEnabled = false, // default false
   });
 
   SettingsState copyWith({
@@ -20,12 +24,16 @@ class SettingsState {
     int? aiResponseLimit,
     double? chatFontSize,
     int? reminderInterval,
+    bool? reminderEnabled,
+    bool? yamlPersonaEnabled,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
         aiResponseLimit: aiResponseLimit ?? this.aiResponseLimit,
         chatFontSize: chatFontSize ?? this.chatFontSize,
         reminderInterval: reminderInterval ?? this.reminderInterval,
+        reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+        yamlPersonaEnabled: yamlPersonaEnabled ?? this.yamlPersonaEnabled,
       );
 }
 
@@ -35,6 +43,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyAiResponse = 'settings_ai_response_limit';
   static const _keyChatFontSize = 'chat_font_size';
   static const _keyReminderInterval = 'settings_reminder_interval';
+  static const _keyReminderEnabled = 'settings_reminder_enabled';
+  static const _keyYamlPersonaEnabled = 'settings_yaml_persona_enabled';
 
   SettingsNotifier() : super(const SettingsState()) {
     _load();
@@ -46,11 +56,15 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final aiLimit = prefs.getInt(_keyAiResponse) ?? 4000;
     final fontSize = prefs.getDouble(_keyChatFontSize) ?? 16.0;
     final reminderInterval = prefs.getInt(_keyReminderInterval) ?? 10;
+    final reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;
+    final yamlPersonaEnabled = prefs.getBool(_keyYamlPersonaEnabled) ?? false;
     state = SettingsState(
       userInputLimit: userLimit,
       aiResponseLimit: aiLimit,
       chatFontSize: fontSize,
       reminderInterval: reminderInterval,
+      reminderEnabled: reminderEnabled,
+      yamlPersonaEnabled: yamlPersonaEnabled,
     );
   }
 
@@ -78,12 +92,26 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     await prefs.setDouble(_keyChatFontSize, clamped);
   }
 
-  /// Set reminder interval in seconds (1–20).
+  /// Set reminder interval in messages (1–20).
   Future<void> setReminderInterval(int value) async {
     final clamped = value.clamp(1, 20);
     state = state.copyWith(reminderInterval: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyReminderInterval, clamped);
+  }
+
+  /// Enable or disable persona reminder injection.
+  Future<void> setReminderEnabled(bool value) async {
+    state = state.copyWith(reminderEnabled: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyReminderEnabled, value);
+  }
+
+  /// Enable or disable YAML system prompt override.
+  Future<void> setYamlPersonaEnabled(bool value) async {
+    state = state.copyWith(yamlPersonaEnabled: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyYamlPersonaEnabled, value);
   }
 }
 

@@ -32,3 +32,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/json/image_templates.json
+    - assets/characters/

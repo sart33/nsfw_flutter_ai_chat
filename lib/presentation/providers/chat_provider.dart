@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/data/repositories/branch_repository.dart';
@@ -33,7 +35,12 @@ class ChatState {
 
 /// Manages chat messages for a specific branch with SQLite persistence.
 class ChatNotifier extends StateNotifier<ChatState> {
-  final ChatRepository _chatRepo;
+  /// Lazily initialised after [init] — non-null after first call to init().
+  ChatRepository? _chatRepo;
+
+  /// Optional override used in tests. When provided, skips async creation.
+  final ChatRepository? _chatRepoOverride;
+
   final BranchRepository _branchRepo;
   final String _branchId;
 
@@ -42,9 +49,20 @@ class ChatNotifier extends StateNotifier<ChatState> {
     ChatRepository? chatRepo,
     BranchRepository? branchRepo,
   })  : _branchId = branchId,
-        _chatRepo = chatRepo ?? ChatRepository(),
+        _chatRepoOverride = chatRepo,
         _branchRepo = branchRepo ?? BranchRepository(),
         super(const ChatState());
+
+  // ── SAFE REPO ACCESSOR ─────────────────────────────────────────────────
+
+  /// Returns a ready [ChatRepository]. Creates one (async) if not yet initialised.
+  Future<ChatRepository> _repo() async {
+    if (_chatRepo != null) return _chatRepo!;
+    _chatRepo = _chatRepoOverride ?? await ChatRepository.create();
+    return _chatRepo!;
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────────────
 
   /// Loads history from DB. If empty and [greeting] is provided,
   /// inserts it as the first AI message.
@@ -55,7 +73,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
     bool isMulti = false,
   }) async {
     try {
-      final history = await _chatRepo.loadHistory(_branchId);
+      // Ensure repository is ready and reset the reminder counter.
+      final repo = await _repo();
+      final prefs = await SharedPreferences.getInstance();
+      final interval = prefs.getInt('settings_reminder_interval') ?? 10;
+      await repo.setReminderCounter(interval - 1);
+      debugPrint('[Reminder] Counter set to ${interval - 1} on chat init');
+      debugPrint('[Reminder] Counter reset on chat init');
+
+      final history = await repo.loadHistory(_branchId);
       if (history.isNotEmpty) {
         state = state.copyWith(messages: history);
         return;
@@ -70,7 +96,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           content: greeting,
           isUser: false,
         );
-        await _chatRepo.saveMessage(msg, _branchId);
+        await repo.saveMessage(msg, _branchId);
         state = state.copyWith(messages: [msg]);
 
         // Update branch preview with greeting.
@@ -84,13 +110,17 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  // ── SEND (SINGLE) ──────────────────────────────────────────────────────
+
   /// Send a user message in a single-persona chat.
   Future<void> sendMessage({
     required String content,
     required PersonaEntity persona,
     required int maxTokens,
-    bool skipSave = false
+    bool skipSave = false,
   }) async {
+    final repo = await _repo();
+
     if (!skipSave) {
       // Add user message.
       final userMsg = ChatMessageModel(
@@ -103,57 +133,59 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, userMsg],
         error: null,
       );
-      log('sendMessage: saving userMsg, message count before=${state.messages
-          .length}', name: 'PROVIDER');
-      await _chatRepo.saveMessage(userMsg, _branchId);
-      log('sendMessage: userMsg saved, message count after=${state.messages
-          .length}', name: 'PROVIDER');
+      log(
+          'sendMessage: saving userMsg, message count before=${state.messages.length}',
+          name: 'PROVIDER');
+      await repo.saveMessage(userMsg, _branchId);
+      log(
+          'sendMessage: userMsg saved, message count after=${state.messages.length}',
+          name: 'PROVIDER');
     }
 
     state = state.copyWith(isLoading: true, error: null);
 
     // Update preview if this is the first user message.
-      if (state.messages
-          .where((m) => m.isUser)
-          .length == 1) {
-        await _branchRepo.updatePreview(
-          _branchId,
-          content.length > 80 ? '${content.substring(0, 80)}…' : content,
-        );
-      }
-
-      try {
-        final reply = await _chatRepo.sendMessage(
-          history: state.messages,
-          persona: persona,
-          maxTokens: maxTokens,
-        );
-
-        final aiMsg = ChatMessageModel(
-          id: const Uuid().v4(),
-          personaId: persona.id,
-          senderName: persona.name,
-          content: reply,
-          isUser: false,
-        );
-        state = state.copyWith(
-          messages: [...state.messages, aiMsg],
-          isLoading: false,
-        );
-        log('sendMessage: saving aiMsg, message count before=${state.messages
-            .length}', name: 'PROVIDER');
-        await _chatRepo.saveMessage(aiMsg, _branchId);
-        log('sendMessage: aiMsg saved, message count after=${state.messages
-            .length}', name: 'PROVIDER');
-      } catch (e) {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Ошибка API',
-        );
-      }
+    if (state.messages.where((m) => m.isUser).length == 1) {
+      await _branchRepo.updatePreview(
+        _branchId,
+        content.length > 80 ? '${content.substring(0, 80)}…' : content,
+      );
     }
 
+    try {
+      final reply = await repo.sendMessage(
+        history: state.messages,
+        persona: persona,
+        maxTokens: maxTokens,
+      );
 
+      final aiMsg = ChatMessageModel(
+        id: const Uuid().v4(),
+        personaId: persona.id,
+        senderName: persona.name,
+        content: reply,
+        isUser: false,
+      );
+      state = state.copyWith(
+        messages: [...state.messages, aiMsg],
+        isLoading: false,
+      );
+      log(
+          'sendMessage: saving aiMsg, message count before=${state.messages.length}',
+          name: 'PROVIDER');
+      await repo.saveMessage(aiMsg, _branchId);
+      log(
+          'sendMessage: aiMsg saved, message count after=${state.messages.length}',
+          name: 'PROVIDER');
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Ошибка API',
+      );
+    }
+  }
+
+  // ── SEND (MULTI) ───────────────────────────────────────────────────────
 
   /// Send a user message in a multi-persona chat.
   Future<void> sendMultiMessage({
@@ -161,8 +193,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
     required List<PersonaEntity> personas,
     required String behavior,
     required int maxTokens,
-    bool skipSave = false
+    bool skipSave = false,
   }) async {
+    final repo = await _repo();
+
     if (!skipSave) {
       final userMsg = ChatMessageModel(
         id: const Uuid().v4(),
@@ -174,48 +208,47 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, userMsg],
         error: null,
       );
-      await _chatRepo.saveMessage(userMsg, _branchId);
+      await repo.saveMessage(userMsg, _branchId);
     }
 
     state = state.copyWith(isLoading: true, error: null);
 
     // Update preview if this is the first user message.
-      if (state.messages
-          .where((m) => m.isUser)
-          .length == 1) {
-        await _branchRepo.updatePreview(
-          _branchId,
-          content.length > 80 ? '${content.substring(0, 80)}…' : content,
-        );
-      }
-
-      try {
-        final reply = await _chatRepo.sendMultiMessage(
-          history: state.messages,
-          personas: personas,
-          behavior: behavior,
-          maxTokens: maxTokens * personas.length,
-        );
-
-        final aiMsg = ChatMessageModel(
-          id: const Uuid().v4(),
-          senderName: _extractSenderName(reply, personas),
-          content: _extractContent(reply),
-          isUser: false,
-        );
-        state = state.copyWith(
-          messages: [...state.messages, aiMsg],
-          isLoading: false,
-        );
-        await _chatRepo.saveMessage(aiMsg, _branchId);
-      } catch (e) {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Ошибка API',
-        );
-      }
+    if (state.messages.where((m) => m.isUser).length == 1) {
+      await _branchRepo.updatePreview(
+        _branchId,
+        content.length > 80 ? '${content.substring(0, 80)}…' : content,
+      );
     }
 
+    try {
+      final reply = await repo.sendMultiMessage(
+        history: state.messages,
+        personas: personas,
+        behavior: behavior,
+        maxTokens: maxTokens * personas.length,
+      );
+
+      final aiMsg = ChatMessageModel(
+        id: const Uuid().v4(),
+        senderName: _extractSenderName(reply, personas),
+        content: _extractContent(reply),
+        isUser: false,
+      );
+      state = state.copyWith(
+        messages: [...state.messages, aiMsg],
+        isLoading: false,
+      );
+      await repo.saveMessage(aiMsg, _branchId);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Ошибка API',
+      );
+    }
+  }
+
+  // ── EDIT ───────────────────────────────────────────────────────────────
 
   /// Edit a message in the conversation.
   /// If the next message is AI, deletes it and all after, then regenerates.
@@ -227,6 +260,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     String? behavior,
     required int maxTokens,
   }) async {
+    final repo = await _repo();
+
     // Find message index.
     final idx = state.messages.indexWhere((m) => m.id == messageId);
     if (idx < 0) return;
@@ -235,12 +270,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
     final updated = state.messages[idx].copyWith(content: newContent);
     final newMessages = List<ChatMessageModel>.from(state.messages);
     newMessages[idx] = updated;
-    await _chatRepo.updateMessage(messageId, newContent);
+    await repo.updateMessage(messageId, newContent);
 
     // Check if next message is AI — if so, delete it and all after, then regen.
     if (idx + 1 < newMessages.length && !newMessages[idx + 1].isUser) {
       final nextId = newMessages[idx + 1].id;
-      await _chatRepo.deleteMessageAndAfter(nextId, _branchId);
+      await repo.deleteMessageAndAfter(nextId, _branchId);
       newMessages.removeRange(idx + 1, newMessages.length);
       state = state.copyWith(messages: newMessages);
 
@@ -266,6 +301,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  // ── HELPERS ────────────────────────────────────────────────────────────
+
   /// Clear error state (called after showing toast).
   void clearError() {
     state = state.copyWith(error: null);
@@ -273,10 +310,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// Delete a message and all messages after it (cascade).
   Future<void> deleteMessage(String messageId) async {
+    final repo = await _repo();
     final idx = state.messages.indexWhere((m) => m.id == messageId);
     if (idx < 0) return;
 
-    await _chatRepo.deleteMessageAndAfter(messageId, _branchId);
+    await repo.deleteMessageAndAfter(messageId, _branchId);
     final newMessages = state.messages.sublist(0, idx);
     state = state.copyWith(messages: newMessages);
   }
@@ -288,22 +326,21 @@ class ChatNotifier extends StateNotifier<ChatState> {
     String? behavior,
     required int maxTokens,
   }) async {
+    final repo = await _repo();
+
     // Find the last AI message.
-    final lastAiIdx =
-        state.messages.lastIndexWhere((m) => !m.isUser);
+    final lastAiIdx = state.messages.lastIndexWhere((m) => !m.isUser);
     if (lastAiIdx < 0) return;
 
     final lastAiMsg = state.messages[lastAiIdx];
-    await _chatRepo.deleteMessageAndAfter(lastAiMsg.id, _branchId);
+    await repo.deleteMessageAndAfter(lastAiMsg.id, _branchId);
     final trimmed = state.messages.sublist(0, lastAiIdx);
     state = state.copyWith(messages: trimmed, error: null);
 
     if (persona != null) {
-      // Don't re-add user message — it's still in state.
-      // Just call API and add AI response.
       state = state.copyWith(isLoading: true);
       try {
-        final reply = await _chatRepo.sendMessage(
+        final reply = await repo.sendMessage(
           history: state.messages,
           persona: persona,
           maxTokens: maxTokens,
@@ -319,14 +356,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
           messages: [...state.messages, aiMsg],
           isLoading: false,
         );
-        await _chatRepo.saveMessage(aiMsg, _branchId);
+        await repo.saveMessage(aiMsg, _branchId);
       } catch (e) {
         state = state.copyWith(isLoading: false, error: 'Ошибка API');
       }
     } else if (personas != null && behavior != null) {
       state = state.copyWith(isLoading: true);
       try {
-        final reply = await _chatRepo.sendMultiMessage(
+        final reply = await repo.sendMultiMessage(
           history: state.messages,
           personas: personas,
           behavior: behavior,
@@ -342,7 +379,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           messages: [...state.messages, aiMsg],
           isLoading: false,
         );
-        await _chatRepo.saveMessage(aiMsg, _branchId);
+        await repo.saveMessage(aiMsg, _branchId);
       } catch (e) {
         state = state.copyWith(isLoading: false, error: 'Ошибка API');
       }
@@ -356,11 +393,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
     String? behavior,
     required int maxTokens,
   }) async {
+    final repo = await _repo();
     if (state.messages.isEmpty) return;
 
     // Remove the last user message to resend it.
     final lastUserMsg = state.messages.lastWhere((m) => m.isUser);
-    await _chatRepo.deleteMessageAndAfter(lastUserMsg.id, _branchId);
+    await repo.deleteMessageAndAfter(lastUserMsg.id, _branchId);
     final trimmed = state.messages.sublist(
       0,
       state.messages.lastIndexOf(lastUserMsg),
@@ -383,7 +421,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
-  // ── HELPERS ────────────────────────────────────────────────────────────
+  // ── PRIVATE HELPERS ────────────────────────────────────────────────────
 
   String _extractSenderName(String reply, List<PersonaEntity> personas) {
     for (final p in personas) {
