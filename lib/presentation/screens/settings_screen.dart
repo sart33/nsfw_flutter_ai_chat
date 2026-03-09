@@ -73,43 +73,6 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (v) => notifier.setAiResponseLimit(v.round()),
             ),
 
-            const SizedBox(height: 24),
-
-            // ── Chat font size ───────────────────────────────────
-            const Text(
-              'Размер текста в чате',
-              style: TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                SizedBox(
-                  width: 45,
-                  child: Text(
-                    '${settings.chatFontSize.round()}px',
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Slider(
-                    value: settings.chatFontSize,
-                    min: 12,
-                    max: 24,
-                    divisions: 12,
-                    activeColor: const Color(0xFF7C4DFF),
-                    onChanged: (v) => notifier.setChatFontSize(v),
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 16),
 
             // ── Multi-chat note ──────────────────────────────────
@@ -121,7 +84,11 @@ class SettingsScreen extends ConsumerWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppTheme.textSecondary, size: 20),
+                  Icon(
+                    Icons.info_outline,
+                    color: AppTheme.textSecondary,
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -134,6 +101,61 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 24),
+
+            // ── AI response limit ────────────────────────────────
+            const Text(
+              'Частота повтора промпта.',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '1 / ${settings.reminderInterval} сообщений',
+              style: const TextStyle(
+                color: AppTheme.primaryAccent,
+                fontSize: 14,
+              ),
+            ),
+            Slider(
+              value: settings.reminderInterval.toDouble(),
+              min: 1,
+              max: 20,
+              divisions: 60,
+              label: '${settings.reminderInterval}',
+              onChanged: (v) => notifier.setReminderInterval(v.round()),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ── Chat font size ─────────────────────────────────────
+            const Text(
+              'Размер текста в чате',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${settings.chatFontSize.round()}px',
+              style: const TextStyle(
+                color: AppTheme.primaryAccent,
+                fontSize: 14,
+              ),
+            ),
+            Slider(
+              value: settings.chatFontSize,
+              min: 12,
+              max: 24,
+              divisions: 12,
+              activeColor: AppTheme.primaryAccent,
+              onChanged: (v) => notifier.setChatFontSize(v),
             ),
           ],
         ),
