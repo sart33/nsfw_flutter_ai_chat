@@ -121,6 +121,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider(widget.branchId));
     final settings = ref.watch(settingsProvider);
+    if (_singlePersona != null) ref.watch(galleryProvider(_singlePersona!.id));
 
     _resolveEntities(ref);
     _initIfNeeded();

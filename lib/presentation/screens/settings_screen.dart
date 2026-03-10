@@ -193,6 +193,37 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (v) => notifier.setYamlPersonaEnabled(v),
               activeColor: const Color(0xFF7c4dff),
             ),
+
+            const SizedBox(height: 24),
+
+            // ── Generation temperature ──────────────────────────────
+            const Text(
+              'Креативность ответа',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              settings.generationTemperature.toStringAsFixed(2),
+              style: const TextStyle(
+                color: AppTheme.primaryAccent,
+                fontSize: 14,
+              ),
+            ),
+            Slider(
+              value: settings.generationTemperature,
+              min: 0.1,
+              max: 1.5,
+              divisions: 28,
+              activeColor: AppTheme.primaryAccent,
+              onChanged: (v) =>  notifier.setGenerationTemperature(
+                  double.parse(v.toStringAsFixed(2)),
+            ),
+            ),
+            const SizedBox(height: 24),
+
           ],
         ),
       ),

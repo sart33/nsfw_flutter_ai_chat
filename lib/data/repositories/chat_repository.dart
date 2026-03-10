@@ -86,11 +86,13 @@ class ChatRepository {
         behaviorReminder: persona.behavior,
       );
 
+      final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
+
       final requestBody = {
         'model': AppConfig.deepSeekModel,
         'messages': messages,
         'max_tokens': maxTokens,
-        'temperature': 0.9,
+        'temperature': temperature,
       };
       log(jsonEncode(requestBody), name: 'API_REQUEST');
 
@@ -147,11 +149,13 @@ class ChatRepository {
         behaviorReminder: behaviorReminder,
       );
 
+      final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
+
       final requestBody = {
         'model': AppConfig.deepSeekModel,
         'messages': messages,
         'max_tokens': maxTokens,
-        'temperature': 0.9,
+        'temperature': temperature,
       };
       log(jsonEncode(requestBody), name: 'API_REQUEST');
 

@@ -9,6 +9,7 @@ class SettingsState {
   final int reminderInterval;
   final bool reminderEnabled;
   final bool yamlPersonaEnabled;
+  final double generationTemperature;
 
   const SettingsState({
     this.userInputLimit = 2000,
@@ -17,6 +18,7 @@ class SettingsState {
     this.reminderInterval = 10,   // default 10
     this.reminderEnabled = true,  // default true
     this.yamlPersonaEnabled = false, // default false
+    this.generationTemperature = 0.9,
   });
 
   SettingsState copyWith({
@@ -26,6 +28,7 @@ class SettingsState {
     int? reminderInterval,
     bool? reminderEnabled,
     bool? yamlPersonaEnabled,
+    double? generationTemperature,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
@@ -34,6 +37,7 @@ class SettingsState {
         reminderInterval: reminderInterval ?? this.reminderInterval,
         reminderEnabled: reminderEnabled ?? this.reminderEnabled,
         yamlPersonaEnabled: yamlPersonaEnabled ?? this.yamlPersonaEnabled,
+        generationTemperature: generationTemperature ?? this.generationTemperature,
       );
 }
 
@@ -45,6 +49,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyReminderInterval = 'settings_reminder_interval';
   static const _keyReminderEnabled = 'settings_reminder_enabled';
   static const _keyYamlPersonaEnabled = 'settings_yaml_persona_enabled';
+  static const _keyGenerationTemperature = 'generation_temperature';
 
   SettingsNotifier() : super(const SettingsState()) {
     _load();
@@ -58,6 +63,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final reminderInterval = prefs.getInt(_keyReminderInterval) ?? 10;
     final reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;
     final yamlPersonaEnabled = prefs.getBool(_keyYamlPersonaEnabled) ?? false;
+    final temperature = prefs.getDouble(_keyGenerationTemperature) ?? 0.9;
     state = SettingsState(
       userInputLimit: userLimit,
       aiResponseLimit: aiLimit,
@@ -65,6 +71,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       reminderInterval: reminderInterval,
       reminderEnabled: reminderEnabled,
       yamlPersonaEnabled: yamlPersonaEnabled,
+      generationTemperature: temperature,
     );
   }
 
@@ -112,6 +119,14 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     state = state.copyWith(yamlPersonaEnabled: value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyYamlPersonaEnabled, value);
+  }
+
+  /// Set generation temperature (0.1–1.5).
+  Future<void> setGenerationTemperature(double value) async {
+    final clamped = value.clamp(0.1, 1.5);
+    state = state.copyWith(generationTemperature: clamped);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyGenerationTemperature, clamped);
   }
 }
 
