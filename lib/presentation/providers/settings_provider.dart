@@ -77,7 +77,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   /// Set user input limit (1000–4000).
   Future<void> setUserInputLimit(int value) async {
-    final clamped = value.clamp(1000, 4000);
+    final clamped = value.clamp(1000, 8000);
     state = state.copyWith(userInputLimit: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyUserInput, clamped);

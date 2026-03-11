@@ -43,8 +43,8 @@ class SettingsScreen extends ConsumerWidget {
             Slider(
               value: settings.userInputLimit.toDouble(),
               min: 1000,
-              max: 4000,
-              divisions: 30,
+              max: 8000,
+              divisions: 60,
               label: '${settings.userInputLimit}',
               onChanged: (v) => notifier.setUserInputLimit(v.round()),
             ),
@@ -62,7 +62,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${settings.aiResponseLimit} символов',
+              '${settings.aiResponseLimit} токенов',
               style: const TextStyle(
                 color: AppTheme.primaryAccent,
                 fontSize: 14,
@@ -80,33 +80,33 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // ── Multi-chat note ──────────────────────────────────
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppTheme.textSecondary,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Для мульти-чата умножается на количество персонажей',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+            // Container(
+            //   padding: const EdgeInsets.all(12),
+            //   decoration: BoxDecoration(
+            //     color: AppTheme.surface,
+            //     borderRadius: BorderRadius.circular(8),
+            //   ),
+            //   child: const Row(
+            //     children: [
+            //       Icon(
+            //         Icons.info_outline,
+            //         color: AppTheme.textSecondary,
+            //         size: 20,
+            //       ),
+            //       SizedBox(width: 8),
+            //       Expanded(
+            //         child: Text(
+            //           'Для мульти-чата умножается на количество персонажей',
+            //           style: TextStyle(
+            //             color: AppTheme.textSecondary,
+            //             fontSize: 13,
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // const SizedBox(height: 24),
 
             // ── Reminder interval ────────────────────────────────
             const Text(

@@ -220,13 +220,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
         content.length > 80 ? '${content.substring(0, 80)}…' : content,
       );
     }
+    final effectiveTokens = (maxTokens * personas.length).clamp(1, 8192);
 
     try {
       final reply = await repo.sendMultiMessage(
         history: state.messages,
         personas: personas,
         behavior: behavior,
-        maxTokens: maxTokens * personas.length,
+        maxTokens: effectiveTokens,
       );
 
       final aiMsg = ChatMessageModel(
@@ -362,12 +363,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
       }
     } else if (personas != null && behavior != null) {
       state = state.copyWith(isLoading: true);
+      final effectiveTokens  = (maxTokens * personas.length).clamp(1, 8192);
+
       try {
         final reply = await repo.sendMultiMessage(
           history: state.messages,
           personas: personas,
           behavior: behavior,
-          maxTokens: maxTokens * personas.length,
+          maxTokens: effectiveTokens,
         );
         final aiMsg = ChatMessageModel(
           id: const Uuid().v4(),

@@ -81,11 +81,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Computed max tokens from settings, multiplied for multi.
   int _maxTokens(SettingsState settings) {
-    final base = settings.aiResponseLimit ~/ 4; // rough char→token
-    if (widget.isMulti && _multiPersonas.isNotEmpty) {
-      return base * _multiPersonas.length;
-    }
-    return base;
+    return settings.aiResponseLimit.clamp(1, 8192);
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────
