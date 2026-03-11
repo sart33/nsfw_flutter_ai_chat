@@ -176,7 +176,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
               value: settings.reminderEnabled,
               onChanged: (v) => notifier.setReminderEnabled(v),
-              activeColor: const Color(0xFF7c4dff),
+              activeColor: AppTheme.primaryAccent,
             ),
 
             const SizedBox(height: 8),
@@ -192,7 +192,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
               value: settings.yamlPersonaEnabled,
               onChanged: (v) => notifier.setYamlPersonaEnabled(v),
-              activeColor: const Color(0xFF7c4dff),
+              activeColor: AppTheme.primaryAccent,
             ),
 
             const SizedBox(height: 24),
@@ -206,32 +206,22 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Row(
-              children: [
-                Container(
-                  width: 45,
-                  child: Text(
-                    settings.generationTemperature.toStringAsFixed(2),
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Slider(
-                    value: settings.generationTemperature,
-                    min: 0.1,
-                    max: 1.5,
-                    divisions: 28,
-                    activeColor: const Color(0xff7c4dff),
-                    onChanged: (v) => notifier.setGenerationTemperature(
-                        double.parse(v.toStringAsFixed(2))),
-                  ),
-                ),
-              ],
+            Text(
+              settings.generationTemperature.toStringAsFixed(2),
+              style: const TextStyle(
+                color: AppTheme.primaryAccent,
+                fontSize: 14,
+              ),
+            ),
+            Slider(
+              value: settings.generationTemperature,
+              min: 0.1,
+              max: 1.5,
+              divisions: 28,
+              activeColor: AppTheme.primaryAccent,
+              onChanged: (v) =>  notifier.setGenerationTemperature(
+                  double.parse(v.toStringAsFixed(2)),
+            ),
             ),
             const SizedBox(height: 24),
 
