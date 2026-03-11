@@ -8,8 +8,8 @@ import 'package:nsfw_chat/core/config/app_config.dart';
 /// Generates an NSFW portrait image from a persona description,
 /// polls for completion, downloads the result, and saves it locally.
 class NovitaAvatarService {
-  static const _apiKey = AppConfig.novitaApiKey; // TODO: secure storage
   static const _baseUrl = 'https://api.novita.ai/v3/async';
+  // ignore: unused_field
   static const _negativePrompt =
       'blurry, lowres, deformed, ugly, bad anatomy, watermark, text, censored';
 
@@ -22,6 +22,12 @@ class NovitaAvatarService {
   /// Returns the absolute path to the saved file.
   static Future<String> generateAvatar(
       String description, String saveDir) async {
+    // 0. Get API key from secure storage
+    final apiKey = await AppConfig.getNovitaApiKey();
+    if (apiKey.isEmpty) {
+      throw Exception('Novita API key not set. Please add key in API Keys screen.');
+    }
+
     // 1. Build prompt
     final prompt =
         'Эротическое фото $description, explicit nsfw details, aroused expression, '
@@ -32,7 +38,7 @@ class NovitaAvatarService {
     final submitResp = await _dio.post(
       '$_baseUrl/z-image-turbo',
       options: Options(headers: {
-        'Authorization': 'Bearer $_apiKey',
+        'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
       }),
       data: {
@@ -58,7 +64,7 @@ class NovitaAvatarService {
         '$_baseUrl/task-result',
         queryParameters: {'task_id': taskId},
         options: Options(headers: {
-          'Authorization': 'Bearer $_apiKey',
+          'Authorization': 'Bearer $apiKey',
         }),
       );
 

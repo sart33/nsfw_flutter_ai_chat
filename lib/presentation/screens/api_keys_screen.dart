@@ -1,0 +1,371 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'home_screen.dart';
+
+/// Screen for managing API keys stored securely.
+class ApiKeysScreen extends StatefulWidget {
+  const ApiKeysScreen({super.key});
+
+  @override
+  State<ApiKeysScreen> createState() => _ApiKeysScreenState();
+}
+
+class _ApiKeysScreenState extends State<ApiKeysScreen> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final TextEditingController _deepSeekController = TextEditingController();
+  final TextEditingController _novitaController = TextEditingController();
+  bool _deepSeekObscure = true;
+  bool _novitaObscure = true;
+  bool _deepSeekSaved = false;
+  bool _novitaSaved = false;
+  bool _loading = true;
+  String _originalDeepSeekKey = '';
+  String _originalNovitaKey = '';
+  bool _deepSeekChanged = false;
+  bool _novitaChanged = false;
+  bool _showHomeButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKeys();
+  }
+
+  Future<void> _loadKeys() async {
+    try {
+      final deepSeekKey = await _storage.read(key: 'deepseek_api_key') ?? '';
+      final novitaKey = await _storage.read(key: 'novita_api_key') ?? '';
+
+      setState(() {
+        _deepSeekSaved = deepSeekKey.isNotEmpty;
+        _novitaSaved = novitaKey.isNotEmpty;
+        _originalDeepSeekKey = deepSeekKey;
+        _originalNovitaKey = novitaKey;
+        _deepSeekController.text =
+            deepSeekKey.isNotEmpty ? _maskKey(deepSeekKey) : '';
+        _novitaController.text =
+            novitaKey.isNotEmpty ? _maskKey(novitaKey) : '';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  String _maskKey(String key) {
+    if (key.length <= 8) return '••••••••';
+    return '${key.substring(0, 8)}••••••••';
+  }
+
+  Future<void> _saveDeepSeekKey() async {
+    final trimmed = _deepSeekController.text.trim();
+    if (trimmed.isEmpty) return;
+
+    await _storage.write(key: 'deepseek_api_key', value: trimmed);
+    setState(() {
+      _deepSeekSaved = true;
+      _originalDeepSeekKey = trimmed;
+      _deepSeekController.text = _maskKey(trimmed);
+      _deepSeekObscure = true;
+      _deepSeekChanged = false;
+    });
+
+    _showSnackBar('DeepSeek ключ сохранён');
+    // Show home button if this is the first time setting the key (i.e. we came from splash screen)
+    if (!Navigator.canPop(context) && mounted) {
+      setState(() => _showHomeButton = true);
+    }
+  }
+
+  Future<void> _deleteDeepSeekKey() async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Удалить ключ DeepSeek'),
+                content: const Text(
+                  'Чат перестанет работать. Вы уверены, что хотите удалить ключ?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Отмена'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text(
+                      'Удалить',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+        ) ??
+        false;
+
+    if (!confirmed) return;
+
+    await _storage.delete(key: 'deepseek_api_key');
+    setState(() {
+      _deepSeekSaved = false;
+      _originalDeepSeekKey = '';
+      _deepSeekController.clear();
+      _deepSeekChanged = false;
+    });
+    _showSnackBar('Ключ удалён');
+  }
+
+  Future<void> _saveNovitaKey() async {
+    final trimmed = _novitaController.text.trim();
+    if (trimmed.isEmpty) return;
+
+    await _storage.write(key: 'novita_api_key', value: trimmed);
+    setState(() {
+      _novitaSaved = true;
+      _originalNovitaKey = trimmed;
+      _novitaController.text = _maskKey(trimmed);
+      _novitaObscure = true;
+      _novitaChanged = false;
+    });
+    _showSnackBar('Novita ключ сохранён');
+  }
+
+  Future<void> _deleteNovitaKey() async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Удалить ключ Novita'),
+                content: const Text(
+                  'Генерация изображений перестанет работать. Вы уверены?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Отмена'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text(
+                      'Удалить',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+        ) ??
+        false;
+
+    if (!confirmed) return;
+
+    await _storage.delete(key: 'novita_api_key');
+    setState(() {
+      _novitaSaved = false;
+      _originalNovitaKey = '';
+      _novitaController.clear();
+      _novitaChanged = false;
+    });
+    _showSnackBar('Ключ удалён');
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  Widget _buildKeyCard({
+    required String title,
+    required String subtitle,
+    required bool isSaved,
+    required TextEditingController controller,
+    required bool obscure,
+    required VoidCallback toggleObscure,
+    required VoidCallback onSave,
+    required bool canSave,
+    required VoidCallback onDelete,
+    required bool canDelete,
+    required String emptyHint,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Card(
+      color: const Color(0xFF111111),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  isSaved ? Icons.check_circle : Icons.cancel,
+                  color: isSaved ? Colors.green : Colors.redAccent,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isSaved ? 'Ключ сохранён' : 'Ключ не задан',
+                  style: TextStyle(
+                    color: isSaved ? Colors.green : Colors.redAccent,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              obscureText: obscure,
+              onChanged: onChanged,
+              // добавить это
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: emptyHint,
+                hintStyle: const TextStyle(color: Color(0xFFB0B0B0)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: const Color(0xFF222222),
+                suffixIcon: IconButton(
+                  onPressed: toggleObscure,
+                  icon: Icon(
+                    obscure ? Icons.visibility : Icons.visibility_off,
+                    color: const Color(0xFFB0B0B0),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: canSave ? onSave : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFBB86FC),
+                    foregroundColor: Colors.black,
+                  ),
+                  child: const Text('Сохранить'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: canDelete ? onDelete : null,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.red),
+                    foregroundColor: Colors.red,
+                  ),
+                  child: const Text('Удалить'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('API Ключи')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('API Ключи'),
+        backgroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildKeyCard(
+              title: 'DeepSeek API',
+              subtitle: 'Необходим для работы чата',
+              isSaved: _deepSeekSaved,
+              controller: _deepSeekController,
+              obscure: _deepSeekObscure,
+              toggleObscure:
+                  () => setState(() => _deepSeekObscure = !_deepSeekObscure),
+              onSave: _saveDeepSeekKey,
+              onChanged: (_) => setState(() => _deepSeekChanged = true),
+              canSave:
+                  _deepSeekChanged &&
+                  _deepSeekController.text.trim().isNotEmpty,
+              onDelete: _deleteDeepSeekKey,
+              canDelete: _deepSeekSaved,
+              emptyHint: 'Вставьте DeepSeek API ключ',
+            ),
+            const SizedBox(height: 20),
+            _buildKeyCard(
+              title: 'Novita AI',
+              subtitle: 'Необходим для генерации изображений (опционально)',
+              isSaved: _novitaSaved,
+              controller: _novitaController,
+              obscure: _novitaObscure,
+              toggleObscure:
+                  () => setState(() => _novitaObscure = !_novitaObscure),
+              onSave: _saveNovitaKey,
+              onChanged: (_) => setState(() => _novitaChanged = true),
+              canSave:
+                  _novitaChanged && _novitaController.text.trim().isNotEmpty,
+              onDelete: _deleteNovitaKey,
+              canDelete: _novitaSaved,
+              emptyHint: 'Вставьте Novita API ключ',
+            ),
+            const SizedBox(height: 24),
+            if (_showHomeButton)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.home),
+                    label: const Text('Перейти в приложение'),
+                    onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    ),
+                  ),
+                ),
+              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Ключи хранятся в защищённом хранилище устройства.',
+                style: TextStyle(color: Color(0xFFB0B0B0), fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

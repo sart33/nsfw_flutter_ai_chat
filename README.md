@@ -1,35 +1,42 @@
 # Uncensored Flutter AI Roleplay Chat
 
-**Description:** A fully local, privacy-first Flutter app for uncensored NSFW roleplay chats with AI.  
-Uses your own DeepSeek API key for text generation (no built-in censorship) and Novita AI for image generation.  
-Everything stored on-device: characters, chats, settings in SQLite; images in app documents folder. No servers, no tracking.
+A fully local, privacy-first Flutter app for uncensored NSFW roleplay 
+chats with AI. Uses your own API keys for text and image generation. 
+Everything stored on-device. No servers, no tracking.
 
-**Current Features:**
-- Create/edit characters with detailed appearance descriptions
-- Static NSFW gallery generation (20 random erotic poses/locations per character)
-- Generate avatar from character description
-- Basic chat interface (single persona for now)
-- Secure storage for user-provided API keys (flutter_secure_storage)
+## Features
 
-**API Keys (required to use):**
-Currently hardcoded placeholders in `lib/core/config/app_config.dart` (or similar file):  
-Replace with your real keys:
+- Create/edit characters with detailed descriptions and avatars
+- Generate avatar from character description via Novita AI
+- Static gallery: up to 20 generated images per character (random poses/locations)
+- Single and multi-character chat modes
+- Branch system: multiple independent chat histories per character
+- Message editing, deletion (cascade), and regeneration
+- Persistent chat history (SQLite)
+- Character personality reminder system (anti-drift)
+- YAML persona profiles support
+- Dark theme, adjustable font size and generation parameters
+- Secure API key storage (flutter_secure_storage)
 
-```dart
-// In lib/core/config/app_config.dart or services
-const String deepSeekApiKey = 'YOUR_DEEPSEEK_API_KEY_HERE';
-const String novitaApiKey = 'YOUR_NOVITA_API_KEY_HERE';
-Get keys:
+## Setup
 
-DeepSeek: https://platform.deepseek.com/api_keys
-Novita AI: https://novita.ai/dashboard/api-keys
+1. `flutter pub get`
+2. Run the app — on first launch you will be redirected to the API Keys screen
+3. Enter your API keys there (stored securely on device, never transmitted)
+4. Start chatting
 
-Note: This is early WIP. Image features won't work without valid keys.
-Future plans: user input for keys in Settings screen, dynamic context-based generation, notifications.
-Setup:
+## API Keys
 
-flutter pub get
-Insert your API keys in the config file
-flutter run
+- **DeepSeek** (required for chat): https://platform.deepseek.com/api_keys
+- **Novita AI** (required for image generation): https://novita.ai/dashboard/api-keys
 
-License: MIT
+No hardcoded keys — everything entered through the in-app API Keys screen.
+
+## Status
+
+Early WIP. Core chat and image generation work. 
+Active development.
+
+## License
+
+MIT

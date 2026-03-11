@@ -71,6 +71,11 @@ class ChatRepository {
     required int maxTokens,
   }) async {
     try {
+      final apiKey = await AppConfig.getDeepSeekApiKey();
+      if (apiKey.isEmpty) {
+        throw Exception('DeepSeek API key not set. Please add key in API Keys screen.');
+      }
+
       final reminderEnabled =
           _prefs.getBool('settings_reminder_enabled') ?? true;
       final reminderInterval =
@@ -99,6 +104,7 @@ class ChatRepository {
       final response = await _dio.post(
         '/v1/chat/completions',
         data: requestBody,
+        options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
 
       log(jsonEncode(response.data), name: 'API_RESPONSE');
@@ -131,6 +137,11 @@ class ChatRepository {
     required int maxTokens,
   }) async {
     try {
+      final apiKey = await AppConfig.getDeepSeekApiKey();
+      if (apiKey.isEmpty) {
+        throw Exception('DeepSeek API key not set. Please add key in API Keys screen.');
+      }
+
       final reminderEnabled =
           _prefs.getBool('settings_reminder_enabled') ?? true;
       final reminderInterval =
@@ -162,6 +173,7 @@ class ChatRepository {
       final response = await _dio.post(
         '/v1/chat/completions',
         data: requestBody,
+        options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
 
       log(jsonEncode(response.data), name: 'API_RESPONSE');

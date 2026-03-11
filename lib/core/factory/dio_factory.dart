@@ -13,7 +13,7 @@ class DioFactory {
         receiveTimeout: const Duration(seconds: 60),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AppConfig.deepSeekApiKey}',
+          // Authorization header will be added per request after reading from secure storage
         },
       ),
     );

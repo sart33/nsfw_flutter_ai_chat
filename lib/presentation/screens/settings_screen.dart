@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
+import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 
 /// Settings screen with sliders and toggles for adjusting limits and features.
 class SettingsScreen extends ConsumerWidget {
@@ -205,24 +206,63 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              settings.generationTemperature.toStringAsFixed(2),
-              style: const TextStyle(
-                color: AppTheme.primaryAccent,
-                fontSize: 14,
-              ),
-            ),
-            Slider(
-              value: settings.generationTemperature,
-              min: 0.1,
-              max: 1.5,
-              divisions: 28,
-              activeColor: AppTheme.primaryAccent,
-              onChanged: (v) =>  notifier.setGenerationTemperature(
-                  double.parse(v.toStringAsFixed(2)),
-            ),
+            Row(
+              children: [
+                Container(
+                  width: 45,
+                  child: Text(
+                    settings.generationTemperature.toStringAsFixed(2),
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Slider(
+                    value: settings.generationTemperature,
+                    min: 0.1,
+                    max: 1.5,
+                    divisions: 28,
+                    activeColor: const Color(0xff7c4dff),
+                    onChanged: (v) => notifier.setGenerationTemperature(
+                        double.parse(v.toStringAsFixed(2))),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
+
+            // ── API Keys management ──────────────────────────────
+            Card(
+              color: AppTheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.key, color: AppTheme.primaryAccent),
+                title: Text(
+                  'API Ключи',
+                  style: whiteStyle,
+                ),
+                subtitle: Text(
+                  'Управление ключами DeepSeek и Novita AI',
+                  style: graySmall,
+                ),
+                trailing: Icon(Icons.arrow_forward_ios,
+                    color: AppTheme.textSecondary, size: 16),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ApiKeysScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
 
           ],
         ),

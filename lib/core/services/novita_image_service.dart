@@ -19,7 +19,7 @@ class NovitaImageService {
   static final NovitaImageService instance = NovitaImageService._();
 
   static const _baseUrl = 'https://api.novita.ai/v3/async';
-  static const _apiKey = AppConfig.novitaApiKey; // TODO: flutter_secure_storage
+  // ignore: unused_field
   static const _negativePrompt =
       'blurry, lowres, deformed, ugly, bad anatomy, bad hands, extra limbs, watermark, text, censored';
   static const _enhancers =
@@ -49,6 +49,12 @@ class NovitaImageService {
 
   /// Core generation logic: submit → poll → download bytes.
   Future<List<int>> _generateBytes(String promptTemplate) async {
+    // 0. Get API key from secure storage
+    final apiKey = await AppConfig.getNovitaApiKey();
+    if (apiKey.isEmpty) {
+      throw Exception('Novita API key not set. Please add key in API Keys screen.');
+    }
+
     // 1. Build final prompt
     final finalPrompt = '$promptTemplate, $_enhancers';
 
@@ -56,7 +62,7 @@ class NovitaImageService {
     final submitResponse = await http.post(
       Uri.parse('$_baseUrl/z-image-turbo'),
       headers: {
-        'Authorization': 'Bearer $_apiKey',
+        'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
@@ -90,7 +96,7 @@ class NovitaImageService {
 
       final pollResponse = await http.get(
         pollUri,
-        headers: {'Authorization': 'Bearer $_apiKey'},
+        headers: {'Authorization': 'Bearer $apiKey'},
       );
 
       final pollJson =
