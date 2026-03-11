@@ -118,7 +118,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatState = ref.watch(chatProvider(widget.branchId));
     final settings = ref.watch(settingsProvider);
     if (_singlePersona != null) ref.watch(galleryProvider(_singlePersona!.id));
-
+    // Pre-watch all multi-persona galleries to have them ready on avatar tap.
+    for (final p in _multiPersonas) {
+      ref.watch(galleryProvider(p.id));
+    }
     _resolveEntities(ref);
     _initIfNeeded();
 
@@ -216,6 +219,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   onAvatarTap: (!msg.isUser && !widget.isMulti && _singlePersona != null)
                       ? () => _openGalleryFromAvatar(context)
+                      : (!msg.isUser && widget.isMulti)
+                      ? () => _openGalleryFromMultiAvatar(context, msg.senderName)
                       : null,
                 );
               },
@@ -479,7 +484,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
     } else {
       Fluttertoast.showToast(
-        msg: 'Галерея пуста. Откройте карточку персонажа.',
+        msg: 'Галерея пуста.',
+      );
+    }
+  }
+
+  void _openGalleryFromMultiAvatar(BuildContext context, String senderName) {
+    final persona = _multiPersonas
+        .where((p) => p.name == senderName)
+        .firstOrNull;
+    if (persona == null) return;
+
+    final galleryState = ref.read(galleryProvider(persona.id));
+    if (galleryState.images.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GalleryFullscreenScreen(
+            images: galleryState.images,
+            initialIndex: 0,
+            personaDescription: persona.description,
+            personaId: persona.id,
+          ),
+        ),
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: 'Галерея ${persona.name} пуста.',
       );
     }
   }

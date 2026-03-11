@@ -8,6 +8,219 @@ import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  void _showTokenInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        title: Text(
+          'Токены и текст',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Лимит ответа задаётся в токенах.\n'
+                'Токен ≠ символ и ≠ слово.\n',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 13,
+                ),
+              ),
+              Table(
+                border: TableBorder.all(
+                  color: AppTheme.textSecondary,
+                  width: 0.5,
+                ),
+                columnWidths: const {
+                  0: FlexColumnWidth(1.2),
+                  1: FlexColumnWidth(2),
+                },
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(
+                      color: AppTheme.background.withValues(alpha: 0.5),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          'Токены',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          'Примерный объём',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '1 000',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '~750 слов EN / ~500 слов RU',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '2 000',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '~1 500 слов EN / ~1 000 слов RU',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '4 000',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '~3 000 слов EN / ~2 000 слов RU',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          '8 192',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        child: Text(
+                          'Максимум DeepSeek',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Для обычного ответа достаточно 2000–4000 токенов.',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Понятно',
+              style: TextStyle(color: AppTheme.primaryAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
@@ -75,6 +288,31 @@ class SettingsScreen extends ConsumerWidget {
               divisions: 60,
               label: '${settings.aiResponseLimit}',
               onChanged: (v) => notifier.setAiResponseLimit(v.round()),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                InkWell(
+                  onTap: () => _showTokenInfoDialog(context),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Что такое токены?',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 16),

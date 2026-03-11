@@ -19,6 +19,8 @@ class GalleryState {
   final String? pendingImagePath;
   final int? pendingTemplateId;
   final String? error;
+  final bool isLoaded;
+
 
   const GalleryState({
     this.images = const [],
@@ -26,6 +28,8 @@ class GalleryState {
     this.pendingImagePath,
     this.pendingTemplateId,
     this.error,
+    this.isLoaded = false,
+
   });
 
   static const _absent = Object();
@@ -36,6 +40,7 @@ class GalleryState {
     Object? pendingImagePath = _absent,
     Object? pendingTemplateId = _absent,
     Object? error = _absent,
+    bool? isLoaded,
   }) {
     return GalleryState(
       images: images ?? this.images,
@@ -47,6 +52,7 @@ class GalleryState {
           ? this.pendingTemplateId
           : pendingTemplateId as int?,
       error: identical(error, _absent) ? this.error : error as String?,
+      isLoaded: isLoaded ?? this.isLoaded,
     );
   }
 }
@@ -67,8 +73,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   Future<void> _loadGallery() async {
     try {
       final images = await _repo.getGalleryForPersona(personaId);
-      state = state.copyWith(images: images);
-    } catch (_) {}
+      state = state.copyWith(images: images, isLoaded: true);
+    } catch (_) {
+      state = state.copyWith(isLoaded: true);
+    }
   }
 
   // ── generateNext ────────────────────────────────────────────────────────
