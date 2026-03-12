@@ -7,14 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
-
-/// Thrown when all 20 templates have already been generated for a persona.
-class GalleryFullException implements Exception {
-  const GalleryFullException();
-  @override
-  String toString() =>
-      'GalleryFullException: all 20 templates have been used for this persona';
-}
+import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 
 /// Manages gallery image generation, persistence, and deletion for personas.
 class GalleryRepository {

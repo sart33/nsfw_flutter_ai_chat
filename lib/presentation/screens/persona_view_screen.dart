@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/data/repositories/gallery_repository.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
@@ -23,6 +26,21 @@ class PersonaViewScreen extends ConsumerWidget {
     final state = ref.watch(galleryProvider(persona.id));
     final notifier = ref.read(galleryProvider(persona.id).notifier);
 
+    // ── Error listener ───────────────────────────────────────────────────
+    ref.listen<GalleryState>(galleryProvider(persona.id), (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        final msg = switch (next.error) {
+          GalleryFullException() => context.l10n.galleryFull,
+          GenerationException() => context.l10n.errorGeneration,
+          SaveException() => context.l10n.errorSave,
+          DeleteException() => context.l10n.errorDelete,
+          _ => context.l10n.errorUnknown,
+        };
+        Fluttertoast.showToast(msg: msg);
+        ref.read(galleryProvider(persona.id).notifier).clearError();
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       extendBodyBehindAppBar: true,
@@ -33,7 +51,7 @@ class PersonaViewScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit, color: Colors.white),
-            tooltip: 'Редактировать',
+            tooltip: context.l10n.editCharacter,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -44,7 +62,7 @@ class PersonaViewScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-            tooltip: 'Чаты',
+            tooltip: context.l10n.chats,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -59,7 +77,7 @@ class PersonaViewScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            tooltip: 'Удалить',
+            tooltip: context.l10n.delete,
             onPressed: () => _confirmDelete(context, ref),
           ),
         ],
@@ -77,28 +95,36 @@ class PersonaViewScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Description card
-                  _buildInfoCard('Описание', persona.description,
+                  _buildInfoCard(context.l10n.description, persona.description,
                       selectable: true),
                   const SizedBox(height: 12),
 
                   // Greeting card
                   if (persona.greeting.isNotEmpty) ...[
-                    _buildInfoCard('Приветствие', persona.greeting,
+                    _buildInfoCard(context.l10n.greeting, persona.greeting,
                         italic: true,
                         textColor: const Color(0xFFCCCCCC)),
                     const SizedBox(height: 12),
                   ],
 
                   // ── Gallery section ────────────────────────────
-                  _buildGalleryHeader(state, notifier),
+                  _buildGalleryHeader(state, notifier, context),
                   const SizedBox(height: 12),
 
                   // Pending image preview
                   if (state.pendingImagePath != null)
                     PendingImageWidget(
                       path: state.pendingImagePath!,
-                      onSave: () => notifier.confirmPending(
-                          persona.id, persona.description),
+                      onSave: () async {
+                        await notifier.confirmPending(
+                            persona.id, persona.description);
+                        if (!context.mounted) return;
+                        if (ref.read(galleryProvider(persona.id)).error ==
+                            null) {
+                          Fluttertoast.showToast(
+                              msg: context.l10n.savedToGallery);
+                        }
+                      },
                       onRegenerate: () =>
                           notifier.regeneratePending(persona.description),
                       onDiscard: () => notifier.discardPending(),
@@ -116,8 +142,8 @@ class PersonaViewScreen extends ConsumerWidget {
                             backgroundColor: AppTheme.surface,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Генерация... (~4-12 сек)',
+                          Text(
+                            context.l10n.generatingWait,
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,
@@ -131,13 +157,13 @@ class PersonaViewScreen extends ConsumerWidget {
 
                   // Empty gallery message
                   if (state.images.isEmpty && !state.isGenerating)
-                    const Center(
+                    Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(24),
                         child: Text(
-                          'Нет изображений.\nНажмите + для генерации.',
+                          context.l10n.noImagesClickPlus,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: 14,
                           ),
@@ -320,12 +346,12 @@ class PersonaViewScreen extends ConsumerWidget {
 
   // ── Gallery header row ────────────────────────────────────────────────
 
-  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier) {
+  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier, BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'Галерея',
+        Text(
+          context.l10n.gallery,
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -344,7 +370,7 @@ class PersonaViewScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.add_photo_alternate,
                     color: Colors.white),
-                tooltip: 'Сгенерировать',
+                tooltip: context.l10n.generate,
                 onPressed: state.isGenerating
                     ? null
                     : () => notifier.generatePreview(persona.description),
@@ -362,16 +388,16 @@ class PersonaViewScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Удалить персонажа?',
+        title: Text(context.l10n.deleteCharacter,
             style: TextStyle(color: AppTheme.textPrimary)),
-        content: const Text(
-          'Персонаж и вся галерея будут удалены. Это действие нельзя отменить.',
+        content: Text(
+          context.l10n.characterAndGalleryWillBeDeleted,
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -381,7 +407,7 @@ class PersonaViewScreen extends ConsumerWidget {
                   .deleteAllForPersona(persona.id);
               Navigator.pop(context);
             },
-            child: const Text('Удалить',
+            child: Text(context.l10n.delete,
                 style: TextStyle(color: Colors.red)),
           ),
         ],

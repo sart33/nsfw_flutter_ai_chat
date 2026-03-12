@@ -1,0 +1,171 @@
+{
+  "appTitle": "NSFW Chat",
+  "apiKeys": "API Ключи",
+  "deepSeekApi": "DeepSeek API",
+  "requiredForChat": "Необходим для работы чата",
+  "novitaAi": "Novita AI",
+  "requiredForImageGeneration": "Необходим для генерации изображений (опционально)",
+  "keySaved": "Ключ сохранён",
+  "keyNotSet": "Ключ не задан",
+  "save": "Сохранить",
+  "delete": "Удалить",
+  "cancel": "Отмена",
+  "deepSeekKeySaved": "DeepSeek ключ сохранён",
+  "deleteDeepSeekKey": "Удалить ключ DeepSeek",
+  "chatWillStopWorking": "Чат перестанет работать. Вы уверены, что хотите удалить ключ?",
+  "keyDeleted": "Ключ удалён",
+  "novitaKeySaved": "Novita ключ сохранён",
+  "deleteNovitaKey": "Удалить ключ Novita",
+  "imageGenerationWillStop": "Генерация изображений перестанет работать. Вы уверены?",
+  "goToApp": "Перейти в приложение",
+  "keysStoredSecurely": "Ключи хранятся в защищённом хранилище устройства.",
+  "pasteDeepSeekKey": "Вставьте DeepSeek API ключ",
+  "pasteNovitaKey": "Вставьте Novita API ключ",
+  "noBranches": "Нет веток. Нажмите + чтобы начать.",
+  "emptyBranch": "Пустая ветка",
+  "deleteBranch": "Удалить ветку?",
+  "allMessagesWillBeDeleted": "Все сообщения этой ветки будут удалены.",
+  "apiError": "Ошибка API",
+  "waitingForResponse": "Ожидание ответа...",
+  "message": "Сообщение...",
+  "edit": "Редактировать",
+  "editMessage": "Редактировать сообщение",
+  "deleteMessage": "Удалить сообщение",
+  "messageAndFollowingWillBeDeleted": "Сообщение и все последующие будут удалены. Продолжить?",
+  "galleryEmpty": "Галерея пуста.",
+  "galleryNameEmpty": "Галерея {personaName} пуста.",
+  "@galleryNameEmpty": {
+    "placeholders": {
+      "personaName": {}
+    }
+  },
+  "editPreset": "Редактировать пресет",
+  "newMultiPreset": "Новый мульти-пресет",
+  "presetNameLabel": "Название пресета *",
+  "enterName": "Введите имя",
+  "selectCharacters": "Выберите персонажей:",
+  "greeting": "Приветствие",
+  "behavior": "Поведение",
+  "describeBehavior": "Опишите взаимодействие между персонажами...",
+  "create": "Создать",
+  "selectAtLeast2": "Выберите минимум 2 персонажа!",
+  "you": "Вы",
+  "newCharacter": "Новый персонаж",
+  "nameLabel": "Имя *",
+  "description": "Описание",
+  "behaviorOptional": "Поведение (опционально)",
+  "aiInstructions": "Инструкции для AI...",
+  "fromGallery": "Из галереи",
+  "generate": "Сгенерировать",
+  "regenerate": "Перегенерировать",
+  "cropAndSave": "Обрезать и сохранить",
+  "generatingAvatar": "Генерация\nаватара...",
+  "avatar": "Аватар",
+  "gallery": "Галерея",
+  "camera": "Камера",
+  "cropAvatar": "Обрезать аватар",
+  "fillCharacterDescription": "Заполните описание персонажа",
+  "avatarGenerationError": "Ошибка генерации аватара: {error}",
+  "@avatarGenerationError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "descriptionLimitExceeded": "Описание превышает лимит символов!",
+  "greetingLimitExceeded": "Приветствие превышает лимит символов!",
+  "deleteImage": "Удалить изображение?",
+  "templateNumber": "Шаблон #{id}",
+  "@templateNumber": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "characters": "Персонажи",
+  "multiChat": "Мульти-чат",
+  "settings": "Настройки",
+  "newChat": "Новый чат",
+  "noCharactersCreate": "Нет персонажей. Создайте первого!",
+  "noMultiPresets": "Нет пресетов мульти-чата",
+  "deletePreset": "Удалить пресет?",
+  "cannotBeUndone": "Это действие нельзя отменить.",
+  "noCharacters": "Нет персонажей",
+  "deleteCharacter": "Удалить персонажа?",
+  "view": "Просмотреть",
+  "chats": "Чаты",
+  "noImagesClickPlus": "Нет изображений.\nНажмите + для генерации.",
+  "characterAndGalleryWillBeDeleted": "Персонаж и вся галерея будут удалены. Это действие нельзя отменить.",
+  "generatingWait": "Генерация... (~4-12 сек)",
+  "slashCount": "/{count}",
+  "@slashCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "userInputLimit": "Лимит ввода пользователя",
+  "charactersLabel": "{count} символов",
+  "@charactersLabel": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "aiResponseLimit": "Лимит ответа AI",
+  "tokensLabel": "{count} токенов",
+  "@tokensLabel": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "whatAreTokens": "Что такое токены?",
+  "tokensAndText": "Токены и текст",
+  "tokenExplanation": "Лимит ответа задаётся в токенах.\nТокен ≠ символ и ≠ слово.\n",
+  "tokens": "Токены",
+  "approximateVolume": "Примерный объём",
+  "words750": "~750 слов EN / ~500 слов RU",
+  "words1500": "~1 500 слов EN / ~1 000 слов RU",
+  "words3000": "~3 000 слов EN / ~2 000 слов RU",
+  "maxDeepSeek": "Максимум DeepSeek",
+  "usuallyEnough": "Для обычного ответа достаточно 2000–4000 токенов.",
+  "understood": "Понятно",
+  "reminderFrequency": "Частота повтора промпта.",
+  "everyNMessages": "1 / {count} сообщений",
+  "@everyNMessages": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "chatFontSize": "Размер текста в чате",
+  "pixelsLabel": "{size}px",
+  "@pixelsLabel": {
+    "placeholders": {
+      "size": {}
+    }
+  },
+  "personalityReminder": "Напоминание о личности персонажа",
+  "reminderNote": "Каждые N сообщений добавляет напоминание в промпт (не сохраняется в историю)",
+  "yamlProfile": "YAML-профиль персонажа",
+  "yamlProfileNote": "Если включено и файл assets/characters/character_id.yaml существует — использовать как системный промпт",
+  "creativity": "Креативность ответа",
+  "manageApiKeys": "Управление ключами DeepSeek и Novita AI",
+  "allTemplatesGenerated": "Все 20 шаблонов уже сгенерированы",
+  "generationError": "Ошибка генерации",
+  "savedToGallery": "Сохранено в галерею",
+  "savingError": "Ошибка сохранения",
+  "system": "Система",
+  "historyLoadingError": "Ошибка загрузки истории",
+  "charactersCount": "{count} персонажей",
+  "@charactersCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "editCharacter": "Редактировать",
+  "senderYou": "Вы",
+  "senderSystem": "Система",
+  "errorApi": "Ошибка API",
+  "errorHistory": "Ошибка загрузки истории",
+  "errorGeneration": "Ошибка генерации",
+  "errorSave": "Ошибка сохранения",
+  "errorDelete": "Ошибка удаления",
+  "errorUnknown": "Неизвестная ошибка",
+  "galleryFull": "Все 20 шаблонов уже сгенерированы"
+}

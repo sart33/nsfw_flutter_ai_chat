@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:nsfw_chat/presentation/providers/chat_provider.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
@@ -34,7 +36,7 @@ class ChatScreen extends ConsumerStatefulWidget {
     required this.entityId,
     this.isMulti = false,
     this.greeting = '',
-    this.title = 'Чат',
+    this.title = '',
   });
 
   @override
@@ -115,6 +117,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ── Error listener ───────────────────────────────────────────────────
+    ref.listen<ChatState>(chatProvider(widget.branchId), (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        final msg = switch (next.error) {
+          ApiException() => context.l10n.errorApi,
+          HistoryException() => context.l10n.errorHistory,
+          _ => context.l10n.errorUnknown,
+        };
+        Fluttertoast.showToast(msg: msg);
+        ref.read(chatProvider(widget.branchId).notifier).clearError();
+      }
+    });
+
     final chatState = ref.watch(chatProvider(widget.branchId));
     final settings = ref.watch(settingsProvider);
     if (_singlePersona != null) ref.watch(galleryProvider(_singlePersona!.id));
@@ -124,19 +139,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
     _resolveEntities(ref);
     _initIfNeeded();
-
-    // ── Error toast ───────────────────────────────────────────────────
-    if (chatState.error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Fluttertoast.showToast(
-          msg: 'Ошибка API',
-          backgroundColor: Colors.red.shade900,
-          textColor: Colors.white,
-        );
-        // Clear error in notifier so toast doesn't loop.
-        ref.read(chatProvider(widget.branchId).notifier).clearError();
-      });
-    }
 
     // ── Input metrics ─────────────────────────────────────────────────
     final inputLen = _inputCtrl.text.length;
@@ -257,8 +259,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           minLines: 1,
                           decoration: InputDecoration(
                             hintText: chatState.isLoading
-                                ? 'Ожидание ответа...'
-                                : 'Сообщение...',
+                                ? context.l10n.waitingForResponse
+                                : context.l10n.message,
                             filled: true,
                             fillColor: AppTheme.background,
                             border: OutlineInputBorder(
@@ -376,7 +378,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ListTile(
               leading:
                   const Icon(Icons.edit, color: AppTheme.primaryAccent),
-              title: const Text('Редактировать',
+              title: Text(context.l10n.editCharacter,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -387,7 +389,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             // ── Delete ──
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.redAccent),
-              title: const Text('Удалить',
+              title:  Text(context.l10n.delete,
                   style: TextStyle(color: Colors.redAccent)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -417,7 +419,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Редактировать сообщение',
+        title: Text(context.l10n.editMessage,
             style: TextStyle(color: AppTheme.textPrimary, fontSize: 16)),
         content: TextField(
           controller: editCtrl,
@@ -438,7 +440,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -459,7 +461,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 maxTokens: tokens,
               );
             },
-            child: const Text('Сохранить'),
+            child: Text(context.l10n.save),
           ),
         ],
       ),
@@ -484,7 +486,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
     } else {
       Fluttertoast.showToast(
-        msg: 'Галерея пуста.',
+        msg: context.l10n.galleryEmpty,
       );
     }
   }
@@ -510,7 +512,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
     } else {
       Fluttertoast.showToast(
-        msg: 'Галерея ${persona.name} пуста.',
+        msg: context.l10n.galleryNameEmpty(persona.name),
       );
     }
   }
@@ -522,16 +524,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Удалить сообщение',
+        title: Text(context.l10n.deleteMessage,
             style: TextStyle(color: AppTheme.textPrimary, fontSize: 16)),
-        content: const Text(
-          'Сообщение и все последующие будут удалены. Продолжить?',
+        content: Text(
+          context.l10n.messageAndFollowingWillBeDeleted,
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -540,7 +542,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   .read(chatProvider(widget.branchId).notifier)
                   .deleteMessage(messageId);
             },
-            child: const Text('Удалить',
+            child: Text(context.l10n.delete,
                 style: TextStyle(color: Colors.redAccent)),
           ),
         ],

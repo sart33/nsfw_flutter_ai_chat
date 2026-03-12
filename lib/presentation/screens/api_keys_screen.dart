@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 
 import 'home_screen.dart';
 
@@ -72,7 +74,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _deepSeekChanged = false;
     });
 
-    _showSnackBar('DeepSeek ключ сохранён');
+    _showSnackBar(context.l10n.deepSeekKeySaved);
     // Show home button if this is the first time setting the key (i.e. we came from splash screen)
     if (!Navigator.canPop(context) && mounted) {
       setState(() => _showHomeButton = true);
@@ -85,20 +87,18 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('Удалить ключ DeepSeek'),
-                content: const Text(
-                  'Чат перестанет работать. Вы уверены, что хотите удалить ключ?',
-                ),
+                title: Text(context.l10n.deleteDeepSeekKey),
+                content: Text(context.l10n.chatWillStopWorking),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Отмена'),
+                    child: Text(context.l10n.cancel),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text(
-                      'Удалить',
-                      style: TextStyle(color: Colors.red),
+                    child: Text(
+                      context.l10n.delete,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],
@@ -115,7 +115,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _deepSeekController.clear();
       _deepSeekChanged = false;
     });
-    _showSnackBar('Ключ удалён');
+    _showSnackBar(context.l10n.keyDeleted);
   }
 
   Future<void> _saveNovitaKey() async {
@@ -130,7 +130,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _novitaObscure = true;
       _novitaChanged = false;
     });
-    _showSnackBar('Novita ключ сохранён');
+    _showSnackBar(context.l10n.novitaKeySaved);
   }
 
   Future<void> _deleteNovitaKey() async {
@@ -139,20 +139,18 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('Удалить ключ Novita'),
-                content: const Text(
-                  'Генерация изображений перестанет работать. Вы уверены?',
-                ),
+                title: Text(context.l10n.deleteNovitaKey),
+                content: Text(context.l10n.imageGenerationWillStop),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Отмена'),
+                    child: Text(context.l10n.cancel),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text(
-                      'Удалить',
-                      style: TextStyle(color: Colors.red),
+                    child: Text(
+                      context.l10n.delete,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],
@@ -169,7 +167,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _novitaController.clear();
       _novitaChanged = false;
     });
-    _showSnackBar('Ключ удалён');
+    _showSnackBar(context.l10n.keyDeleted);
   }
 
   void _showSnackBar(String message) {
@@ -223,7 +221,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isSaved ? 'Ключ сохранён' : 'Ключ не задан',
+                  isSaved ? context.l10n.keySaved : context.l10n.keyNotSet,
                   style: TextStyle(
                     color: isSaved ? Colors.green : Colors.redAccent,
                     fontSize: 12,
@@ -265,7 +263,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                     backgroundColor: const Color(0xFFBB86FC),
                     foregroundColor: Colors.black,
                   ),
-                  child: const Text('Сохранить'),
+                  child: Text(context.l10n.save),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
@@ -274,7 +272,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                     side: const BorderSide(color: Colors.red),
                     foregroundColor: Colors.red,
                   ),
-                  child: const Text('Удалить'),
+                  child: Text(context.l10n.delete),
                 ),
               ],
             ),
@@ -289,7 +287,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     if (_loading) {
       return Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('API Ключи')),
+        appBar: AppBar(title: Text(context.l10n.apiKeys)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -297,7 +295,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('API Ключи'),
+        title: Text(context.l10n.apiKeys),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -307,8 +305,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildKeyCard(
-              title: 'DeepSeek API',
-              subtitle: 'Необходим для работы чата',
+              title: context.l10n.deepSeekApi,
+              subtitle: context.l10n.requiredForChat,
               isSaved: _deepSeekSaved,
               controller: _deepSeekController,
               obscure: _deepSeekObscure,
@@ -321,12 +319,12 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                   _deepSeekController.text.trim().isNotEmpty,
               onDelete: _deleteDeepSeekKey,
               canDelete: _deepSeekSaved,
-              emptyHint: 'Вставьте DeepSeek API ключ',
+              emptyHint: context.l10n.pasteDeepSeekKey,
             ),
             const SizedBox(height: 20),
             _buildKeyCard(
-              title: 'Novita AI',
-              subtitle: 'Необходим для генерации изображений (опционально)',
+              title: context.l10n.novitaAi,
+              subtitle: context.l10n.requiredForImageGeneration,
               isSaved: _novitaSaved,
               controller: _novitaController,
               obscure: _novitaObscure,
@@ -338,7 +336,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                   _novitaChanged && _novitaController.text.trim().isNotEmpty,
               onDelete: _deleteNovitaKey,
               canDelete: _novitaSaved,
-              emptyHint: 'Вставьте Novita API ключ',
+              emptyHint: context.l10n.pasteNovitaKey,
             ),
             const SizedBox(height: 24),
             if (_showHomeButton)
@@ -348,18 +346,19 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.home),
-                    label: const Text('Перейти в приложение'),
-                    onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HomeScreen()),
-                    ),
+                    label: Text(context.l10n.goToApp),
+                    onPressed:
+                        () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        ),
                   ),
                 ),
               ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                'Ключи хранятся в защищённом хранилище устройства.',
+                context.l10n.keysStoredSecurely,
                 style: TextStyle(color: Color(0xFFB0B0B0), fontSize: 12),
               ),
             ),

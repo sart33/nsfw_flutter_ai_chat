@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/create_edit_multi_preset_screen.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 /// Lists saved multi-presets. Tap → open multi chat. FAB → create new.
 class MultiPresetListScreen extends ConsumerWidget {
@@ -14,11 +16,11 @@ class MultiPresetListScreen extends ConsumerWidget {
     final presets = ref.watch(multiPresetProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Мульти-чат')),
+      appBar: AppBar(title: Text(context.l10n.multiChat)),
       body: presets.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
-                'Нет пресетов мульти-чата',
+                context.l10n.noMultiPresets,
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
             )
@@ -123,19 +125,19 @@ class MultiPresetListScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Удалить пресет?',
+        title: Text(context.l10n.deletePreset,
             style: TextStyle(color: AppTheme.textPrimary)),
-        content: const Text('Это действие нельзя отменить.',
+        content: Text(context.l10n.cannotBeUndone,
             style: TextStyle(color: AppTheme.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child:
-                const Text('Удалить', style: TextStyle(color: Colors.red)),
+                Text(context.l10n.delete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

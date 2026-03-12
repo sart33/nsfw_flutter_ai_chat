@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 
@@ -14,7 +16,7 @@ class SettingsScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surface,
         title: Text(
-          'Токены и текст',
+          context.l10n.tokensAndText,
           style: TextStyle(color: AppTheme.textPrimary),
         ),
         content: SingleChildScrollView(
@@ -23,8 +25,7 @@ class SettingsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Лимит ответа задаётся в токенах.\n'
-                'Токен ≠ символ и ≠ слово.\n',
+                context.l10n.tokenExplanation,
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 13,
@@ -51,7 +52,7 @@ class SettingsScreen extends ConsumerWidget {
                           horizontal: 12,
                         ),
                         child: Text(
-                          'Токены',
+                          context.l10n.tokens,
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.bold,
@@ -65,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
                           horizontal: 12,
                         ),
                         child: Text(
-                          'Примерный объём',
+                          context.l10n.approximateVolume,
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.bold,
@@ -96,7 +97,7 @@ class SettingsScreen extends ConsumerWidget {
                           horizontal: 12,
                         ),
                         child: Text(
-                          '~750 слов EN / ~500 слов RU',
+                          context.l10n.words750,
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 12,
@@ -126,7 +127,7 @@ class SettingsScreen extends ConsumerWidget {
                           horizontal: 12,
                         ),
                         child: Text(
-                          '~1 500 слов EN / ~1 000 слов RU',
+                          context.l10n.words1500,
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 12,
@@ -156,7 +157,7 @@ class SettingsScreen extends ConsumerWidget {
                           horizontal: 12,
                         ),
                         child: Text(
-                          '~3 000 слов EN / ~2 000 слов RU',
+                          context.l10n.words3000,
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 12,
@@ -186,7 +187,7 @@ class SettingsScreen extends ConsumerWidget {
                           horizontal: 12,
                         ),
                         child: Text(
-                          'Максимум DeepSeek',
+                          context.l10n.maxDeepSeek,
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 12,
@@ -199,7 +200,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Для обычного ответа достаточно 2000–4000 токенов.',
+                context.l10n.usuallyEnough,
                 style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 12,
@@ -212,7 +213,7 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Понятно',
+              context.l10n.understood,
               style: TextStyle(color: AppTheme.primaryAccent),
             ),
           ),
@@ -230,16 +231,16 @@ class SettingsScreen extends ConsumerWidget {
     const graySmall = TextStyle(color: AppTheme.textSecondary, fontSize: 12);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Настройки')),
+      appBar: AppBar(title: Text(context.l10n.settings)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── User input limit ─────────────────────────────────
-            const Text(
-              'Лимит ввода пользователя',
-              style: TextStyle(
+            Text(
+              context.l10n.userInputLimit,
+              style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -247,7 +248,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${settings.userInputLimit} символов',
+              context.l10n.charactersLabel(settings.userInputLimit),
               style: const TextStyle(
                 color: AppTheme.primaryAccent,
                 fontSize: 14,
@@ -265,9 +266,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // ── AI response limit ────────────────────────────────
-            const Text(
-              'Лимит ответа AI',
-              style: TextStyle(
+            Text(
+              context.l10n.aiResponseLimit,
+              style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -275,7 +276,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${settings.aiResponseLimit} токенов',
+              context.l10n.tokensLabel(settings.aiResponseLimit),
               style: const TextStyle(
                 color: AppTheme.primaryAccent,
                 fontSize: 14,
@@ -303,7 +304,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Что такое токены?',
+                        context.l10n.whatAreTokens,
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
@@ -347,9 +348,9 @@ class SettingsScreen extends ConsumerWidget {
             // const SizedBox(height: 24),
 
             // ── Reminder interval ────────────────────────────────
-            const Text(
-              'Частота повтора промпта.',
-              style: TextStyle(
+            Text(
+              context.l10n.reminderFrequency,
+              style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -357,7 +358,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '1 / ${settings.reminderInterval} сообщений',
+              context.l10n.everyNMessages(settings.reminderInterval),
               style: const TextStyle(
                 color: AppTheme.primaryAccent,
                 fontSize: 14,
@@ -375,9 +376,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // ── Chat font size ─────────────────────────────────────
-            const Text(
-              'Размер текста в чате',
-              style: TextStyle(
+            Text(
+              context.l10n.chatFontSize,
+              style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -385,7 +386,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${settings.chatFontSize.round()}px',
+              context.l10n.pixelsLabel(settings.chatFontSize.round()),
               style: const TextStyle(
                 color: AppTheme.primaryAccent,
                 fontSize: 14,
@@ -405,11 +406,10 @@ class SettingsScreen extends ConsumerWidget {
             // ── Reminder toggle ──────────────────────────────────
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Напоминание о личности персонажа',
+              title: Text(context.l10n.personalityReminder,
                   style: whiteStyle),
-              subtitle: const Text(
-                'Каждые N сообщений добавляет напоминание в промпт '
-                '(не сохраняется в историю)',
+              subtitle: Text(
+                context.l10n.reminderNote,
                 style: graySmall,
               ),
               value: settings.reminderEnabled,
@@ -422,10 +422,9 @@ class SettingsScreen extends ConsumerWidget {
             // ── YAML persona toggle ──────────────────────────────
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('YAML-профиль персонажа', style: whiteStyle),
-              subtitle: const Text(
-                'Если включено и файл assets/characters/character_{id}.yaml '
-                'существует — использовать как системный промпт',
+              title: Text(context.l10n.yamlProfile, style: whiteStyle),
+              subtitle: Text(
+                context.l10n.yamlProfileNote,
                 style: graySmall,
               ),
               value: settings.yamlPersonaEnabled,
@@ -436,9 +435,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // ── Generation temperature ──────────────────────────────
-            const Text(
-              'Креативность ответа',
-              style: TextStyle(
+            Text(
+              context.l10n.creativity,
+              style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 14,
               ),
@@ -472,11 +471,11 @@ class SettingsScreen extends ConsumerWidget {
               child: ListTile(
                 leading: Icon(Icons.key, color: AppTheme.primaryAccent),
                 title: Text(
-                  'API Ключи',
+                  context.l10n.apiKeys,
                   style: whiteStyle,
                 ),
                 subtitle: Text(
-                  'Управление ключами DeepSeek и Novita AI',
+                  context.l10n.manageApiKeys,
                   style: graySmall,
                 ),
                 trailing: Icon(Icons.arrow_forward_ios,

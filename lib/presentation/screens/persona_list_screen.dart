@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/data/repositories/gallery_repository.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/create_edit_persona_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/persona_card.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 class PersonaListScreen extends ConsumerWidget {
   const PersonaListScreen({super.key});
@@ -16,10 +18,10 @@ class PersonaListScreen extends ConsumerWidget {
     final personas = ref.watch(personaProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Персонажи')),
+      appBar: AppBar(title: Text(context.l10n.characters)),
       body: personas.isEmpty
-          ? const Center(
-              child: Text('Нет персонажей',
+          ? Center(
+              child: Text(context.l10n.noCharacters,
                   style: TextStyle(color: AppTheme.textSecondary)),
             )
           : ListView.builder(
@@ -74,15 +76,15 @@ class PersonaListScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Удалить персонажа?',
+        title: Text(context.l10n.deleteCharacter,
             style: TextStyle(color: AppTheme.textPrimary)),
-        content: const Text('Это действие нельзя отменить.',
+        content: Text(context.l10n.cannotBeUndone,
             style: TextStyle(color: AppTheme.textSecondary)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Отмена')),
+              child: Text(context.l10n.cancel)),
           TextButton(onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Удалить', style: TextStyle(color: Colors.red))),
+              child: Text(context.l10n.delete, style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -101,7 +103,7 @@ class PersonaListScreen extends ConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.visibility, color: AppTheme.textPrimary),
-              title: const Text('Просмотреть',
+              title: Text(context.l10n.view,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -111,7 +113,7 @@ class PersonaListScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.edit, color: AppTheme.textPrimary),
-              title: const Text('Редактировать',
+              title: Text(context.l10n.editCharacter,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -121,7 +123,7 @@ class PersonaListScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.chat_bubble_outline, color: AppTheme.textPrimary),
-              title: const Text('Чаты',
+              title: Text(context.l10n.chats,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -136,7 +138,7 @@ class PersonaListScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              title: const Text('Удалить',
+              title: Text(context.l10n.delete,
                   style: TextStyle(color: Colors.redAccent)),
               onTap: () async {
                 Navigator.pop(ctx);

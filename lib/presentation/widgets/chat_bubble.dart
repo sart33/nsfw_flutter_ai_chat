@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/config/chat_constants.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
+
+/// Maps a raw [senderName] constant to its localised display string.
+///
+/// - [ChatConstants.userSender] → l10n.senderYou
+/// - [ChatConstants.systemSender] → l10n.senderSystem
+/// - anything else (persona name) → returned as-is
+String _resolveSenderName(BuildContext context, String senderName) {
+  return switch (senderName) {
+    ChatConstants.userSender => context.l10n.senderYou,
+    ChatConstants.systemSender => context.l10n.senderSystem,
+    _ => senderName,
+  };
+}
 
 /// A single chat bubble with optional long-press and regen actions.
 /// - User messages: right-aligned, #333333 background.
@@ -69,10 +84,10 @@ class ChatBubble extends StatelessWidget {
                 children: [
                   // Sender name above AI bubble.
                   if (!isUser)
-                    Padding(
+                  Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Text(
-                        senderName,
+                        _resolveSenderName(context, senderName),
                         style: const TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 12,
@@ -108,7 +123,7 @@ class ChatBubble extends StatelessWidget {
                       child: InkWell(
                         onTap: onRegen,
                         borderRadius: BorderRadius.circular(12),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.all(4),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -117,7 +132,7 @@ class ChatBubble extends StatelessWidget {
                                   size: 16, color: AppTheme.textSecondary),
                               SizedBox(width: 4),
                               Text(
-                                'Перегенерировать',
+                                context.l10n.regenerate,
                                 style: TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 11,

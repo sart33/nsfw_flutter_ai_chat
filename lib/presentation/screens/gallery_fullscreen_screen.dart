@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 class GalleryFullscreenScreen extends ConsumerStatefulWidget {
   final List<GalleryImageEntity> images;
@@ -130,7 +132,7 @@ class _GalleryFullscreenScreenState
                         IconButton(
                           icon: const Icon(Icons.delete_outline,
                               color: Colors.redAccent),
-                          tooltip: 'Удалить',
+                          tooltip: context.l10n.delete,
                           onPressed: () =>
                               _confirmDelete(context, notifier, imgs, safeIdx),
                         ),
@@ -143,7 +145,7 @@ class _GalleryFullscreenScreenState
                           IconButton(
                             icon: const Icon(Icons.refresh,
                                 color: Colors.white),
-                            tooltip: 'Перегенерировать',
+                            tooltip: context.l10n.regenerate,
                             onPressed: () {
                               final img = imgs[safeIdx];
                               notifier.regenerateExisting(
@@ -172,12 +174,12 @@ class _GalleryFullscreenScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Удалить изображение?',
+        title: Text(context.l10n.deleteImage,
             style: TextStyle(color: AppTheme.textPrimary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -187,12 +189,12 @@ class _GalleryFullscreenScreenState
                 Navigator.pop(context);
               } else if (idx >= imgs.length - 1) {
                 _pageCtrl.previousPage(
-                  duration: const Duration(milliseconds: 200),
+                  duration: Duration(milliseconds: 200),
                   curve: Curves.easeOut,
                 );
               }
             },
-            child: const Text('Удалить',
+            child: Text(context.l10n.delete,
                 style: TextStyle(color: Colors.red)),
           ),
         ],

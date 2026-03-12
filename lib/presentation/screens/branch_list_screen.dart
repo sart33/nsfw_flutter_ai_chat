@@ -4,6 +4,9 @@ import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/presentation/providers/branch_provider.dart';
 import 'package:nsfw_chat/presentation/providers/chat_provider.dart';
 import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+
 
 /// Displays a list of conversation branches for an entity.
 ///
@@ -33,9 +36,9 @@ class BranchListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(entityName)),
       body: branches.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
-                'Нет веток. Нажмите + чтобы начать.',
+                context.l10n.noBranches,
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
               ),
             )
@@ -69,7 +72,7 @@ class BranchListScreen extends ConsumerWidget {
                           // Middle: preview
                           Expanded(
                             child: Text(
-                              branch.preview ?? 'Пустая ветка',
+                              branch.preview ?? context.l10n.emptyBranch,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -141,20 +144,20 @@ class BranchListScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Удалить ветку?',
+        title: Text(context.l10n.deleteBranch,
             style: TextStyle(color: AppTheme.textPrimary)),
-        content: const Text(
-          'Все сообщения этой ветки будут удалены.',
+        content:  Text(
+          context.l10n.allMessagesWillBeDeleted,
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
+            child:  Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+            child: Text(context.l10n.delete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

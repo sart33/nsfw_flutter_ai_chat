@@ -9,6 +9,7 @@ import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/factory/dio_factory.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // NOTE: YAML files must be added to pubspec.yaml assets manually per persona.
@@ -116,10 +117,10 @@ class ChatRepository {
       log(
           'DioException in sendMessage: ${e.message} | response: ${e.response?.data}',
           name: 'API_ERROR');
-      throw Exception('Ошибка API: ${e.message}');
+      throw ApiException('DioException: ${e.message}');
     } catch (e) {
       log('Unexpected error in sendMessage: $e', name: 'API_ERROR');
-      throw Exception('Ошибка API: $e');
+      throw ApiException(e.toString());
     }
   }
 
@@ -185,10 +186,10 @@ class ChatRepository {
       log(
           'DioException in sendMultiMessage: ${e.message} | response: ${e.response?.data}',
           name: 'API_ERROR');
-      throw Exception('Ошибка API: ${e.message}');
+      throw ApiException('DioException: ${e.message}');
     } catch (e) {
       log('Unexpected error in sendMultiMessage: $e', name: 'API_ERROR');
-      throw Exception('Ошибка API: $e');
+      throw ApiException(e.toString());
     }
   }
 

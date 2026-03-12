@@ -6,8 +6,10 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/core/services/novita_avatar_service.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 
 /// Create or edit a persona.
@@ -74,7 +76,7 @@ class _CreateEditPersonaScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Редактировать' : 'Новый персонаж'),
+        title: Text(_isEdit ? context.l10n.editCharacter : context.l10n.newCharacter),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -91,20 +93,20 @@ class _CreateEditPersonaScreenState
               TextFormField(
                 controller: _nameCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'Имя *',
+                decoration: InputDecoration(
+                  labelText: context.l10n.nameLabel,
                   labelStyle: TextStyle(color: AppTheme.textSecondary),
                 ),
                 onChanged: (_) => setState(() {}), // rebuild to update button state
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Введите имя' : null,
+                    (v == null || v.trim().isEmpty) ? context.l10n.enterName : null,
               ),
               const SizedBox(height: 16),
 
               // ── Description ────────────────────────────────────
               _buildCountedField(
                 controller: _descCtrl,
-                label: 'Описание',
+                label: context.l10n.description,
                 maxChars: _descMax,
                 maxLines: 4,
               ),
@@ -113,7 +115,7 @@ class _CreateEditPersonaScreenState
               // ── Greeting ───────────────────────────────────────
               _buildCountedField(
                 controller: _greetCtrl,
-                label: 'Приветствие',
+                label: context.l10n.greeting,
                 maxChars: _greetMax,
                 maxLines: 3,
               ),
@@ -124,10 +126,10 @@ class _CreateEditPersonaScreenState
                 controller: _behaviorCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Поведение (опционально)',
+                decoration: InputDecoration(
+                  labelText: context.l10n.behaviorOptional,
                   labelStyle: TextStyle(color: AppTheme.textSecondary),
-                  hintText: 'Инструкции для AI...',
+                  hintText: context.l10n.aiInstructions,
                 ),
               ),
               const SizedBox(height: 24),
@@ -137,7 +139,7 @@ class _CreateEditPersonaScreenState
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _isGeneratingAvatar ? null : _save,
-                  child: Text(_isEdit ? 'Сохранить' : 'Создать'),
+                  child: Text(_isEdit ? context.l10n.save : context.l10n.create),
                 ),
               ),
             ],
@@ -162,13 +164,13 @@ class _CreateEditPersonaScreenState
           children: [
             _buildActionButton(
               icon: Icons.photo_library,
-              label: 'Из галереи',
+              label: context.l10n.fromGallery,
               onPressed: _isGeneratingAvatar ? null : _pickFromGallery,
             ),
             const SizedBox(width: 12),
             _buildActionButton(
               icon: Icons.auto_awesome,
-              label: 'Сгенерировать',
+              label: context.l10n.generate,
               onPressed: (_isGeneratingAvatar ||
                       _nameCtrl.text.trim().isEmpty ||
                       _descCtrl.text.trim().isEmpty)
@@ -186,13 +188,13 @@ class _CreateEditPersonaScreenState
             children: [
               _buildIconLabelButton(
                 icon: Icons.refresh,
-                label: 'Перегенерировать',
+                label: context.l10n.regenerate,
                 onPressed: _regenerateAvatar,
               ),
               const SizedBox(width: 16),
               _buildIconLabelButton(
                 icon: Icons.crop,
-                label: 'Обрезать и сохранить',
+                label: context.l10n.cropAndSave,
                 onPressed: _cropGeneratedAvatar,
               ),
             ],
@@ -270,13 +272,13 @@ class _CreateEditPersonaScreenState
       ),
       child: hasAvatar
           ? null
-          : const Column(
+          : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_a_photo, color: AppTheme.textSecondary),
                 SizedBox(height: 4),
                 Text(
-                  'Аватар',
+                  context.l10n.avatar,
                   style: TextStyle(
                       color: AppTheme.textSecondary, fontSize: 12),
                 ),
@@ -340,14 +342,14 @@ class _CreateEditPersonaScreenState
             ListTile(
               leading: const Icon(Icons.photo_library,
                   color: AppTheme.textPrimary),
-              title: const Text('Галерея',
+              title: Text(context.l10n.gallery,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
               leading:
                   const Icon(Icons.camera_alt, color: AppTheme.textPrimary),
-              title: const Text('Камера',
+              title: Text(context.l10n.camera,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
@@ -366,12 +368,12 @@ class _CreateEditPersonaScreenState
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
       uiSettings: [
         AndroidUiSettings(
-          toolbarTitle: 'Обрезать аватар',
+          toolbarTitle: context.l10n.cropAvatar,
           toolbarColor: Colors.black,
           toolbarWidgetColor: Colors.white,
           backgroundColor: Colors.black,
         ),
-        IOSUiSettings(title: 'Обрезать аватар'),
+        IOSUiSettings(title: context.l10n.cropAvatar),
       ],
     );
     if (cropped != null) {
@@ -388,7 +390,7 @@ class _CreateEditPersonaScreenState
   Future<void> _generateAvatar() async {
     if (_descCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Заполните описание персонажа')),
+        SnackBar(content: Text(context.l10n.fillCharacterDescription)),
       );
       return;
     }
@@ -434,12 +436,12 @@ class _CreateEditPersonaScreenState
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
       uiSettings: [
         AndroidUiSettings(
-          toolbarTitle: 'Обрезать аватар',
+          toolbarTitle: context.l10n.cropAvatar,
           toolbarColor: Colors.black,
           toolbarWidgetColor: Colors.white,
           backgroundColor: Colors.black,
         ),
-        IOSUiSettings(title: 'Обрезать аватар'),
+        IOSUiSettings(title: context.l10n.cropAvatar),
       ],
     );
 
@@ -527,8 +529,8 @@ class _CreateEditPersonaScreenState
 
     if (_descCtrl.text.length > _descMax) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Описание превышает лимит символов!'),
+        SnackBar(
+          content: Text(context.l10n.descriptionLimitExceeded),
           backgroundColor: Colors.red,
         ),
       );
@@ -536,8 +538,8 @@ class _CreateEditPersonaScreenState
     }
     if (_greetCtrl.text.length > _greetMax) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Приветствие превышает лимит символов!'),
+        SnackBar(
+          content: Text(context.l10n.greetingLimitExceeded),
           backgroundColor: Colors.red,
         ),
       );

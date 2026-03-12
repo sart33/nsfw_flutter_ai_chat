@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 class PendingImageWidget extends StatelessWidget {
   final String path;
@@ -74,7 +76,7 @@ class PendingImageWidget extends StatelessWidget {
                 TextButton.icon(
                   onPressed: isLoading ? null : onRegenerate,
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Перегенерировать'),
+                  label: Text(context.l10n.regenerate),
                   style: TextButton.styleFrom(
                     foregroundColor: AppTheme.textSecondary,
                   ),
@@ -83,7 +85,7 @@ class PendingImageWidget extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: isLoading ? null : onSave,
                   icon: const Icon(Icons.save_alt, size: 18),
-                  label: const Text('Сохранить'),
+                  label: Text(context.l10n.save),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7C4DFF),
                     foregroundColor: Colors.white,

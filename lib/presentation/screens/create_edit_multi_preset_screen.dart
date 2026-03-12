@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/domain/entities/multi_preset_entity.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 /// Create or edit a multi-persona preset.
 /// Name, persona multi-select, greeting (pre-filled), behavior field.
@@ -59,7 +61,7 @@ class _CreateEditMultiPresetScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Редактировать пресет' : 'Новый мульти-пресет'),
+        title: Text(_isEdit ? context.l10n.editPreset : context.l10n.newMultiPreset),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -72,8 +74,8 @@ class _CreateEditMultiPresetScreenState
               TextFormField(
                 controller: _nameCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'Название пресета *',
+                decoration: InputDecoration(
+                  labelText: context.l10n.presetNameLabel,
                   labelStyle: TextStyle(color: AppTheme.textSecondary),
                 ),
                 validator: (v) =>
@@ -82,8 +84,8 @@ class _CreateEditMultiPresetScreenState
               const SizedBox(height: 20),
 
               // ── Persona selector ───────────────────────────────
-              const Text(
-                'Выберите персонажей:',
+              Text(
+                context.l10n.selectCharacters,
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 15,
@@ -122,8 +124,8 @@ class _CreateEditMultiPresetScreenState
                 controller: _greetCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Приветствие',
+                decoration: InputDecoration(
+                  labelText: context.l10n.greeting,
                   labelStyle: TextStyle(color: AppTheme.textSecondary),
                 ),
               ),
@@ -134,11 +136,11 @@ class _CreateEditMultiPresetScreenState
                 controller: _behaviorCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Поведение',
+                decoration: InputDecoration(
+                  labelText: context.l10n.behavior,
                   labelStyle: TextStyle(color: AppTheme.textSecondary),
                   hintText:
-                      'Опишите взаимодействие между персонажами...',
+                      context.l10n.describeBehavior,
                 ),
               ),
               const SizedBox(height: 24),
@@ -148,7 +150,7 @@ class _CreateEditMultiPresetScreenState
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _save,
-                  child: Text(_isEdit ? 'Сохранить' : 'Создать'),
+                  child: Text(_isEdit ? context.l10n.save : context.l10n.create),
                 ),
               ),
             ],
@@ -174,8 +176,8 @@ class _CreateEditMultiPresetScreenState
 
     if (_selectedIds.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Выберите минимум 2 персонажа!'),
+        SnackBar(
+          content: Text(context.l10n.selectAtLeast2),
           backgroundColor: Colors.red,
         ),
       );

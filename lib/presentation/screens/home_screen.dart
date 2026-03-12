@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/multi_preset_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 /// Home screen — menu with navigation + FAB to start a new single chat.
 class HomeScreen extends ConsumerWidget {
@@ -25,7 +27,7 @@ class HomeScreen extends ConsumerWidget {
             _menuButton(
               context,
               icon: Icons.people,
-              label: 'Персонажи',
+              label: context.l10n.characters,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -37,7 +39,7 @@ class HomeScreen extends ConsumerWidget {
             _menuButton(
               context,
               icon: Icons.group,
-              label: 'Мульти-чат',
+              label: context.l10n.multiChat,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -49,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
             _menuButton(
               context,
               icon: Icons.settings,
-              label: 'Настройки',
+              label: context.l10n.settings,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -63,7 +65,7 @@ class HomeScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showPersonaPicker(context, ref),
         icon: const Icon(Icons.chat),
-        label: const Text('Новый чат'),
+        label: Text(context.l10n.newChat),
       ),
     );
   }
@@ -96,7 +98,7 @@ class HomeScreen extends ConsumerWidget {
     final personas = ref.read(personaProvider);
     if (personas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Нет персонажей. Создайте первого!')),
+        SnackBar(content: Text(context.l10n.noCharactersCreate)),
       );
       return;
     }

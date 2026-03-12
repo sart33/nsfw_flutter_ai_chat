@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/data/repositories/gallery_repository.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
+import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 
 // ── State ──────────────────────────────────────────────────────────────────
 
@@ -18,9 +19,8 @@ class GalleryState {
   final bool isGenerating;
   final String? pendingImagePath;
   final int? pendingTemplateId;
-  final String? error;
+  final AppException? error;
   final bool isLoaded;
-
 
   const GalleryState({
     this.images = const [],
@@ -29,7 +29,6 @@ class GalleryState {
     this.pendingTemplateId,
     this.error,
     this.isLoaded = false,
-
   });
 
   static const _absent = Object();
@@ -51,7 +50,7 @@ class GalleryState {
       pendingTemplateId: identical(pendingTemplateId, _absent)
           ? this.pendingTemplateId
           : pendingTemplateId as int?,
-      error: identical(error, _absent) ? this.error : error as String?,
+      error: identical(error, _absent) ? this.error : error as AppException?,
       isLoaded: isLoaded ?? this.isLoaded,
     );
   }
@@ -79,6 +78,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
   }
 
+  // ── clearError ──────────────────────────────────────────────────────────
+
+  /// Clear error state (called by UI after showing toast).
+  void clearError() => state = state.copyWith(error: null);
+
   // ── generateNext ────────────────────────────────────────────────────────
 
   Future<void> generateNext(String description) async {
@@ -89,12 +93,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         images: [entity, ...state.images],
         isGenerating: false,
       );
-    } on GalleryFullException {
-      Fluttertoast.showToast(msg: 'Все 20 шаблонов уже сгенерированы');
-      state = state.copyWith(isGenerating: false);
     } catch (e) {
-      state = state.copyWith(isGenerating: false, error: e.toString());
-      Fluttertoast.showToast(msg: 'Ошибка генерации');
+      debugPrint('[GalleryNotifier] generateNext error: $e');
+      state = state.copyWith(
+        isGenerating: false,
+        error: e is AppException ? e : GenerationException(e.toString()),
+      );
     }
   }
 
@@ -113,8 +117,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final allIds = List.generate(20, (i) => i + 1);
       final available = allIds.where((id) => !usedIds.contains(id)).toList();
       if (available.isEmpty) {
-        Fluttertoast.showToast(msg: 'Все 20 шаблонов уже сгенерированы');
-        state = state.copyWith(isGenerating: false);
+        state = state.copyWith(
+          isGenerating: false,
+          error: const GalleryFullException(),
+        );
         return;
       }
 
@@ -133,27 +139,25 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final docsDir = await getApplicationDocumentsDirectory();
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
-      final tempPath =
-          await _novita.generateImageTo(prompt, tempDir, saveId);
+      final tempPath = await _novita.generateImageTo(prompt, tempDir, saveId);
 
       state = state.copyWith(
         isGenerating: false,
         pendingImagePath: tempPath,
         pendingTemplateId: selectedId,
       );
-    } on GalleryFullException {
-      Fluttertoast.showToast(msg: 'Все 20 шаблонов уже сгенерированы');
-      state = state.copyWith(isGenerating: false);
     } catch (e) {
-      state = state.copyWith(isGenerating: false, error: e.toString());
-      Fluttertoast.showToast(msg: 'Ошибка генерации');
+      debugPrint('[GalleryNotifier] generatePreview error: $e');
+      state = state.copyWith(
+        isGenerating: false,
+        error: e is AppException ? e : GenerationException(e.toString()),
+      );
     }
   }
 
   // ── confirmPending ──────────────────────────────────────────────────────
 
-  Future<void> confirmPending(
-      String personaId, String description) async {
+  Future<void> confirmPending(String personaId, String description) async {
     final pendingPath = state.pendingImagePath;
     final templateId = state.pendingTemplateId;
     if (pendingPath == null || templateId == null) return;
@@ -166,9 +170,13 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         pendingImagePath: null,
         pendingTemplateId: null,
       );
-      Fluttertoast.showToast(msg: 'Сохранено в галерею');
+      // Success toast is shown by the UI layer.
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Ошибка сохранения');
+      debugPrint('[GalleryNotifier] confirmPending error: $e');
+      state = state.copyWith(
+        isGenerating: false,
+        error: e is AppException ? e : SaveException(e.toString()),
+      );
     }
   }
 
@@ -213,8 +221,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         isGenerating: false,
       );
     } catch (e) {
-      state = state.copyWith(isGenerating: false, error: e.toString());
-      Fluttertoast.showToast(msg: 'Ошибка генерации');
+      debugPrint('[GalleryNotifier] regeneratePending error: $e');
+      state = state.copyWith(
+        isGenerating: false,
+        error: e is AppException ? e : GenerationException(e.toString()),
+      );
     }
   }
 
@@ -247,8 +258,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }).toList();
       state = state.copyWith(images: updated, isGenerating: false);
     } catch (e) {
-      state = state.copyWith(isGenerating: false, error: e.toString());
-      Fluttertoast.showToast(msg: 'Ошибка генерации');
+      debugPrint('[GalleryNotifier] regenerateExisting error: $e');
+      state = state.copyWith(
+        isGenerating: false,
+        error: e is AppException ? e : GenerationException(e.toString()),
+      );
     }
   }
 
@@ -261,7 +275,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         images: state.images.where((img) => img.id != imageId).toList(),
       );
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Ошибка удаления');
+      debugPrint('[GalleryNotifier] deleteImage error: $e');
+      state = state.copyWith(
+        error: e is AppException ? e : DeleteException(e.toString()),
+      );
     }
   }
 }

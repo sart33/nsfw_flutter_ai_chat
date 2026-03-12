@@ -4,16 +4,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:nsfw_chat/core/config/chat_constants.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/data/repositories/branch_repository.dart';
 import 'package:nsfw_chat/data/repositories/chat_repository.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 
 /// Chat state — persisted in SQLite per branch.
 class ChatState {
   final List<ChatMessageModel> messages;
   final bool isLoading;
-  final String? error;
+  final AppException? error;
 
   const ChatState({
     this.messages = const [],
@@ -24,7 +26,7 @@ class ChatState {
   ChatState copyWith({
     List<ChatMessageModel>? messages,
     bool? isLoading,
-    String? error,
+    AppException? error,
   }) =>
       ChatState(
         messages: messages ?? this.messages,
@@ -92,7 +94,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
         final msg = ChatMessageModel(
           id: const Uuid().v4(),
           personaId: isMulti ? null : personaId,
-          senderName: isMulti ? 'Система' : (personaName ?? 'AI'),
+          senderName: isMulti
+              ? ChatConstants.systemSender
+              : (personaName ?? ChatConstants.aiSender),
           content: greeting,
           isUser: false,
         );
@@ -106,7 +110,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(error: 'Ошибка загрузки истории');
+      debugPrint('[ChatNotifier] init error: $e');
+      state = state.copyWith(
+        error: e is AppException ? e : HistoryException(e.toString()),
+      );
     }
   }
 
@@ -125,7 +132,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       // Add user message.
       final userMsg = ChatMessageModel(
         id: const Uuid().v4(),
-        senderName: 'Вы',
+        senderName: ChatConstants.userSender,
         content: content,
         isUser: true,
       );
@@ -178,9 +185,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
           'sendMessage: aiMsg saved, message count after=${state.messages.length}',
           name: 'PROVIDER');
     } catch (e) {
+      debugPrint('[ChatNotifier] sendMessage error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Ошибка API',
+        error: e is AppException ? e : ApiException(e.toString()),
       );
     }
   }
@@ -200,7 +208,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     if (!skipSave) {
       final userMsg = ChatMessageModel(
         id: const Uuid().v4(),
-        senderName: 'Вы',
+        senderName: ChatConstants.userSender,
         content: content,
         isUser: true,
       );
@@ -242,9 +250,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
       );
       await repo.saveMessage(aiMsg, _branchId);
     } catch (e) {
+      debugPrint('[ChatNotifier] sendMultiMessage error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Ошибка API',
+        error: e is AppException ? e : ApiException(e.toString()),
       );
     }
   }
@@ -359,11 +368,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
         );
         await repo.saveMessage(aiMsg, _branchId);
       } catch (e) {
-        state = state.copyWith(isLoading: false, error: 'Ошибка API');
+        debugPrint('[ChatNotifier] regenLastAI (single) error: $e');
+        state = state.copyWith(
+          isLoading: false,
+          error: e is AppException ? e : ApiException(e.toString()),
+        );
       }
     } else if (personas != null && behavior != null) {
       state = state.copyWith(isLoading: true);
-      final effectiveTokens  = (maxTokens * personas.length).clamp(1, 8192);
+      final effectiveTokens = (maxTokens * personas.length).clamp(1, 8192);
 
       try {
         final reply = await repo.sendMultiMessage(
@@ -384,7 +397,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
         );
         await repo.saveMessage(aiMsg, _branchId);
       } catch (e) {
-        state = state.copyWith(isLoading: false, error: 'Ошибка API');
+        debugPrint('[ChatNotifier] regenLastAI (multi) error: $e');
+        state = state.copyWith(
+          isLoading: false,
+          error: e is AppException ? e : ApiException(e.toString()),
+        );
       }
     }
   }
@@ -432,7 +449,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         return p.name;
       }
     }
-    return personas.isNotEmpty ? personas.first.name : 'AI';
+    return personas.isNotEmpty ? personas.first.name : ChatConstants.aiSender;
   }
 
   String _extractContent(String reply) {
