@@ -8,6 +8,7 @@ class AppTheme {
   static const Color background = Color(0xFF000000);
   static const Color surface = Color(0xFF111111);
   static const Color userBubble = Color(0xFF333333);
+  static const Color userIcon = Color(0xFF919191);
   static const Color aiBubble = Color(0xFF111111);
   static const Color primaryAccent = Color(0xFFBB86FC);
   static const Color textPrimary = Color(0xFFFFFFFF);

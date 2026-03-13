@@ -25,15 +25,16 @@ class DatabaseHelper {
 
       _db = await openDatabase(
         path,
-        version: 2,
+        version: 4,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE branches (
-              id         TEXT PRIMARY KEY,
-              entity_id  TEXT    NOT NULL,
-              created_at INTEGER NOT NULL,
-              updated_at INTEGER NOT NULL,
-              preview    TEXT
+              id              TEXT PRIMARY KEY,
+              entity_id       TEXT    NOT NULL,
+              created_at      INTEGER NOT NULL,
+              updated_at      INTEGER NOT NULL,
+              preview         TEXT,
+              context_summary TEXT
             )
           ''');
 
@@ -59,6 +60,17 @@ class DatabaseHelper {
               generated_at INTEGER NOT NULL
             )
           ''');
+
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS summaries (
+              id           TEXT PRIMARY KEY,
+              branch_id    TEXT NOT NULL,
+              block_number INTEGER NOT NULL,
+              summary_text TEXT NOT NULL,
+              created_at   INTEGER NOT NULL,
+              FOREIGN KEY (branch_id) REFERENCES branches(id)
+            )
+          ''');
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -69,6 +81,23 @@ class DatabaseHelper {
                 template_id  INTEGER NOT NULL,
                 local_path   TEXT    NOT NULL,
                 generated_at INTEGER NOT NULL
+              )
+            ''');
+          }
+          if (oldVersion < 3) {
+            await db.execute(
+              'ALTER TABLE branches ADD COLUMN context_summary TEXT',
+            );
+          }
+          if (oldVersion < 4) {
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS summaries (
+                id           TEXT PRIMARY KEY,
+                branch_id    TEXT NOT NULL,
+                block_number INTEGER NOT NULL,
+                summary_text TEXT NOT NULL,
+                created_at   INTEGER NOT NULL,
+                FOREIGN KEY (branch_id) REFERENCES branches(id)
               )
             ''');
           }
@@ -161,13 +190,15 @@ class DatabaseHelper {
     }
   }
 
-  /// Deletes a branch and all its messages.
+  /// Deletes a branch and all its messages and summary blocks.
   Future<void> deleteBranch(String branchId) async {
     try {
       final db = await database;
-      log('DELETE messages WHERE branch_id=$branchId + DELETE branches WHERE id=$branchId', name: 'DB_DELETE');
+      log('DELETE messages+summaries WHERE branch_id=$branchId + DELETE branches WHERE id=$branchId', name: 'DB_DELETE');
       await db.transaction((txn) async {
         await txn.delete('messages',
+            where: 'branch_id = ?', whereArgs: [branchId]);
+        await txn.delete('summaries',
             where: 'branch_id = ?', whereArgs: [branchId]);
         await txn
             .delete('branches', where: 'id = ?', whereArgs: [branchId]);
@@ -179,11 +210,11 @@ class DatabaseHelper {
     }
   }
 
-  /// Deletes all branches and their messages for a given entity.
+  /// Deletes all branches and their messages and summary blocks for a given entity.
   Future<void> deleteAllForEntity(String entityId) async {
     try {
       final db = await database;
-      log('DELETE all branches+messages for entity_id=$entityId', name: 'DB_DELETE');
+      log('DELETE all branches+messages+summaries for entity_id=$entityId', name: 'DB_DELETE');
       await db.transaction((txn) async {
         // Fetch branch ids first.
         final branches = await txn.query(
@@ -197,6 +228,9 @@ class DatabaseHelper {
           log('DELETE messages WHERE branch_id=$branchId', name: 'DB_DELETE');
           await txn.delete('messages',
               where: 'branch_id = ?', whereArgs: [branchId]);
+          log('DELETE summaries WHERE branch_id=$branchId', name: 'DB_DELETE');
+          await txn.delete('summaries',
+              where: 'branch_id = ?', whereArgs: [branchId]);
         }
         await txn.delete('branches',
             where: 'entity_id = ?', whereArgs: [entityId]);
@@ -204,6 +238,49 @@ class DatabaseHelper {
     } catch (e) {
       log('deleteAllForEntity error: $e', name: 'DB_ERROR');
       print('DatabaseHelper.deleteAllForEntity error: $e');
+      rethrow;
+    }
+  }
+
+  // ── BRANCH SUMMARY ──────────────────────────────────────────────────────
+
+  /// Returns the stored context summary for [branchId], or null if absent.
+  Future<String?> getBranchSummary(String branchId) async {
+    try {
+      final db = await database;
+      log('SELECT context_summary FROM branches WHERE id=$branchId', name: 'DB_READ');
+      final rows = await db.query(
+        'branches',
+        columns: ['context_summary'],
+        where: 'id = ?',
+        whereArgs: [branchId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return null;
+      final value = rows.first['context_summary'];
+      if (value == null || (value as String).isEmpty) return null;
+      return value;
+    } catch (e) {
+      log('getBranchSummary error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getBranchSummary error: $e');
+      rethrow;
+    }
+  }
+
+  /// Saves (overwrites) the context summary for [branchId].
+  Future<void> saveBranchSummary(String branchId, String summary) async {
+    try {
+      final db = await database;
+      log('UPDATE branches SET context_summary WHERE id=$branchId', name: 'DB_WRITE');
+      await db.update(
+        'branches',
+        {'context_summary': summary},
+        where: 'id = ?',
+        whereArgs: [branchId],
+      );
+    } catch (e) {
+      log('saveBranchSummary error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.saveBranchSummary error: $e');
       rethrow;
     }
   }
@@ -419,6 +496,105 @@ class DatabaseHelper {
     } catch (e) {
       log('getUsedTemplateIds error: $e', name: 'DB_ERROR');
       print('DatabaseHelper.getUsedTemplateIds error: $e');
+      rethrow;
+    }
+  }
+
+  // ── SUMMARY BLOCKS ──────────────────────────────────────────────────────
+
+  /// Returns all summary blocks for a branch, ordered by block_number ascending.
+  Future<List<Map<String, dynamic>>> getSummaryBlocks(String branchId) async {
+    try {
+      final db = await database;
+      log('SELECT summaries WHERE branch_id=$branchId ORDER BY block_number ASC', name: 'DB_READ');
+      final results = await db.query(
+        'summaries',
+        where: 'branch_id = ?',
+        whereArgs: [branchId],
+        orderBy: 'block_number ASC',
+      );
+      log('getSummaryBlocks result count: ${results.length}', name: 'DB_READ');
+      return results;
+    } catch (e) {
+      log('getSummaryBlocks error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getSummaryBlocks error: $e');
+      rethrow;
+    }
+  }
+
+  /// Returns the next block number for a branch (max + 1, or 1 if no blocks).
+  Future<int> getNextBlockNumber(String branchId) async {
+    try {
+      final db = await database;
+      log('SELECT MAX(block_number) FROM summaries WHERE branch_id=$branchId', name: 'DB_READ');
+      final rows = await db.rawQuery(
+        'SELECT MAX(block_number) as max_num FROM summaries WHERE branch_id = ?',
+        [branchId],
+      );
+      if (rows.isEmpty || rows.first['max_num'] == null) {
+        return 1;
+      }
+      final maxNum = rows.first['max_num'] as int;
+      return maxNum + 1;
+    } catch (e) {
+      log('getNextBlockNumber error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getNextBlockNumber error: $e');
+      rethrow;
+    }
+  }
+
+  /// Inserts a new summary block.
+  Future<void> insertSummaryBlock(
+    String id,
+    String branchId,
+    int blockNumber,
+    String summaryText,
+    int createdAt,
+  ) async {
+    try {
+      final db = await database;
+      final data = {
+        'id': id,
+        'branch_id': branchId,
+        'block_number': blockNumber,
+        'summary_text': summaryText,
+        'created_at': createdAt,
+      };
+      log('INSERT INTO summaries: $data', name: 'DB_WRITE');
+      await db.insert('summaries', data);
+    } catch (e) {
+      log('insertSummaryBlock error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.insertSummaryBlock error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes all summary blocks for a branch.
+  Future<void> deleteAllSummaryBlocks(String branchId) async {
+    try {
+      final db = await database;
+      log('DELETE summaries WHERE branch_id=$branchId', name: 'DB_DELETE');
+      await db.delete(
+        'summaries',
+        where: 'branch_id = ?',
+        whereArgs: [branchId],
+      );
+    } catch (e) {
+      log('deleteAllSummaryBlocks error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteAllSummaryBlocks error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes all summary blocks from the database.
+  Future<void> clearAllSummaries() async {
+    try {
+      final db = await database;
+      log('DELETE FROM summaries', name: 'DB_DELETE');
+      await db.delete('summaries');
+    } catch (e) {
+      log('clearAllSummaries error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.clearAllSummaries error: $e');
       rethrow;
     }
   }

@@ -164,6 +164,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         history: state.messages,
         persona: persona,
         maxTokens: maxTokens,
+        branchId: _branchId,
       );
 
       final aiMsg = ChatMessageModel(
@@ -236,6 +237,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         personas: personas,
         behavior: behavior,
         maxTokens: effectiveTokens,
+        branchId: _branchId,
       );
 
       final aiMsg = ChatMessageModel(
@@ -354,6 +356,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           history: state.messages,
           persona: persona,
           maxTokens: maxTokens,
+          branchId: _branchId,
         );
         final aiMsg = ChatMessageModel(
           id: const Uuid().v4(),
@@ -384,6 +387,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           personas: personas,
           behavior: behavior,
           maxTokens: effectiveTokens,
+          branchId: _branchId,
         );
         final aiMsg = ChatMessageModel(
           id: const Uuid().v4(),

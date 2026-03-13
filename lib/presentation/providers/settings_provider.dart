@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Settings state holding user-adjustable limits.
@@ -10,15 +11,19 @@ class SettingsState {
   final bool reminderEnabled;
   final bool yamlPersonaEnabled;
   final double generationTemperature;
+  final bool summarizationEnabled;
+  final int summarizationThreshold;
 
   const SettingsState({
     this.userInputLimit = 2000,
     this.aiResponseLimit = 4000,
     this.chatFontSize = 16.0,
-    this.reminderInterval = 10,   // default 10
-    this.reminderEnabled = true,  // default true
-    this.yamlPersonaEnabled = false, // default false
+    this.reminderInterval = 10,        // default 10
+    this.reminderEnabled = true,       // default true
+    this.yamlPersonaEnabled = false,   // default false
     this.generationTemperature = 0.9,
+    this.summarizationEnabled = true,  // default true
+    this.summarizationThreshold = 50,  // default 50
   });
 
   SettingsState copyWith({
@@ -29,6 +34,8 @@ class SettingsState {
     bool? reminderEnabled,
     bool? yamlPersonaEnabled,
     double? generationTemperature,
+    bool? summarizationEnabled,
+    int? summarizationThreshold,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
@@ -38,6 +45,8 @@ class SettingsState {
         reminderEnabled: reminderEnabled ?? this.reminderEnabled,
         yamlPersonaEnabled: yamlPersonaEnabled ?? this.yamlPersonaEnabled,
         generationTemperature: generationTemperature ?? this.generationTemperature,
+        summarizationEnabled: summarizationEnabled ?? this.summarizationEnabled,
+        summarizationThreshold: summarizationThreshold ?? this.summarizationThreshold,
       );
 }
 
@@ -50,6 +59,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyReminderEnabled = 'settings_reminder_enabled';
   static const _keyYamlPersonaEnabled = 'settings_yaml_persona_enabled';
   static const _keyGenerationTemperature = 'generation_temperature';
+  static const _keySummarizationEnabled = 'settings_summarization_enabled';
+  static const _keySummarizationThreshold = 'settings_summarization_threshold';
 
   SettingsNotifier() : super(const SettingsState()) {
     _load();
@@ -64,6 +75,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;
     final yamlPersonaEnabled = prefs.getBool(_keyYamlPersonaEnabled) ?? false;
     final temperature = prefs.getDouble(_keyGenerationTemperature) ?? 0.9;
+    final summarizationEnabled = prefs.getBool(_keySummarizationEnabled) ?? true;
+    final summarizationThreshold = prefs.getInt(_keySummarizationThreshold) ?? 50;
     state = SettingsState(
       userInputLimit: userLimit,
       aiResponseLimit: aiLimit,
@@ -72,6 +85,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       reminderEnabled: reminderEnabled,
       yamlPersonaEnabled: yamlPersonaEnabled,
       generationTemperature: temperature,
+      summarizationEnabled: summarizationEnabled,
+      summarizationThreshold: summarizationThreshold,
     );
   }
 
@@ -127,6 +142,31 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     state = state.copyWith(generationTemperature: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyGenerationTemperature, clamped);
+  }
+
+  /// Enable or disable automatic conversation summarization.
+  Future<void> setSummarizationEnabled(bool value) async {
+    state = state.copyWith(summarizationEnabled: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keySummarizationEnabled, value);
+  }
+
+  /// Set the message-count threshold that triggers summarization (30–200).
+  Future<void> setSummarizationThreshold(int value) async {
+    final clamped = value.clamp(30, 200);
+    state = state.copyWith(summarizationThreshold: clamped);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keySummarizationThreshold, clamped);
+  }
+
+  /// Clears all summary blocks from the database.
+  Future<void> clearAllSummaries() async {
+    try {
+      await DatabaseHelper.instance.clearAllSummaries();
+    } catch (e) {
+      print('Error clearing summaries: $e');
+      rethrow;
+    }
   }
 }
 

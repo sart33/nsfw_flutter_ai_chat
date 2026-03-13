@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 
@@ -291,7 +290,7 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (v) => notifier.setAiResponseLimit(v.round()),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 InkWell(
                   onTap: () => _showTokenInfoDialog(context),
@@ -318,34 +317,6 @@ class SettingsScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            // ── Multi-chat note ──────────────────────────────────
-            // Container(
-            //   padding: const EdgeInsets.all(12),
-            //   decoration: BoxDecoration(
-            //     color: AppTheme.surface,
-            //     borderRadius: BorderRadius.circular(8),
-            //   ),
-            //   child: const Row(
-            //     children: [
-            //       Icon(
-            //         Icons.info_outline,
-            //         color: AppTheme.textSecondary,
-            //         size: 20,
-            //       ),
-            //       SizedBox(width: 8),
-            //       Expanded(
-            //         child: Text(
-            //           'Для мульти-чата умножается на количество персонажей',
-            //           style: TextStyle(
-            //             color: AppTheme.textSecondary,
-            //             fontSize: 13,
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // const SizedBox(height: 24),
 
             // ── Reminder interval ────────────────────────────────
             Text(
@@ -456,10 +427,124 @@ class SettingsScreen extends ConsumerWidget {
               max: 1.5,
               divisions: 28,
               activeColor: AppTheme.primaryAccent,
-              onChanged: (v) =>  notifier.setGenerationTemperature(
-                  double.parse(v.toStringAsFixed(2)),
+              onChanged: (v) => notifier.setGenerationTemperature(v),
             ),
+            const SizedBox(height: 8),
+
+            // ── Summarization toggle ─────────────────────────────
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.summarizationEnabled,
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              subtitle: Text(context.l10n.summarizationEnabledDesc,
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              ),
+              value: settings.summarizationEnabled,
+              onChanged: (v) => notifier.setSummarizationEnabled(v),
+              activeColor: AppTheme.primaryAccent,
             ),
+
+            if (settings.summarizationEnabled) ...[
+              const SizedBox(height: 4),
+               Text(context.l10n.summarizationEnabled,
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${settings.summarizationThreshold} ${context.l10n.messages}',
+                style: const TextStyle(
+                  color: AppTheme.primaryAccent,
+                  fontSize: 14,
+                ),
+              ),
+              Slider(
+                value: settings.summarizationThreshold.toDouble(),
+                min: 30,
+                max: 200,
+                divisions: 17,
+                activeColor: AppTheme.primaryAccent,
+                label: '${settings.summarizationThreshold}',
+                onChanged: (v) =>
+                    notifier.setSummarizationThreshold(v.round()),
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            // ── Clear all summaries ──────────────────────────────
+            Card(
+              color: AppTheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.delete_sweep, color: AppTheme.primaryAccent),
+                title: Text(context.l10n.confirmClearAllSummarizations,
+                  style: TextStyle(color: AppTheme.textPrimary),
+                ),
+                subtitle: Text(context.l10n.clearAllSummarizationsWarning,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                ),
+                trailing: Icon(Icons.arrow_forward_ios,
+                    color: AppTheme.textSecondary, size: 16),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: AppTheme.surface,
+                      title: Text(context.l10n.confirmClearAllSummarizations,
+                        style: TextStyle(color: AppTheme.textPrimary),
+                      ),
+                      content: Text(context.l10n.clearAllSummarizationsWarning,
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(context.l10n.cancel,
+                            style: TextStyle(color: AppTheme.textSecondary),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            try {
+                              await notifier.clearAllSummaries();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(context.l10n.allSummarizationsCleared),
+                                    backgroundColor: AppTheme.primaryAccent,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${context.l10n.errorClearingSummaries}: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(context.l10n.clear,
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
             const SizedBox(height: 24),
 
             // ── API Keys management ──────────────────────────────

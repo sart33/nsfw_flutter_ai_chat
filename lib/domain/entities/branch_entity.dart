@@ -5,6 +5,7 @@ class BranchEntity {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? preview;
+  final String? contextSummary;
 
   const BranchEntity({
     required this.id,
@@ -12,6 +13,7 @@ class BranchEntity {
     required this.createdAt,
     required this.updatedAt,
     this.preview,
+    this.contextSummary,
   });
 
   BranchEntity copyWith({
@@ -20,6 +22,7 @@ class BranchEntity {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? preview,
+    String? contextSummary,
   }) =>
       BranchEntity(
         id: id ?? this.id,
@@ -27,5 +30,6 @@ class BranchEntity {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         preview: preview ?? this.preview,
+        contextSummary: contextSummary ?? this.contextSummary,
       );
 }

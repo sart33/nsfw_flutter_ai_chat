@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nsfw_chat/core/extensions/context_extensions.dart';
-import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/multi_preset_entity.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
+import 'package:uuid/uuid.dart';
 
 /// Create or edit a multi-persona preset.
 /// Name, persona multi-select, greeting (pre-filled), behavior field.

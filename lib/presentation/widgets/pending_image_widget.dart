@@ -1,8 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 class PendingImageWidget extends StatelessWidget {
   final String path;

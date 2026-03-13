@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/providers/branch_provider.dart';
 import 'package:nsfw_chat/presentation/providers/chat_provider.dart';
 import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
-import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 
 
 /// Displays a list of conversation branches for an entity.
@@ -54,7 +53,7 @@ class BranchListScreen extends ConsumerWidget {
                   child: InkWell(
                     onTap: () => _openChat(context, ref, branch.id),
                     borderRadius: BorderRadius.circular(12),
-                    child: Padding(
+                      child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 12),
                       child: Row(
@@ -83,6 +82,16 @@ class BranchListScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          // Right: summarization icon (if summarized)
+                          if (branch.contextSummary != null && branch.contextSummary!.isNotEmpty)
+                            Tooltip(
+                              message: context.l10n.branchSummarized,
+                              child: Icon(
+                                Icons.compress,
+                                size: 14,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
                           const SizedBox(width: 8),
                           // Right: delete button
                           IconButton(

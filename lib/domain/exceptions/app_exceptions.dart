@@ -40,3 +40,7 @@ class SaveException extends AppException {
 class DeleteException extends AppException {
   const DeleteException([super.technicalMessage]);
 }
+/// Thrown when a message summarization request fails.
+class SummarizationException extends AppException {
+  const SummarizationException([super.technicalMessage]);
+}

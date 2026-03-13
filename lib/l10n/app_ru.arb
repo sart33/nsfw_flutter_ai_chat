@@ -65,7 +65,7 @@
   "camera": "Камера",
   "cropAvatar": "Обрезать аватар",
   "fillCharacterDescription": "Заполните описание персонажа",
-  "avatarGenerationError": "Ошибка генерации аватара: {error}",
+  "avatarGenerationError": "Ошибка генерации аватара: ",
   "@avatarGenerationError": {
     "placeholders": {
       "error": {}
@@ -167,5 +167,19 @@
   "errorSave": "Ошибка сохранения",
   "errorDelete": "Ошибка удаления",
   "errorUnknown": "Неизвестная ошибка",
-  "galleryFull": "Все 20 шаблонов уже сгенерированы"
+  "galleryFull": "Все 20 шаблонов уже сгенерированы",
+  "summarizationEnabled": "Суммаризация длинных веток",
+  "summarizationEnabledDesc": "Сжимает старые сообщения для экономии токенов",
+  "summarizationThreshold": "Суммаризация после {count} сообщений",
+  "branchSummarized": "Ветка суммаризована",
+  "previousHistorySummary": "Предыдущая история (краткое содержание): ",
+  "messages" : "сообщений",
+
+  "clearAllSummarizations": "Очистить все суммаризации",
+  "clearAllSummarizationsSubtitle": "Удаляет все блоки суммаризации из базы данных",
+  "confirmClearAllSummarizations": "Очистить все суммаризации?",
+  "clearAllSummarizationsWarning": "Это действие удалит все блоки суммаризации из базы данных. Это необратимо и может повлиять на работу длинных чатов.",
+  "clear": "Очистить",
+  "allSummarizationsCleared": "Все суммаризации очищены",
+  "errorClearingSummaries": "Ошибка: "
 }

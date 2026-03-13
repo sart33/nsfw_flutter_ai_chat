@@ -65,7 +65,7 @@
   "camera": "Camera",
   "cropAvatar": "Crop avatar",
   "fillCharacterDescription": "Fill character description",
-  "avatarGenerationError": "Avatar generation error: {error}",
+  "avatarGenerationError": "Avatar generation error: ",
   "@avatarGenerationError": {
     "placeholders": {
       "error": {}
@@ -167,5 +167,19 @@
   "errorSave": "Save error",
   "errorDelete": "Delete error",
   "errorUnknown": "Unknown error",
-  "galleryFull": "All 20 templates already generated"
+  "galleryFull": "All 20 templates already generated",
+  "summarizationEnabled": "Summarize long threads",
+  "summarizationEnabledDesc": "Compresses older messages to save tokens",
+  "summarizationThreshold": "Summarize after {count} messages",
+  "branchSummarized": "Branch summarized",
+  "previousHistorySummary": "Previous conversation summary: ",
+  "messages" : "messages",
+
+  "clearAllSummarizations": "Clear All Summaries",
+  "clearAllSummarizationsSubtitle": "Deletes all summary blocks from the database",
+  "confirmClearAllSummarizations": "Clear All Summaries?",
+  "clearAllSummarizationsWarning": "This action will delete all summary blocks from the database. It is irreversible and may affect the performance of long conversations.",
+  "clear": "Clear",
+  "allSummarizationsCleared": "All summaries cleared",
+  "errorClearingSummaries": "Error: {error}"
 }

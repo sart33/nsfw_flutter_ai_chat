@@ -71,6 +71,19 @@ class BranchRepository {
 
   // ── INTERNAL ────────────────────────────────────────────────────────────
 
+  /// Clears the stored summary for a branch.
+  Future<void> clearSummary(String branchId) async {
+    try {
+      await _db.saveBranchSummary(branchId, '');
+      print('[Summary] Cleared for branch $branchId');
+    } catch (e) {
+      print('BranchRepository.clearSummary error: $e');
+      rethrow;
+    }
+  }
+
+  // ── INTERNAL ────────────────────────────────────────────────────────────
+
   BranchEntity _mapRowToEntity(Map<String, dynamic> row) {
     return BranchEntity(
       id: row['id'] as String,
@@ -78,6 +91,7 @@ class BranchRepository {
       createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
       preview: row['preview'] as String?,
+      contextSummary: row['context_summary'] as String?,
     );
   }
 }

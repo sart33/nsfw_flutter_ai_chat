@@ -8,7 +8,6 @@ import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/create_edit_persona_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/persona_card.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 class PersonaListScreen extends ConsumerWidget {
   const PersonaListScreen({super.key});

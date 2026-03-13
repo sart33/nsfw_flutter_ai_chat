@@ -5,7 +5,6 @@ import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/create_edit_multi_preset_screen.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 /// Lists saved multi-presets. Tap → open multi chat. FAB → create new.
 class MultiPresetListScreen extends ConsumerWidget {

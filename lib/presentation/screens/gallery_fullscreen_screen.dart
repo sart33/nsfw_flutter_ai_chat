@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nsfw_chat/core/extensions/context_extensions.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
+import 'package:photo_view/photo_view.dart';
 
 class GalleryFullscreenScreen extends ConsumerStatefulWidget {
   final List<GalleryImageEntity> images;

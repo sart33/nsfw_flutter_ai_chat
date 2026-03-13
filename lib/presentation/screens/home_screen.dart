@@ -8,7 +8,6 @@ import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/multi_preset_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 
 /// Home screen — menu with navigation + FAB to start a new single chat.
 class HomeScreen extends ConsumerWidget {

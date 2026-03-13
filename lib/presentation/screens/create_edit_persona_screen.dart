@@ -1,16 +1,16 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/core/services/novita_avatar_service.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 /// Create or edit a persona.
 /// Form: name (required), description (max 4000, char count, red if over),
@@ -186,16 +186,20 @@ class _CreateEditPersonaScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildIconLabelButton(
-                icon: Icons.refresh,
-                label: context.l10n.regenerate,
-                onPressed: _regenerateAvatar,
+              Expanded(
+                child: _buildIconLabelButton(
+                  icon: Icons.refresh,
+                  label: context.l10n.regenerate,
+                  onPressed: _regenerateAvatar,
+                ),
               ),
               const SizedBox(width: 16),
-              _buildIconLabelButton(
-                icon: Icons.crop,
-                label: context.l10n.cropAndSave,
-                onPressed: _cropGeneratedAvatar,
+              Expanded(
+                child: _buildIconLabelButton(
+                  icon: Icons.crop,
+                  label: context.l10n.cropAndSave,
+                  onPressed: _cropGeneratedAvatar,
+                ),
               ),
             ],
           ),
@@ -215,13 +219,12 @@ class _CreateEditPersonaScreenState
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppTheme.userBubble),
         ),
-        child: const Column(
+        child:  Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 10),
-            Text(
-              'Генерация\nаватара...',
+            Text(context.l10n.generatingAvatar,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppTheme.textSecondary,
@@ -317,10 +320,10 @@ class _CreateEditPersonaScreenState
   }) {
     return TextButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, size: 18, color: AppTheme.userBubble),
+      icon: Icon(icon, size: 18, color: AppTheme.userIcon),
       label: Text(
         label,
-        style: const TextStyle(color: AppTheme.userBubble, fontSize: 13),
+        style: const TextStyle(color: AppTheme.userIcon, fontSize: 13),
       ),
     );
   }
@@ -409,7 +412,7 @@ class _CreateEditPersonaScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка генерации аватара: $e')),
+          SnackBar(content: Text('${context.l10n.avatarGenerationError} $e')),
         );
       }
     } finally {
