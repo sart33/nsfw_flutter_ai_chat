@@ -125,6 +125,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     required PersonaEntity persona,
     required int maxTokens,
     bool skipSave = false,
+    bool isQuickAction = false,
   }) async {
     final repo = await _repo();
 
@@ -135,6 +136,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         senderName: ChatConstants.userSender,
         content: content,
         isUser: true,
+        isQuickAction: isQuickAction,
       );
       state = state.copyWith(
         messages: [...state.messages, userMsg],
@@ -203,6 +205,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     required String behavior,
     required int maxTokens,
     bool skipSave = false,
+    bool isQuickAction = false,
   }) async {
     final repo = await _repo();
 
@@ -212,6 +215,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         senderName: ChatConstants.userSender,
         content: content,
         isUser: true,
+        isQuickAction: isQuickAction,
       );
       state = state.copyWith(
         messages: [...state.messages, userMsg],

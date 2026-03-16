@@ -189,6 +189,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 final msgIdx =
                     chatState.messages.length - 1 - reversedIdx;
                 final msg = chatState.messages[msgIdx];
+                if (msg.isQuickAction) return const SizedBox.shrink();
 
                 // Resolve avatar for AI messages.
                 String? avatarPath;
@@ -363,6 +364,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         content: content,
         persona: _singlePersona!,
         maxTokens: tokens,
+        isQuickAction: true,
       );
     } else if (widget.isMulti) {
       notifier.sendMultiMessage(
@@ -370,6 +372,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         personas: _multiPersonas,
         behavior: _multiBehavior,
         maxTokens: tokens,
+        isQuickAction: true,
       );
     }
   }
@@ -637,7 +640,7 @@ class _QuickActionButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.background,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.3)),
+          border: Border.all(color: AppTheme.primaryAccent.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

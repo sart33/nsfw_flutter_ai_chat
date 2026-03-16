@@ -10,6 +10,7 @@ class ChatMessageModel {
   final bool isUser;
   final DateTime timestamp;
   final String? branchId;
+  final bool isQuickAction;
 
   ChatMessageModel({
     String? id,
@@ -19,6 +20,7 @@ class ChatMessageModel {
     required this.isUser,
     DateTime? timestamp,
     this.branchId,
+    this.isQuickAction = false,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -34,6 +36,7 @@ class ChatMessageModel {
         'content': content,
         'is_user': isUser ? 1 : 0,
         'timestamp': timestamp.millisecondsSinceEpoch,
+        'is_quick_action': isQuickAction ? 1 : 0,
       };
 
   /// Creates a model from a SQLite row map.
@@ -69,6 +72,7 @@ class ChatMessageModel {
       isUser: isUser,
       timestamp: timestamp,
       branchId: map['branch_id'] as String?,
+      isQuickAction: (map['is_quick_action'] as int? ?? 0) == 1,
     );
   }
 
@@ -87,6 +91,7 @@ class ChatMessageModel {
     bool? isUser,
     DateTime? timestamp,
     String? branchId,
+    bool? isQuickAction,
   }) =>
       ChatMessageModel(
         id: id ?? this.id,
@@ -96,5 +101,6 @@ class ChatMessageModel {
         isUser: isUser ?? this.isUser,
         timestamp: timestamp ?? this.timestamp,
         branchId: branchId ?? this.branchId,
+        isQuickAction: isQuickAction ?? this.isQuickAction,
       );
 }
