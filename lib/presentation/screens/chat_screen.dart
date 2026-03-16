@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
@@ -132,10 +134,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     final chatState = ref.watch(chatProvider(widget.branchId));
     final settings = ref.watch(settingsProvider);
-    if (_singlePersona != null) ref.watch(galleryProvider(_singlePersona!.id));
+    if (_singlePersona != null) ref.watch(galleryProvider(GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode)));
     // Pre-watch all multi-persona galleries to have them ready on avatar tap.
     for (final p in _multiPersonas) {
-      ref.watch(galleryProvider(p.id));
+      ref.watch(galleryProvider(GalleryKey(p.id, p.galleryMode)));
     }
     _resolveEntities(ref);
     _initIfNeeded();
@@ -237,6 +239,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+
                   // Char counter.
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4, right: 4),
@@ -248,6 +251,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                     ),
                   ),
+                  // Quick action buttons — visible only when not loading
+                  if (!chatState.isLoading)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          _QuickActionButton(
+                            label: 'Продолжай',
+                            icon: Icons.play_arrow,
+                            onTap: () => _sendQuick('Продолжай', settings),
+                          ),
+                          const SizedBox(width: 8),
+                          _QuickActionButton(
+                            label: 'Подробнее',
+                            icon: Icons.auto_stories,
+                            onTap: () => _sendQuick(
+                              'Продолжи и опиши сцену подробнее — '
+                              'действия, эмоции и ощущения персонажей. '
+                              'Напиши в два раза больше.',
+                              settings,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Row(
                     children: [
                       Expanded(
@@ -298,6 +326,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   // ── ACTIONS ───────────────────────────────────────────────────────────
 
+
   /// Send user message (single or multi depending on [isMulti]).
   void _send(SettingsState settings) {
     final content = _inputCtrl.text.trim();
@@ -305,6 +334,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _inputCtrl.clear();
     setState(() {});
 
+    final tokens = _maxTokens(settings);
+    final notifier = ref.read(chatProvider(widget.branchId).notifier);
+
+    if (!widget.isMulti && _singlePersona != null) {
+      notifier.sendMessage(
+        content: content,
+        persona: _singlePersona!,
+        maxTokens: tokens,
+      );
+    } else if (widget.isMulti) {
+      notifier.sendMultiMessage(
+        content: content,
+        personas: _multiPersonas,
+        behavior: _multiBehavior,
+        maxTokens: tokens,
+      );
+    }
+  }
+
+  /// Sends a predefined quick-action message without touching _inputCtrl.
+  void _sendQuick(String content, SettingsState settings) {
     final tokens = _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
 
@@ -362,6 +412,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+
             // Handle bar.
             Padding(
               padding: const EdgeInsets.only(top: 8, bottom: 4),
@@ -373,6 +424,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
+            ),
+            // ── Copy ──
+            ListTile(
+              leading: const Icon(Icons.copy, color: AppTheme.primaryAccent),
+              title: Text('Copy',
+                  style: TextStyle(color: AppTheme.textPrimary)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Clipboard.setData(ClipboardData(text: currentContent));
+                Fluttertoast.showToast(msg: 'Copied to clipboard');
+              },
             ),
             // ── Edit ──
             ListTile(
@@ -471,7 +533,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// Opens gallery fullscreen when AI avatar is tapped.
   void _openGalleryFromAvatar(BuildContext context) {
     if (_singlePersona == null) return;
-    final galleryState = ref.read(galleryProvider(_singlePersona!.id));
+    final galleryState = ref.read(galleryProvider(GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode)));
     if (galleryState.images.isNotEmpty) {
       Navigator.push(
         context,
@@ -481,6 +543,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             initialIndex: 0,
             personaDescription: _singlePersona!.description,
             personaId: _singlePersona!.id,
+            galleryMode: _singlePersona!.galleryMode,
           ),
         ),
       );
@@ -497,7 +560,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         .firstOrNull;
     if (persona == null) return;
 
-    final galleryState = ref.read(galleryProvider(persona.id));
+    final galleryState = ref.read(galleryProvider(GalleryKey(persona.id, persona.galleryMode)));
     if (galleryState.images.isNotEmpty) {
       Navigator.push(
         context,
@@ -507,6 +570,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             initialIndex: 0,
             personaDescription: persona.description,
             personaId: persona.id,
+            galleryMode: persona.galleryMode,
           ),
         ),
       );
@@ -546,6 +610,49 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 style: TextStyle(color: Colors.redAccent)),
           ),
         ],
+      ),
+    );
+
+  }
+}
+
+/// Quick-action button used above the input field.
+class _QuickActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _QuickActionButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: AppTheme.primaryAccent),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
