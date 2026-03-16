@@ -23,11 +23,12 @@ class PersonaViewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(galleryProvider(persona.id));
-    final notifier = ref.read(galleryProvider(persona.id).notifier);
+    final galleryKey = GalleryKey(persona.id, persona.galleryMode);
+    final state = ref.watch(galleryProvider(galleryKey));
+    final notifier = ref.read(galleryProvider(galleryKey).notifier);
 
     // ── Error listener ───────────────────────────────────────────────────
-    ref.listen<GalleryState>(galleryProvider(persona.id), (prev, next) {
+    ref.listen<GalleryState>(galleryProvider(galleryKey), (prev, next) {
       if (next.error != null && next.error != prev?.error) {
         final msg = switch (next.error) {
           GalleryFullException() => context.l10n.galleryFull,
@@ -37,7 +38,7 @@ class PersonaViewScreen extends ConsumerWidget {
           _ => context.l10n.errorUnknown,
         };
         Fluttertoast.showToast(msg: msg);
-        ref.read(galleryProvider(persona.id).notifier).clearError();
+        ref.read(galleryProvider(galleryKey).notifier).clearError();
       }
     });
 
@@ -119,7 +120,7 @@ class PersonaViewScreen extends ConsumerWidget {
                         await notifier.confirmPending(
                             persona.id, persona.description);
                         if (!context.mounted) return;
-                        if (ref.read(galleryProvider(persona.id)).error ==
+                        if (ref.read(galleryProvider(galleryKey)).error ==
                             null) {
                           Fluttertoast.showToast(
                               msg: context.l10n.savedToGallery);
@@ -195,6 +196,7 @@ class PersonaViewScreen extends ConsumerWidget {
                                 initialIndex: index,
                                 personaDescription: persona.description,
                                 personaId: persona.id,
+                                galleryMode: persona.galleryMode,
                               ),
                             ),
                           ),
@@ -344,37 +346,104 @@ class PersonaViewScreen extends ConsumerWidget {
     );
   }
 
+  // ── Mode selector ─────────────────────────────────────────────────────
+
+  Widget _buildModeSelector(
+      GalleryState state, GalleryNotifier notifier, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        children: [
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(
+                value: 'romantic',
+                label: Text('Романтика'),
+                icon: Icon(Icons.favorite_border, size: 16),
+              ),
+              ButtonSegment(
+                value: 'erotic',
+                label: Text('Эротика'),
+                icon: Icon(Icons.local_fire_department, size: 16),
+              ),
+              ButtonSegment(
+                value: 'office',
+                label: Text('Офис'),
+                icon: Icon(Icons.business_center_outlined, size: 16),
+              ),
+              ButtonSegment(
+                value: 'nude',
+                label: Text('NSFW'),
+                icon: Icon(Icons.whatshot, size: 16),
+              ),
+            ],
+            selected: {state.galleryMode},
+            onSelectionChanged: (Set<String> selected) {
+              notifier.setGalleryMode(selected.first);
+            },
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return const Color(0xFF7C4DFF);
+                }
+                return const Color(0xFF1A1A1A);
+              }),
+              foregroundColor: WidgetStateProperty.all(Colors.white),
+              side: WidgetStateProperty.all(
+                  const BorderSide(color: Color(0xFF333333))),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Режим по умолчанию задаётся в редактировании персонажа',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Gallery header row ────────────────────────────────────────────────
 
   Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier, BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          context.l10n.gallery,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        _buildModeSelector(state, notifier, context),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${state.images.length}/20',
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 12),
-            ),
-            const SizedBox(width: 8),
-            if (state.images.length < 20)
-              IconButton(
-                icon: const Icon(Icons.add_photo_alternate,
-                    color: Colors.white),
-                tooltip: context.l10n.generate,
-                onPressed: state.isGenerating
-                    ? null
-                    : () => notifier.generatePreview(persona.description),
+              context.l10n.gallery,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            Row(
+              children: [
+                Text(
+                  '${state.images.length}/20',
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 12),
+                ),
+                const SizedBox(width: 8),
+                if (state.images.length < 20)
+                  IconButton(
+                    icon: const Icon(Icons.add_photo_alternate,
+                        color: Colors.white),
+                    tooltip: context.l10n.generate,
+                    onPressed: state.isGenerating
+                        ? null
+                        : () => notifier.generatePreview(persona.description),
+                  ),
+              ],
+            ),
           ],
         ),
       ],

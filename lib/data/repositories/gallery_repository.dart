@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:nsfw_chat/domain/result/preview_result.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
+
+import '../../domain/result/result.dart';
 
 /// Manages gallery image generation, persistence, and deletion for personas.
 class GalleryRepository {
@@ -17,6 +21,12 @@ class GalleryRepository {
   final _db = DatabaseHelper.instance;
   final _novita = NovitaImageService.instance;
   static const _uuid = Uuid();
+
+  // Template IDs where clothing covers arms/tattoos fully.
+  // Uses romantic2 (office-cleaned) description instead of romantic.
+  static const _romantic2TemplateIds = <int>[
+    27, 29, 39, 40
+  ];
 
   // ── Read ─────────────────────────────────────────────────────────────────
 
@@ -34,52 +44,129 @@ class GalleryRepository {
 
   // ── Generate ──────────────────────────────────────────────────────────────
 
-  Future<GalleryImageEntity> generateNext(
-      String personaId, String description) async {
+
+  Future<Result<PreviewResult>> generatePreview(
+      String personaId, String description, String galleryMode) async {
     try {
       final usedIds = await _db.getUsedTemplateIds(personaId);
-      final allIds = List.generate(20, (i) => i + 1);
+      final List<int> allIds;
+      if (galleryMode == 'romantic') {
+        allIds = List.generate(20, (i) => i + 21); // 21-40
+      } else if (galleryMode == 'erotic') {
+        allIds = List.generate(20, (i) => i + 41); // 41-60
+      } else if (galleryMode == 'office') {
+        allIds = List.generate(20, (i) => i + 61); // 61-80, placeholder
+      } else {
+        allIds = List.generate(20, (i) => i + 1);  // 1-20, nude (default)
+      }
       final available =
-          allIds.where((id) => !usedIds.contains(id)).toList();
+      allIds.where((id) => !usedIds.contains(id)).toList();
       if (available.isEmpty) throw const GalleryFullException();
 
       final selectedId = available[Random().nextInt(available.length)];
       final jsonStr =
-          await rootBundle.loadString('assets/json/image_templates.json');
+      await rootBundle.loadString('assets/json/image_templates.json');
       final templates = jsonDecode(jsonStr) as List<dynamic>;
       final template = templates.firstWhere(
-        (t) => (t as Map<String, dynamic>)['id'] == selectedId,
+            (t) => (t as Map<String, dynamic>)['id'] == selectedId,
       ) as Map<String, dynamic>;
 
+      final String effectiveDescription;
+      final prompts =
+      await DatabaseHelper.instance.getPersonaPrompts(personaId);
+
+      if (prompts != null) {
+        effectiveDescription = switch (galleryMode) {
+          'erotic'   => (prompts['erotic']   as String?) ?? description,
+          'romantic' => _romantic2TemplateIds.contains(selectedId)
+              ? (prompts['romantic2'] as String?) ?? description
+              : (prompts['romantic']  as String?) ?? description,
+          'office'   => (prompts['office']   as String?) ?? description,
+          _          => (prompts['nsfw']     as String?) ?? description,
+        };
+      } else {
+        effectiveDescription = description;
+      }
+
       final prompt = (template['prompt_template'] as String)
-          .replaceAll('{description}', description);
+          .replaceAll('{description}', effectiveDescription);
+      debugPrint('Generating with prompt: $prompt');
+      final docsDir = await getApplicationDocumentsDirectory();
+      final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
-      final localPath =
-          await _novita.generateImage(prompt, personaId, saveId);
+      final tempPath =
+      await _novita.generateImageTo(prompt, tempDir, saveId);
 
-      final now = DateTime.now();
-      await _db.insertGalleryImage(
-        saveId, personaId, selectedId, localPath,
-        now.millisecondsSinceEpoch,
-      );
 
-      return GalleryImageEntity(
-        id: saveId,
-        personaId: personaId,
+      return Result.success(PreviewResult(
+        tempPath: tempPath,
         templateId: selectedId,
-        localPath: localPath,
-        generatedAt: now,
-      );
-    } on GalleryFullException {
+      ));
+    }  on GalleryFullException {
       rethrow;
     } on NovitaException {
       rethrow;
     } catch (e) {
-      rethrow;
+      return Result.failure(e.toString(), e is Exception ? e : null);
     }
   }
 
-  Future<GalleryImageEntity> regenerateSameTemplate(
+  Future<Result<PreviewResult>> regeneratePreview(
+      String personaId,
+      String description,
+      int templateId,
+      String galleryMode,
+      ) async {
+
+    try {
+      final jsonStr =
+      await rootBundle.loadString('assets/json/image_templates.json');
+      final templates = jsonDecode(jsonStr) as List<dynamic>;
+      final template = templates.firstWhere(
+            (t) => (t as Map<String, dynamic>)['id'] == templateId,
+      ) as Map<String, dynamic>;
+
+      final String effectiveDescription;
+      final prompts =
+      await DatabaseHelper.instance.getPersonaPrompts(personaId);
+
+      if (prompts != null) {
+        effectiveDescription = switch (galleryMode) {
+          'erotic'   => (prompts['erotic']   as String?) ?? description,
+          'romantic' => _romantic2TemplateIds.contains(templateId)
+              ? (prompts['romantic2'] as String?) ?? description
+              : (prompts['romantic']  as String?) ?? description,
+          'office'   => (prompts['office']   as String?) ?? description,
+          _          => (prompts['nsfw']     as String?) ?? description,
+        };
+      } else {
+        effectiveDescription = description;
+      }
+
+      final prompt = (template['prompt_template'] as String)
+          .replaceAll('{description}', effectiveDescription);
+      debugPrint('Generating with prompt: $prompt');
+      final docsDir = await getApplicationDocumentsDirectory();
+      final tempDir = '${docsDir.path}/gallery_temp';
+      final saveId = _uuid.v4();
+      final tempPath =
+      await _novita.generateImageTo(prompt, tempDir, saveId);
+
+      return Result.success(PreviewResult(
+        tempPath: tempPath,
+        templateId: templateId,
+      ));
+    } on NovitaException catch(e){
+      return Result.failure('generation failed: ${e.message}', e);
+    } catch (e) {
+      return Result.failure(e.toString(), e is Exception ? e : null);
+    }
+  }
+
+
+
+
+  Future<Result<GalleryImageEntity>> regenerateSameTemplate(
     String oldImageId,
     String personaId,
     String description,
@@ -101,8 +188,29 @@ class GalleryRepository {
         (t) => (t as Map<String, dynamic>)['id'] == templateId,
       ) as Map<String, dynamic>;
 
+      // Determine gallery mode from templateId
+      final String galleryMode = _determineGalleryMode(templateId);
+
+      final String effectiveDescription;
+      final prompts =
+          await DatabaseHelper.instance.getPersonaPrompts(personaId);
+
+      if (prompts != null) {
+        effectiveDescription = switch (galleryMode) {
+          'erotic'   => (prompts['erotic']   as String?) ?? description,
+          'romantic' => _romantic2TemplateIds.contains(templateId)
+              ? (prompts['romantic2'] as String?) ?? description
+              : (prompts['romantic']  as String?) ?? description,
+          'office'   => (prompts['office']   as String?) ?? description,
+          _          => (prompts['nsfw']     as String?) ?? description,
+        };
+      } else {
+        effectiveDescription = description;
+      }
+
       final prompt = (template['prompt_template'] as String)
-          .replaceAll('{description}', description);
+          .replaceAll('{description}', effectiveDescription);
+      debugPrint('Regenerating with prompt: $prompt');
       final saveId = _uuid.v4();
       final localPath =
           await _novita.generateImage(prompt, personaId, saveId);
@@ -113,18 +221,19 @@ class GalleryRepository {
         now.millisecondsSinceEpoch,
       );
 
-      return GalleryImageEntity(
+      return Result.success(GalleryImageEntity(
         id: saveId,
         personaId: personaId,
         templateId: templateId,
         localPath: localPath,
         generatedAt: now,
-      );
+      ));
+
     } on NovitaException {
       rethrow;
     } catch (e) {
-      rethrow;
-    }
+        return Result.failure(e.toString(), e is Exception ? e : null);
+      }
   }
 
   /// Saves a pre-generated temp image into the proper gallery location + DB.
@@ -177,6 +286,7 @@ class GalleryRepository {
       final dir = Directory(dirPath);
       if (dir.existsSync()) dir.deleteSync(recursive: true);
       await _db.deleteAllGalleryForPersona(personaId);
+      await DatabaseHelper.instance.deletePersonaPrompts(personaId);
     } catch (e) {
       rethrow;
     }
@@ -193,5 +303,15 @@ class GalleryRepository {
       generatedAt: DateTime.fromMillisecondsSinceEpoch(
           row['generated_at'] as int),
     );
+  }
+
+  /// Determines gallery mode from template ID ranges.
+  /// 1-20: nude, 21-40: romantic, 41-60: erotic, 61-80: office.
+  String _determineGalleryMode(int templateId) {
+    if (templateId >= 1 && templateId <= 20) return 'nude';
+    if (templateId >= 21 && templateId <= 40) return 'romantic';
+    if (templateId >= 41 && templateId <= 60) return 'erotic';
+    if (templateId >= 61 && templateId <= 61) return 'office';
+    return 'nude'; // fallback
   }
 }

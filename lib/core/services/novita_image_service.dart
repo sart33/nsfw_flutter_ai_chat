@@ -22,8 +22,8 @@ class NovitaImageService {
   // ignore: unused_field
   static const _negativePrompt =
       'blurry, lowres, deformed, ugly, bad anatomy, bad hands, extra limbs, watermark, text, censored';
-  static const _enhancers =
-      'masterpiece, best quality, ultra detailed, sharp focus';
+  // static const _enhancers =
+  //     'masterpiece, best quality, ultra detailed, sharp focus';
 
   /// Generates an image, saves to standard persona gallery path.
   Future<String> generateImage(
@@ -56,7 +56,7 @@ class NovitaImageService {
     }
 
     // 1. Build final prompt
-    final finalPrompt = '$promptTemplate, $_enhancers';
+    // final finalPrompt = '$promptTemplate, $_enhancers';
 
     // 2. Submit generation task
     final submitResponse = await http.post(
@@ -66,9 +66,9 @@ class NovitaImageService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'seed': -1,
+        'seed': 101,
         'size': '1024*1024',
-        'prompt': finalPrompt,
+        'prompt': promptTemplate,
         // 'negative_prompt': _negativePrompt,
       }),
     );

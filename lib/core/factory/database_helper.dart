@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       _db = await openDatabase(
         path,
-        version: 4,
+        version: 5,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE branches (
@@ -71,6 +71,19 @@ class DatabaseHelper {
               FOREIGN KEY (branch_id) REFERENCES branches(id)
             )
           ''');
+
+          await db.execute('''
+            CREATE TABLE persona_prompts (
+              persona_id  TEXT PRIMARY KEY,
+              nsfw        TEXT,
+              erotic      TEXT,
+              beach       TEXT,
+              romantic    TEXT,
+              romantic2   TEXT,
+              office      TEXT,
+              updated_at  INTEGER NOT NULL
+            )
+          ''');
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -98,6 +111,20 @@ class DatabaseHelper {
                 summary_text TEXT NOT NULL,
                 created_at   INTEGER NOT NULL,
                 FOREIGN KEY (branch_id) REFERENCES branches(id)
+              )
+            ''');
+          }
+          if (oldVersion < 5) {
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS persona_prompts (
+                persona_id  TEXT PRIMARY KEY,
+                nsfw        TEXT,
+                erotic      TEXT,
+                beach       TEXT,
+                romantic    TEXT,
+                romantic2   TEXT,
+                office      TEXT,
+                updated_at  INTEGER NOT NULL
               )
             ''');
           }
@@ -595,6 +622,76 @@ class DatabaseHelper {
     } catch (e) {
       log('clearAllSummaries error: $e', name: 'DB_ERROR');
       print('DatabaseHelper.clearAllSummaries error: $e');
+      rethrow;
+    }
+  }
+
+  // ── PERSONA PROMPTS ─────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> getPersonaPrompts(String personaId) async {
+    try {
+      final db = await database;
+      log('SELECT persona_prompts WHERE persona_id=$personaId', name: 'DB_READ');
+      final rows = await db.query(
+        'persona_prompts',
+        where: 'persona_id = ?',
+        whereArgs: [personaId],
+        limit: 1,
+      );
+      return rows.isEmpty ? null : rows.first;
+    } catch (e) {
+      log('getPersonaPrompts error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getPersonaPrompts error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> upsertPersonaPrompts({
+    required String personaId,
+    required String nsfw,
+    required String erotic,
+    required String beach,
+    required String romantic,
+    required String romantic2,
+    required String office,
+  }) async {
+    try {
+      final db = await database;
+      final data = {
+        'persona_id': personaId,
+        'nsfw':       nsfw,
+        'erotic':     erotic,
+        'beach':      beach,
+        'romantic':   romantic,
+        'romantic2':  romantic2,
+        'office':     office,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      };
+      log('UPSERT persona_prompts: $data', name: 'DB_WRITE');
+      await db.insert(
+        'persona_prompts',
+        data,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      log('upsertPersonaPrompts error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.upsertPersonaPrompts error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deletePersonaPrompts(String personaId) async {
+    try {
+      final db = await database;
+      log('DELETE persona_prompts WHERE persona_id=$personaId', name: 'DB_DELETE');
+      await db.delete(
+        'persona_prompts',
+        where: 'persona_id = ?',
+        whereArgs: [personaId],
+      );
+    } catch (e) {
+      log('deletePersonaPrompts error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deletePersonaPrompts error: $e');
       rethrow;
     }
   }

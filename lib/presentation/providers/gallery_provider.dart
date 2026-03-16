@@ -1,12 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
-import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/data/repositories/gallery_repository.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
@@ -21,6 +16,7 @@ class GalleryState {
   final int? pendingTemplateId;
   final AppException? error;
   final bool isLoaded;
+  final String galleryMode;
 
   const GalleryState({
     this.images = const [],
@@ -29,6 +25,7 @@ class GalleryState {
     this.pendingTemplateId,
     this.error,
     this.isLoaded = false,
+    this.galleryMode = 'nude',
   });
 
   static const _absent = Object();
@@ -40,6 +37,7 @@ class GalleryState {
     Object? pendingTemplateId = _absent,
     Object? error = _absent,
     bool? isLoaded,
+    Object? galleryMode = _absent,
   }) {
     return GalleryState(
       images: images ?? this.images,
@@ -52,6 +50,9 @@ class GalleryState {
           : pendingTemplateId as int?,
       error: identical(error, _absent) ? this.error : error as AppException?,
       isLoaded: isLoaded ?? this.isLoaded,
+      galleryMode: identical(galleryMode, _absent)
+          ? this.galleryMode
+          : galleryMode as String,
     );
   }
 }
@@ -61,21 +62,40 @@ class GalleryState {
 class GalleryNotifier extends StateNotifier<GalleryState> {
   final String personaId;
   final GalleryRepository _repo;
-  final _novita = NovitaImageService.instance;
-  final _db = DatabaseHelper.instance;
-  static const _uuid = Uuid();
 
-  GalleryNotifier(this.personaId, this._repo) : super(const GalleryState()) {
+  GalleryNotifier(this.personaId, this._repo, String galleryMode)
+      : super(GalleryState(galleryMode: galleryMode)) {
     _loadGallery();
   }
 
   Future<void> _loadGallery() async {
     try {
-      final images = await _repo.getGalleryForPersona(personaId);
-      state = state.copyWith(images: images, isLoaded: true);
+      final allImages = await _repo.getGalleryForPersona(personaId);
+      final filtered = _filterByMode(allImages, state.galleryMode);
+      state = state.copyWith(images: filtered, isLoaded: true);
     } catch (_) {
       state = state.copyWith(isLoaded: true);
     }
+  }
+
+  List<GalleryImageEntity> _filterByMode(
+      List<GalleryImageEntity> all, String mode) {
+    final List<int> range;
+    if (mode == 'romantic') {
+      range = List.generate(20, (i) => i + 21);
+    } else if (mode == 'erotic') {
+      range = List.generate(20, (i) => i + 41);
+    } else if (mode == 'office') {
+      range = List.generate(20, (i) => i + 61); // 61-80, placeholder
+    } else {
+      range = List.generate(20, (i) => i + 1);
+    }
+    return all.where((img) => range.contains(img.templateId)).toList();
+  }
+
+  Future<void> setGalleryMode(String mode) async {
+    state = state.copyWith(galleryMode: mode);
+    await _loadGallery();
   }
 
   // ── clearError ──────────────────────────────────────────────────────────
@@ -83,76 +103,28 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   /// Clear error state (called by UI after showing toast).
   void clearError() => state = state.copyWith(error: null);
 
-  // ── generateNext ────────────────────────────────────────────────────────
 
-  Future<void> generateNext(String description) async {
-    state = state.copyWith(isGenerating: true, error: null);
-    try {
-      final entity = await _repo.generateNext(personaId, description);
-      state = state.copyWith(
-        images: [entity, ...state.images],
-        isGenerating: false,
-      );
-    } catch (e) {
-      debugPrint('[GalleryNotifier] generateNext error: $e');
-      state = state.copyWith(
-        isGenerating: false,
-        error: e is AppException ? e : GenerationException(e.toString()),
-      );
-    }
-  }
 
   // ── generatePreview ─────────────────────────────────────────────────────
 
   Future<void> generatePreview(String description) async {
     state = state.copyWith(isGenerating: true, pendingImagePath: null);
-    try {
-      final usedIds = await _db.getUsedTemplateIds(personaId);
-      // Also exclude the currently pending template if any
-      final pendingTid = state.pendingTemplateId;
-      if (pendingTid != null && !usedIds.contains(pendingTid)) {
-        usedIds.add(pendingTid);
-      }
+      final result = await _repo.generatePreview(personaId, description, state.galleryMode);
 
-      final allIds = List.generate(20, (i) => i + 1);
-      final available = allIds.where((id) => !usedIds.contains(id)).toList();
-      if (available.isEmpty) {
-        state = state.copyWith(
+      result.when(
+          success: (data) => state = state.copyWith(
+        isGenerating: false,
+        pendingImagePath: data.tempPath,
+        pendingTemplateId: data.templateId
+      ), failure: (msg, e) => state = state.copyWith(
           isGenerating: false,
-          error: const GalleryFullException(),
-        );
-        return;
-      }
+          error: switch (e) {
+            GalleryFullException() => const GalleryFullException(),
+            NovitaException() => GenerationException(msg),
+            _ => GenerationException(msg),
+          }
+      ));
 
-      final selectedId = available[Random().nextInt(available.length)];
-
-      final jsonStr =
-          await rootBundle.loadString('assets/json/image_templates.json');
-      final templates = jsonDecode(jsonStr) as List<dynamic>;
-      final template = templates.firstWhere(
-        (t) => (t as Map<String, dynamic>)['id'] == selectedId,
-      ) as Map<String, dynamic>;
-
-      final prompt = (template['prompt_template'] as String)
-          .replaceAll('{description}', description);
-
-      final docsDir = await getApplicationDocumentsDirectory();
-      final tempDir = '${docsDir.path}/gallery_temp';
-      final saveId = _uuid.v4();
-      final tempPath = await _novita.generateImageTo(prompt, tempDir, saveId);
-
-      state = state.copyWith(
-        isGenerating: false,
-        pendingImagePath: tempPath,
-        pendingTemplateId: selectedId,
-      );
-    } catch (e) {
-      debugPrint('[GalleryNotifier] generatePreview error: $e');
-      state = state.copyWith(
-        isGenerating: false,
-        error: e is AppException ? e : GenerationException(e.toString()),
-      );
-    }
   }
 
   // ── confirmPending ──────────────────────────────────────────────────────
@@ -199,36 +171,25 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
 
     state = state.copyWith(isGenerating: true, pendingImagePath: null);
-    try {
-      final jsonStr =
-          await rootBundle.loadString('assets/json/image_templates.json');
-      final templates = jsonDecode(jsonStr) as List<dynamic>;
-      final template = templates.firstWhere(
-        (t) => (t as Map<String, dynamic>)['id'] == templateId,
-      ) as Map<String, dynamic>;
+    final result = await _repo.regeneratePreview(
+        personaId, description, templateId, state.galleryMode);
 
-      final prompt = (template['prompt_template'] as String)
-          .replaceAll('{description}', description);
-
-      final docsDir = await getApplicationDocumentsDirectory();
-      final tempDir = '${docsDir.path}/gallery_temp';
-      final saveId = _uuid.v4();
-      final newTempPath =
-          await _novita.generateImageTo(prompt, tempDir, saveId);
-
-      state = state.copyWith(
-        pendingImagePath: newTempPath,
-        isGenerating: false,
-      );
-    } catch (e) {
-      debugPrint('[GalleryNotifier] regeneratePending error: $e');
-      state = state.copyWith(
-        isGenerating: false,
-        error: e is AppException ? e : GenerationException(e.toString()),
-      );
-    }
+    result.when(
+        success: (data) =>
+        state = state.copyWith(
+          isGenerating: false,
+          pendingImagePath: data.tempPath,
+          pendingTemplateId: data.templateId,
+        ),
+        failure: (msg, e) =>
+        state = state.copyWith(
+            isGenerating: false,
+            error: switch (e) {
+              NovitaException() => GenerationException(msg),
+              _ => GenerationException(msg),
+            }
+        ));
   }
-
   // ── discardPending ──────────────────────────────────────────────────────
 
   void discardPending() {
@@ -250,20 +211,23 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   Future<void> regenerateExisting(
       String imageId, String description, int templateId) async {
     state = state.copyWith(isGenerating: true);
-    try {
-      final entity = await _repo.regenerateSameTemplate(
+      final result = await _repo.regenerateSameTemplate(
           imageId, personaId, description, templateId);
-      final updated = state.images.map((img) {
-        return img.id == imageId ? entity : img;
-      }).toList();
-      state = state.copyWith(images: updated, isGenerating: false);
-    } catch (e) {
-      debugPrint('[GalleryNotifier] regenerateExisting error: $e');
-      state = state.copyWith(
+      result.when(
+          success: (entity) {
+            final outdated = state.images.map((img) {
+              return img.id == imageId ? entity : img;
+            }).toList();
+            state = state.copyWith(images: outdated, isGenerating: false);
+          },
+    failure: (msg, e) => state = state.copyWith(
         isGenerating: false,
-        error: e is AppException ? e : GenerationException(e.toString()),
-      );
-    }
+        error: switch (e) {
+          NovitaException() => GenerationException(msg),
+          _ => GenerationException(msg),
+        }
+      ));
+
   }
 
   // ── deleteImage ─────────────────────────────────────────────────────────
@@ -283,10 +247,25 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 }
 
+// ── GalleryKey ─────────────────────────────────────────────────────────────
+
+class GalleryKey {
+  final String personaId;
+  final String galleryMode;
+  const GalleryKey(this.personaId, this.galleryMode);
+  @override
+  bool operator ==(Object other) =>
+      other is GalleryKey &&
+      other.personaId == personaId &&
+      other.galleryMode == galleryMode;
+  @override
+  int get hashCode => Object.hash(personaId, galleryMode);
+}
+
 // ── Provider ───────────────────────────────────────────────────────────────
 
 final galleryProvider =
-    StateNotifierProvider.family<GalleryNotifier, GalleryState, String>(
-  (ref, personaId) =>
-      GalleryNotifier(personaId, GalleryRepository.instance),
+    StateNotifierProvider.family<GalleryNotifier, GalleryState, GalleryKey>(
+  (ref, key) => GalleryNotifier(
+      key.personaId, GalleryRepository.instance, key.galleryMode),
 );

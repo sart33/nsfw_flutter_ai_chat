@@ -15,6 +15,7 @@ class GalleryFullscreenScreen extends ConsumerStatefulWidget {
   final int initialIndex;
   final String personaDescription;
   final String personaId;
+  final String galleryMode;
 
   const GalleryFullscreenScreen({
     super.key,
@@ -22,6 +23,7 @@ class GalleryFullscreenScreen extends ConsumerStatefulWidget {
     required this.initialIndex,
     required this.personaDescription,
     required this.personaId,
+    required this.galleryMode,
   });
 
   @override
@@ -49,8 +51,9 @@ class _GalleryFullscreenScreenState
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(galleryProvider(widget.personaId));
-    final notifier = ref.read(galleryProvider(widget.personaId).notifier);
+    final galleryKey = GalleryKey(widget.personaId, widget.galleryMode);
+    final state = ref.watch(galleryProvider(galleryKey));
+    final notifier = ref.read(galleryProvider(galleryKey).notifier);
     final imgs = state.images;
 
     if (imgs.isEmpty) {

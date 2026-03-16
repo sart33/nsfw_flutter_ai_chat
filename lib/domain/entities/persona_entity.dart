@@ -7,6 +7,7 @@ class PersonaEntity {
   final String greeting;
   final String? avatarPath;
   final String? behavior;
+  final String galleryMode;
 
   const PersonaEntity({
     required this.id,
@@ -15,6 +16,7 @@ class PersonaEntity {
     required this.greeting,
     this.avatarPath,
     this.behavior,
+    required this.galleryMode,
   });
 
   PersonaEntity copyWith({
@@ -24,6 +26,7 @@ class PersonaEntity {
     String? greeting,
     String? avatarPath,
     String? behavior,
+    String? galleryMode,
   }) =>
       PersonaEntity(
         id: id ?? this.id,
@@ -32,5 +35,6 @@ class PersonaEntity {
         greeting: greeting ?? this.greeting,
         avatarPath: avatarPath ?? this.avatarPath,
         behavior: behavior ?? this.behavior,
+        galleryMode: galleryMode ?? this.galleryMode,
       );
 }

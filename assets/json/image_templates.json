@@ -60,5 +60,7 @@
   {"id":57,"name":"Белый комплект с подвязками","prompt_template":"{description}, в белом комплекте с подвязками, сидит на стуле, ноги скрещены, тёплое освещение, masterpiece, best quality, ultra detailed"},
   {"id":58,"name":"Купальник после душа","prompt_template":"{description}, в купальнике после душа, капли на коже, мокрые волосы, пар в комнате, masterpiece, best quality, ultra detailed"},
   {"id":59,"name":"Полупрозрачные трусики","prompt_template":"{description}, в полупрозрачных трусиках и майке, стоит у кровати, утренний свет, masterpiece, best quality, ultra detailed"},
-  {"id":60,"name":"Красное бельё на кресле","prompt_template":"{description}, в красном белье на кресле, ноги на подлокотниках, расслабленная поза, мягкий свет, masterpiece, best quality, ultra detailed"}
+  {"id":60,"name":"Красное бельё на кресле","prompt_template":"{description}, в красном белье на кресле, ноги на подлокотниках, расслабленная поза, мягкий свет, masterpiece, best quality, ultra detailed"},
+
+  {"id":61,"name":"В офисе за столом","prompt_template":"{description}, в офисе за столом в строгой блузке и юбке-карандаш, деловой взгляд, современный интерьер, masterpiece, best quality, ultra detailed"}
 ]

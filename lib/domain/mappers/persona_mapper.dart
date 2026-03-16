@@ -12,6 +12,7 @@ class PersonaMapper {
         greeting: model.greeting,
         avatarPath: model.avatarPath,
         behavior: model.behavior,
+        galleryMode: model.galleryMode,
       );
 
   static PersonaModel toModel(PersonaEntity entity) => PersonaModel(
@@ -21,6 +22,7 @@ class PersonaMapper {
         greeting: entity.greeting,
         avatarPath: entity.avatarPath,
         behavior: entity.behavior,
+        galleryMode: entity.galleryMode,
       );
 
   static List<PersonaEntity> toEntityList(List<PersonaModel> models) =>

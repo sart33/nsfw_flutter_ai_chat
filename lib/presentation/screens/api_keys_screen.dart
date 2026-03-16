@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 
 import 'home_screen.dart';
@@ -22,8 +21,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   bool _deepSeekSaved = false;
   bool _novitaSaved = false;
   bool _loading = true;
-  String _originalDeepSeekKey = '';
-  String _originalNovitaKey = '';
   bool _deepSeekChanged = false;
   bool _novitaChanged = false;
   bool _showHomeButton = false;
@@ -42,8 +39,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       setState(() {
         _deepSeekSaved = deepSeekKey.isNotEmpty;
         _novitaSaved = novitaKey.isNotEmpty;
-        _originalDeepSeekKey = deepSeekKey;
-        _originalNovitaKey = novitaKey;
         _deepSeekController.text =
             deepSeekKey.isNotEmpty ? _maskKey(deepSeekKey) : '';
         _novitaController.text =
@@ -68,7 +63,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     await _storage.write(key: 'deepseek_api_key', value: trimmed);
     setState(() {
       _deepSeekSaved = true;
-      _originalDeepSeekKey = trimmed;
       _deepSeekController.text = _maskKey(trimmed);
       _deepSeekObscure = true;
       _deepSeekChanged = false;
@@ -111,7 +105,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     await _storage.delete(key: 'deepseek_api_key');
     setState(() {
       _deepSeekSaved = false;
-      _originalDeepSeekKey = '';
       _deepSeekController.clear();
       _deepSeekChanged = false;
     });
@@ -125,7 +118,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     await _storage.write(key: 'novita_api_key', value: trimmed);
     setState(() {
       _novitaSaved = true;
-      _originalNovitaKey = trimmed;
       _novitaController.text = _maskKey(trimmed);
       _novitaObscure = true;
       _novitaChanged = false;
@@ -163,7 +155,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     await _storage.delete(key: 'novita_api_key');
     setState(() {
       _novitaSaved = false;
-      _originalNovitaKey = '';
       _novitaController.clear();
       _novitaChanged = false;
     });

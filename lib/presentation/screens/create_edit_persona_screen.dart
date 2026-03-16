@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/core/services/novita_avatar_service.dart';
+import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -37,6 +39,7 @@ class _CreateEditPersonaScreenState
   String? _avatarPath;
   bool _isGeneratingAvatar = false;
   String? _generatedAvatarPreviewPath;
+  String _galleryMode = 'nude';
 
   bool get _isEdit => widget.personaId != null;
 
@@ -55,7 +58,10 @@ class _CreateEditPersonaScreenState
           _descCtrl.text = persona.description;
           _greetCtrl.text = persona.greeting;
           _behaviorCtrl.text = persona.behavior ?? '';
-          setState(() => _avatarPath = persona.avatarPath);
+          setState(() {
+            _avatarPath = persona.avatarPath;
+            _galleryMode = persona.galleryMode;
+          });
         }
       });
     }
@@ -130,6 +136,53 @@ class _CreateEditPersonaScreenState
                   labelText: context.l10n.behaviorOptional,
                   labelStyle: TextStyle(color: AppTheme.textSecondary),
                   hintText: context.l10n.aiInstructions,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // ── Gallery mode selector ──────────────────────────
+              Text(
+                'Режим галереи',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(
+                    value: 'romantic',
+                    label: Text('Романтика'),
+                    icon: Icon(Icons.favorite_border, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: 'erotic',
+                    label: Text('Эротика'),
+                    icon: Icon(Icons.local_fire_department, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: 'office',
+                    label: Text('Офис'),
+                    icon: Icon(Icons.business_center_outlined, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: 'nude',
+                    label: Text('NSFW'),
+                    icon: Icon(Icons.whatshot, size: 16),
+                  ),
+                ],
+                selected: {_galleryMode},
+                onSelectionChanged: (Set<String> selected) {
+                  setState(() => _galleryMode = selected.first);
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return const Color(0xFF7C4DFF);
+                    }
+                    return const Color(0xFF1A1A1A);
+                  }),
+                  foregroundColor: WidgetStateProperty.all(Colors.white),
+                  side: WidgetStateProperty.all(
+                      const BorderSide(color: Color(0xFF333333))),
                 ),
               ),
               const SizedBox(height: 24),
@@ -525,8 +578,7 @@ class _CreateEditPersonaScreenState
     );
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
-
+  // ── Save ─────────────────
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -558,6 +610,7 @@ class _CreateEditPersonaScreenState
       behavior: _behaviorCtrl.text.trim().isEmpty
           ? null
           : _behaviorCtrl.text.trim(),
+      galleryMode: _galleryMode,
     );
 
     final notifier = ref.read(personaProvider.notifier);
@@ -566,6 +619,14 @@ class _CreateEditPersonaScreenState
     } else {
       notifier.create(entity);
     }
+
+    // Fire and forget: clean description for image generation
+    unawaited(
+      PromptCleanerService.instance.cleanAndSave(
+        entity.id,
+        entity.description,
+      ),
+    );
 
     Navigator.pop(context);
   }

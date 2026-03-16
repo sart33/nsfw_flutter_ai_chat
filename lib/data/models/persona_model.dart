@@ -9,6 +9,7 @@ class PersonaModel {
   final String greeting;
   final String? avatarPath;
   final String? behavior;
+  final String galleryMode;
 
   PersonaModel({
     String? id,
@@ -17,6 +18,7 @@ class PersonaModel {
     required this.greeting,
     this.avatarPath,
     this.behavior,
+    this.galleryMode = 'nude',
   }) : id = id ?? const Uuid().v4();
 
   // ── JSON serialisation ────────────────────────────────────────────────
@@ -28,6 +30,7 @@ class PersonaModel {
         'greeting': greeting,
         'avatarPath': avatarPath,
         'behavior': behavior,
+        'galleryMode': galleryMode,
       };
 
   factory PersonaModel.fromMap(Map<String, dynamic> map) => PersonaModel(
@@ -37,6 +40,7 @@ class PersonaModel {
         greeting: map['greeting'] as String,
         avatarPath: map['avatarPath'] as String?,
         behavior: map['behavior'] as String?,
+        galleryMode: (map['galleryMode'] as String?) ?? 'nude',
       );
 
   String toJson() => jsonEncode(toMap());
@@ -51,6 +55,7 @@ class PersonaModel {
     String? greeting,
     String? avatarPath,
     String? behavior,
+    String? galleryMode,
   }) =>
       PersonaModel(
         id: id ?? this.id,
@@ -59,5 +64,6 @@ class PersonaModel {
         greeting: greeting ?? this.greeting,
         avatarPath: avatarPath ?? this.avatarPath,
         behavior: behavior ?? this.behavior,
+        galleryMode: galleryMode ?? this.galleryMode,
       );
 }

@@ -42,7 +42,7 @@ class NovitaAvatarService {
         'Content-Type': 'application/json',
       }),
       data: {
-        'seed': -1,
+        'seed': 101,
         'size': '512*768',
         'prompt': prompt,
         // 'negative_prompt': _negativePrompt,
