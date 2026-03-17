@@ -395,6 +395,16 @@ class ChatRepository {
     }
   }
 
+  /// Deletes a single message by its ID.
+  Future<void> deleteMessage(String messageId) async {
+    try {
+      await _db.deleteMessage(messageId);
+    } catch (e) {
+      print('ChatRepository.deleteMessage error: $e');
+      rethrow;
+    }
+  }
+
   /// Updates the content of an existing message.
   Future<void> updateMessage(String messageId, String newContent) async {
     try {
@@ -468,95 +478,5 @@ class ChatRepository {
     return buffer.toString();
   }
 
-  /// Converts chat history into the OpenAI-compatible messages format (single persona).
-  /// First message prepends persona.greeting as an assistant message.
-  /// Appends a reminder system message every [reminderInterval] calls if enabled.
-  Future<List<Map<String, String>>> _buildApiMessages(
-    String systemPrompt,
-    List<ChatMessageModel> history,
-    PersonaEntity persona, {
-    required bool reminderEnabled,
-    required int reminderInterval,
-    String? behaviorReminder,
-  }) async {
-    final messages = <Map<String, String>>[
-      {'role': 'system', 'content': systemPrompt},
-    ];
 
-    // If history is empty or doesn't start with the greeting, prepend it.
-    if (history.isEmpty || history.first.isUser) {
-      messages.add({
-        'role': 'assistant',
-        'content': persona.greeting,
-      });
-    }
-
-    for (final msg in history) {
-      messages.add({
-        'role': msg.isUser ? 'user' : 'assistant',
-        'content': msg.content,
-      });
-    }
-
-    // ── Reminder injection ───────────────────────────────────────────────
-    if (reminderEnabled &&
-        behaviorReminder != null &&
-        behaviorReminder.isNotEmpty) {
-      final counter = _getReminderCounter() + 1;
-      _setReminderCounter(counter);
-      debugPrint('[Reminder] Counter: $counter / $reminderInterval');
-      if (counter >= reminderInterval) {
-        _setReminderCounter(0);
-        final reminderText =
-            'Помни свою личность и поведение: $behaviorReminder\n';
-        messages.add({'role': 'system', 'content': reminderText});
-        debugPrint('[Reminder] Injected reminder for counter=$counter: $reminderText');
-      }
-    }
-
-    return messages;
-  }
-
-  /// Converts multi-chat history into OpenAI-compatible messages.
-  /// Appends a reminder system message every [reminderInterval] calls if enabled.
-  Future<List<Map<String, String>>> _buildApiMessagesMulti(
-    String systemPrompt,
-    List<ChatMessageModel> history, {
-    required bool reminderEnabled,
-    required int reminderInterval,
-    String? behaviorReminder,
-  }) async {
-    final messages = <Map<String, String>>[
-      {'role': 'system', 'content': systemPrompt},
-    ];
-
-    for (final msg in history) {
-      messages.add({
-        'role': msg.isUser ? 'user' : 'assistant',
-        'content': msg.isUser
-            ? msg.content
-            : '[${msg.senderName}]: ${msg.content}',
-      });
-    }
-
-    // ── Reminder injection ───────────────────────────────────────────────
-    if (reminderEnabled &&
-        behaviorReminder != null &&
-        behaviorReminder.isNotEmpty) {
-      final counter = _getReminderCounter() + 1;
-      _setReminderCounter(counter);
-      debugPrint('[Reminder] Counter: $counter / $reminderInterval');
-      if (counter >= reminderInterval) {
-        _setReminderCounter(0);
-        final reminderText =
-            'Помни свою личность и поведение: $behaviorReminder\n'
-            'Не теряй тон, не морализируй, не отказывай в consensual интиме без причины.\n'
-            'Описывай ощущения и действия подробно.';
-        messages.add({'role': 'system', 'content': reminderText});
-        debugPrint('[Reminder] Injected reminder for counter=$counter');
-      }
-    }
-
-    return messages;
-  }
 }

@@ -1,8 +1,10 @@
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
@@ -210,6 +212,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   senderName: msg.senderName,
                   content: msg.content,
                   avatarPath: avatarPath,
+                  imageLocalPath: msg.imageLocalPath,
+                  onImageTap: msg.imageLocalPath != null
+                      ? () => _openImageFullscreen(context, msg.imageLocalPath!)
+                      : null,
+                  onImageRegen: msg.imageLocalPath != null && !chatState.isLoading
+                      ? () => _regenSceneImage()
+                      : null,
                   chatFontSize: settings.chatFontSize,
                   showRegenButton: isLastAi,
                   onRegen: isLastAi
@@ -273,6 +282,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               'Напиши в два раза больше.',
                               settings,
                             ),
+                          ),
+                          const SizedBox(width: 8),
+                          _QuickActionButton(
+                            label: 'Фото',
+                            icon: Icons.camera_alt_outlined,
+                            onTap: () => _generateSceneImage(),
                           ),
                         ],
                       ),
@@ -395,6 +410,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         maxTokens: tokens,
       );
     }
+  }
+
+  void _generateSceneImage() {
+    if (_singlePersona == null) return;
+    ref
+        .read(chatProvider(widget.branchId).notifier)
+        .generateSceneImage(persona: _singlePersona!);
+  }
+
+  void _regenSceneImage() {
+    if (_singlePersona == null) return;
+    ref
+        .read(chatProvider(widget.branchId).notifier)
+        .generateSceneImage(persona: _singlePersona!, regen: true);
   }
 
   /// Show ModalBottomSheet with edit / delete options for a message.
@@ -582,6 +611,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         msg: context.l10n.galleryNameEmpty(persona.name),
       );
     }
+  }
+
+  void _openImageFullscreen(BuildContext context, String imagePath) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: const BackButton(color: Colors.white),
+          ),
+          body: PhotoView(
+            imageProvider: FileImage(File(imagePath)),
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 4.0,
+            backgroundDecoration:
+                const BoxDecoration(color: Colors.black),
+          ),
+        ),
+      ),
+    );
   }
 
   /// AlertDialog: confirm deletion.

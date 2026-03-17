@@ -22,6 +22,7 @@ class AppConfig {
   static const int aiResponseMaxTokens = 1000;
 
   // ── Secure storage API key access ─────────────────────────────────────
+
   
   /// Reads DeepSeek API key from secure storage.
   /// Returns empty string if key is not set.

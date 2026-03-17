@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
@@ -26,6 +27,9 @@ class ChatBubble extends StatelessWidget {
   final String senderName;
   final String content;
   final String? avatarPath;
+  final String? imageLocalPath;
+  final VoidCallback? onImageTap;
+  final VoidCallback? onImageRegen;
 
   /// Called on long-press (edit / delete actions).
   final VoidCallback? onLongPress;
@@ -48,6 +52,9 @@ class ChatBubble extends StatelessWidget {
     required this.senderName,
     required this.content,
     this.avatarPath,
+    this.imageLocalPath,
+    this.onImageTap,
+    this.onImageRegen,
     this.onLongPress,
     this.showRegenButton = false,
     this.onRegen,
@@ -116,8 +123,48 @@ class ChatBubble extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Image if present
+                  if (imageLocalPath != null) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: onImageTap,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(imageLocalPath!),
+                          width: 220,
+                          height: 280,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    InkWell(
+                      onTap: onImageRegen,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.refresh,
+                                size: 16, color: AppTheme.textSecondary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Перегенерировать',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   // Regen button — only for the last AI message.
-                  if (showRegenButton && !isUser)
+                  if (showRegenButton && !isUser && imageLocalPath == null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: InkWell(

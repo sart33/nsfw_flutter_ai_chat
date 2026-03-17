@@ -38,7 +38,7 @@ class PendingImageWidget extends StatelessWidget {
                     top: Radius.circular(12)),
                 child: Image.file(
                   File(path),
-                  height: 280,
+                  height: 480,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),

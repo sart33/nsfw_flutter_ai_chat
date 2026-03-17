@@ -27,8 +27,9 @@ class NovitaImageService {
 
   /// Generates an image, saves to standard persona gallery path.
   Future<String> generateImage(
-      String promptTemplate, String personaId, String saveId) async {
-    final bytes = await _generateBytes(promptTemplate);
+      String promptTemplate, String personaId, String saveId,
+      {int seed = 101}) async {
+    final bytes = await _generateBytes(promptTemplate, seed: seed);
     final docsDir = await getApplicationDocumentsDirectory();
     final dirPath = '${docsDir.path}/characters/$personaId/gallery';
     await Directory(dirPath).create(recursive: true);
@@ -39,8 +40,9 @@ class NovitaImageService {
 
   /// Generates an image, saves to a custom directory.
   Future<String> generateImageTo(
-      String promptTemplate, String saveDir, String saveId) async {
-    final bytes = await _generateBytes(promptTemplate);
+      String promptTemplate, String saveDir, String saveId,
+      {int seed = 101}) async {
+    final bytes = await _generateBytes(promptTemplate, seed: seed);
     await Directory(saveDir).create(recursive: true);
     final savePath = '$saveDir/$saveId.jpg';
     await File(savePath).writeAsBytes(bytes, flush: true);
@@ -48,7 +50,8 @@ class NovitaImageService {
   }
 
   /// Core generation logic: submit → poll → download bytes.
-  Future<List<int>> _generateBytes(String promptTemplate) async {
+  Future<List<int>> _generateBytes(String promptTemplate,
+      {int seed = 101}) async {
     // 0. Get API key from secure storage
     final apiKey = await AppConfig.getNovitaApiKey();
     if (apiKey.isEmpty) {
@@ -66,8 +69,8 @@ class NovitaImageService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'seed': 101,
-        'size': '1024*1024',
+        'seed': seed,
+        'size': '768*1024',
         'prompt': promptTemplate,
         // 'negative_prompt': _negativePrompt,
       }),

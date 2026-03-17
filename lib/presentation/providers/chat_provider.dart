@@ -1,10 +1,13 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
+import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
+import 'package:nsfw_chat/core/services/chat_image_service.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/data/repositories/branch_repository.dart';
 import 'package:nsfw_chat/data/repositories/chat_repository.dart';
@@ -445,6 +448,80 @@ class ChatNotifier extends StateNotifier<ChatState> {
         personas: personas,
         behavior: behavior,
         maxTokens: maxTokens,
+      );
+    }
+  }
+
+  /// Generate image from current scene context.
+  /// If regen=true: deletes last image message first, then regenerates.
+  Future<void> generateSceneImage({
+    required PersonaEntity persona,
+    bool regen = false,
+  }) async {
+    // If regenerating: find and remove last image message
+    if (regen) {
+      final lastImgIdx = state.messages
+          .lastIndexWhere((m) => m.imageLocalPath != null);
+      if (lastImgIdx >= 0) {
+        final lastImgMsg = state.messages[lastImgIdx];
+
+        // Delete file from disk
+        try {
+          final f = File(lastImgMsg.imageLocalPath!);
+          if (f.existsSync()) f.deleteSync();
+        } catch (_) {}
+
+        // Delete from DB
+        final repo = await _repo();
+        await repo.deleteMessage(lastImgMsg.id);
+
+        // Remove from state
+        final updated = List<ChatMessageModel>.from(state.messages)
+          ..removeAt(lastImgIdx);
+        state = state.copyWith(messages: updated);
+      }
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // Extract scene from last 8 messages
+      final scene = await SceneExtractorService.instance.extractScene(
+        branchId: _branchId,
+        messages: state.messages,
+        personaGalleryMode: persona.galleryMode,
+      );
+
+      // Generate image (no DB insert here — done below)
+      final localPath = await ChatImageService.instance.generateFromScene(
+        personaId: persona.id,
+        personaGalleryMode: persona.galleryMode,
+        scene: scene,
+        regen: regen,
+      );
+
+      // Save image message to DB and state
+      final repo = await _repo();
+      final imgMsg = ChatMessageModel(
+        id: const Uuid().v4(),
+        personaId: persona.id,
+        senderName: persona.name,
+        content: '',
+        isUser: false,
+        imageLocalPath: localPath,
+      );
+      await repo.saveMessage(imgMsg, _branchId);
+      state = state.copyWith(
+        messages: [...state.messages, imgMsg],
+        isLoading: false,
+      );
+    } catch (e) {
+      debugPrint('[ChatNotifier] generateSceneImage error: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: e is AppException
+            ? e
+            : GenerationException(e.toString()),
       );
     }
   }

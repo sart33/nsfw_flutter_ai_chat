@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       _db = await openDatabase(
         path,
-        version: 6,
+        version: 7,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE branches (
@@ -48,6 +48,7 @@ class DatabaseHelper {
               is_user     INTEGER NOT NULL,
               timestamp   INTEGER NOT NULL,
               is_quick_action INTEGER NOT NULL DEFAULT 0,
+              imageLocalPath TEXT,
               FOREIGN KEY (branch_id) REFERENCES branches(id)
             )
           ''');
@@ -132,6 +133,11 @@ class DatabaseHelper {
           if (oldVersion < 6) {
             await db.execute(
               'ALTER TABLE messages ADD COLUMN is_quick_action INTEGER NOT NULL DEFAULT 0',
+            );
+          }
+          if (oldVersion < 7) {
+            await db.execute(
+              'ALTER TABLE messages ADD COLUMN imageLocalPath TEXT',
             );
           }
         },
