@@ -1,5 +1,3 @@
-// TODO: merge into NovitaImageService after D1 is applied
-
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';

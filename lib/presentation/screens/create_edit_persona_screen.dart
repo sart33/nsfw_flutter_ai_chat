@@ -487,6 +487,15 @@ class _CreateEditPersonaScreenState
     final previewPath = _generatedAvatarPreviewPath;
     if (previewPath == null) return;
 
+    // image_cropper not supported on desktop — use image as-is
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      setState(() {
+        _avatarPath = previewPath;
+        _generatedAvatarPreviewPath = null;
+      });
+      return;
+    }
+
     final cropped = await ImageCropper().cropImage(
       sourcePath: previewPath,
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),

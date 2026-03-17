@@ -85,6 +85,55 @@ class _GalleryFullscreenScreenState
               );
             },
           ),
+          // Desktop-only navigation arrows
+          if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
+            // LEFT
+            Positioned(
+              left: 0, top: 0, bottom: 0, width: 80,
+              child: GestureDetector(
+                onTap: () {
+                  if (_currentIndex > 0) {
+                    _pageCtrl.animateToPage(
+                      _currentIndex - 1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: _currentIndex > 0
+                      ? const Center(
+                      child: Icon(Icons.chevron_left,
+                          color: Colors.white70, size: 48))
+                      : null,
+                ),
+              ),
+            ),
+            // RIGHT
+            Positioned(
+              right: 0, top: 0, bottom: 0, width: 80,
+              child: GestureDetector(
+                onTap: () {
+                  if (_currentIndex < imgs.length - 1) {
+                    _pageCtrl.animateToPage(
+                      _currentIndex + 1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: _currentIndex < imgs.length - 1
+                      ? const Center(
+                      child: Icon(Icons.chevron_right,
+                          color: Colors.white70, size: 48))
+                      : null,
+                ),
+              ),
+            ),
+          ],
           // Top bar
           Positioned(
             top: 0, left: 0, right: 0,
