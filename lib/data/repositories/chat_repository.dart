@@ -79,12 +79,20 @@ class ChatRepository {
     int threshold,
   ) async {
     if (!summarizationEnabled) return;
-    if (allMessages.length < threshold) return;
-    debugPrint('[Summary] Threshold reached: ${allMessages.length} msgs');
 
-    final toSummarize = allMessages.length > 20
-        ? allMessages.sublist(0, allMessages.length - 20)
-        : allMessages;
+    final alreadyCovered = await _db.getCoveredMessageCount(branchId);
+    final newMessages = allMessages.length - alreadyCovered;
+
+    debugPrint('[Summary] alreadyCovered=$alreadyCovered total=${allMessages.length} new=$newMessages threshold=$threshold');
+
+    if (newMessages < threshold) return;
+
+    final toSummarize = allMessages.sublist(
+      alreadyCovered,
+      alreadyCovered + threshold > allMessages.length
+          ? allMessages.length
+          : alreadyCovered + threshold,
+    );
     if (toSummarize.isEmpty) return;
 
     try {
@@ -94,19 +102,20 @@ class ChatRepository {
         apiKey,
         AppConfig.deepSeekModel,
       );
-      
-      // Get next block number for this branch
+
       final nextBlockNumber = await _db.getNextBlockNumber(branchId);
       final blockId = '${branchId}_summary_${DateTime.now().millisecondsSinceEpoch}';
-      
+      final messagesCovered = alreadyCovered + toSummarize.length;
+
       await _db.insertSummaryBlock(
         blockId,
         branchId,
         nextBlockNumber,
         summary,
         DateTime.now().millisecondsSinceEpoch,
+        messagesCovered,
       );
-      debugPrint('[Summary] Saved block #$nextBlockNumber (${summary.length} chars)');
+      debugPrint('[Summary] Saved block #$nextBlockNumber covering messages 1-$messagesCovered');
     } catch (e) {
       debugPrint('[Summary] Failed silently: $e');
     }
@@ -119,33 +128,33 @@ class ChatRepository {
     List<ChatMessageModel> history,
   ) async {
     final summaryBlocks = await _db.getSummaryBlocks(branchId);
-    debugPrint('[SUMMARY_READ] branchId=$branchId blocks=${summaryBlocks.length}');
+    final covered = await _db.getCoveredMessageCount(branchId);
+    debugPrint('[SUMMARY_READ] branchId=$branchId blocks=${summaryBlocks.length} covered=$covered');
 
     final messages = <Map<String, dynamic>>[];
     messages.add({'role': 'system', 'content': systemPrompt});
 
     if (summaryBlocks.isNotEmpty) {
-      // Combine all summary blocks in chronological order
       final combinedSummary = summaryBlocks
           .map((block) => block['summary_text'] as String)
-          .join('\n\n');
-      
+          .join('\n\n[Then:]\n\n');
+
       messages.add({
         'role': 'system',
-        'content': 'Previous chat history (summarized): $combinedSummary',
+        'content': 'Previous chat history (summarized):\n\n$combinedSummary',
       });
       debugPrint('[Summary] Injected ${summaryBlocks.length} blocks into context');
 
-      // Include recent messages (last 20)
-      final recent = history.length > 20
-          ? history.sublist(history.length - 20)
+      // Include only messages NOT yet covered by summaries
+      final uncovered = covered < history.length
+          ? history.sublist(covered)
           : history;
-      messages.addAll(recent.map((m) => {
+
+      messages.addAll(uncovered.map((m) => {
         'role': m.isUser ? 'user' : 'assistant',
         'content': m.content,
       }));
     } else {
-      // No summaries, include all history
       messages.addAll(history.map((m) => {
         'role': m.isUser ? 'user' : 'assistant',
         'content': m.content,

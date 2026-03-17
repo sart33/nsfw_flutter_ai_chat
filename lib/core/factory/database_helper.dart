@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       _db = await openDatabase(
         path,
-        version: 7,
+        version: 8,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE branches (
@@ -65,11 +65,12 @@ class DatabaseHelper {
 
           await db.execute('''
             CREATE TABLE IF NOT EXISTS summaries (
-              id           TEXT PRIMARY KEY,
-              branch_id    TEXT NOT NULL,
-              block_number INTEGER NOT NULL,
-              summary_text TEXT NOT NULL,
-              created_at   INTEGER NOT NULL,
+              id               TEXT PRIMARY KEY,
+              branch_id        TEXT NOT NULL,
+              block_number     INTEGER NOT NULL,
+              summary_text     TEXT NOT NULL,
+              created_at       INTEGER NOT NULL,
+              messages_covered INTEGER NOT NULL DEFAULT 0,
               FOREIGN KEY (branch_id) REFERENCES branches(id)
             )
           ''');
@@ -140,6 +141,17 @@ class DatabaseHelper {
               'ALTER TABLE messages ADD COLUMN imageLocalPath TEXT',
             );
           }
+          if (oldVersion < 8) {
+            await db.execute(
+              'ALTER TABLE summaries ADD COLUMN messages_covered INTEGER NOT NULL DEFAULT 0',
+            );
+            // Fix existing rows — estimate covered count based on block_number
+            // Uses 50 as default threshold since that was the only value used before
+            await db.execute(
+                'UPDATE summaries SET messages_covered = block_number * 50 WHERE messages_covered = 0',
+            );
+          }
+
         },
       );
     } catch (e) {
@@ -589,6 +601,7 @@ class DatabaseHelper {
     int blockNumber,
     String summaryText,
     int createdAt,
+    int messagesCovered,
   ) async {
     try {
       final db = await database;
@@ -598,12 +611,31 @@ class DatabaseHelper {
         'block_number': blockNumber,
         'summary_text': summaryText,
         'created_at': createdAt,
+        'messages_covered': messagesCovered,
       };
       log('INSERT INTO summaries: $data', name: 'DB_WRITE');
       await db.insert('summaries', data);
     } catch (e) {
       log('insertSummaryBlock error: $e', name: 'DB_ERROR');
       print('DatabaseHelper.insertSummaryBlock error: $e');
+      rethrow;
+    }
+  }
+
+  /// Returns the maximum messages_covered value for a branch.
+  Future<int> getCoveredMessageCount(String branchId) async {
+    try {
+      final db = await database;
+      log('SELECT MAX(messages_covered) FROM summaries WHERE branch_id=$branchId', name: 'DB_READ');
+      final rows = await db.rawQuery(
+        'SELECT MAX(messages_covered) as covered FROM summaries WHERE branch_id = ?',
+        [branchId],
+      );
+      if (rows.isEmpty || rows.first['covered'] == null) return 0;
+      return rows.first['covered'] as int;
+    } catch (e) {
+      log('getCoveredMessageCount error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getCoveredMessageCount error: $e');
       rethrow;
     }
   }
