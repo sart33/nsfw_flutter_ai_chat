@@ -25,7 +25,7 @@ class DatabaseHelper {
 
       _db = await openDatabase(
         path,
-        version: 8,
+        version: 9,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE branches (
@@ -163,7 +163,8 @@ class DatabaseHelper {
             await db.execute(
                 'UPDATE summaries SET messages_covered = block_number * 50 WHERE messages_covered = 0',
             );
-            
+          }
+            if (oldVersion < 9) {
             await db.execute('''
               CREATE TABLE IF NOT EXISTS scene_generation_log (
                 id           TEXT PRIMARY KEY,

@@ -194,37 +194,82 @@ class SceneExtractorService {
 
   // ── DeepSeek prompt ─────────────────────────────────────────────────
 
-  static String _buildExtractionPrompt(String sceneWindow) => '''
+  static String _buildExtractionPrompt(
+      String current, String context) =>
+'''
 You are a scene extraction engine for image generation.
-Analyze ONLY the provided current scene window.
 
+You receive TWO parts:
+1) CURRENT MESSAGE (highest priority)
+2) PREVIOUS CONTEXT (lower priority)
+
+Your task is to extract the CURRENT visual state.
+
+────────────────────
+PRIORITY RULES (CRITICAL):
+
+- ALWAYS prioritize CURRENT MESSAGE over PREVIOUS CONTEXT
+- If there is ANY conflict → use CURRENT MESSAGE
+- PREVIOUS CONTEXT is only for missing data
+
+- Activity MUST be taken from CURRENT MESSAGE if present
+- Pose can persist from context IF not redefined
+- Location usually persists unless changed explicitly
+
+────────────────────
 STRICT RULES:
-1. Use ONLY the messages provided below.
-2. If data is missing — return null for that field.
-3. NEVER invent details not present in the text.
-4. Output ONLY valid JSON, no explanations, no markdown.
 
+1. Use ONLY the provided text
+2. NEVER invent details
+3. If missing → return null
+4. Output ONLY valid JSON
+
+────────────────────
+SEMANTIC RULES:
+
+- Activity = what is happening RIGHT NOW (latest action)
+- Do NOT use outdated actions from earlier messages
+
+Examples:
+WRONG:
+- kneeling + looking_up (if later action is different)
+
+CORRECT:
+- kneeling + performing_oral (latest action)
+
+────────────────────
 Allowed values:
+
 - clothingState: "fully_dressed", "casual", "underwear", "nude"
-- intimacyLevel: 0 (fully dressed/safe), 1 (romantic/kissing),
-  2 (underwear/erotic), 3 (nude/explicit)
-- pose: "sitting", "standing", "lying_on_back", "lying_on_side",
-  "lying_on_stomach", "kneeling", "bending_over"
-- location: "cafe", "bed", "bedroom", "balcony", "shower",
-  "bathroom", "beach", "street", "sofa", "kitchen",
-  "park", "room", "restaurant", "car", "office"
+- intimacyLevel: 0,1,2,3
 
+- pose:
+"sitting", "standing", "lying_on_back",
+"lying_on_side", "lying_on_stomach",
+"kneeling", "bending_over"
+
+- location:
+"cafe", "bed", "bedroom", "balcony",
+"shower", "bathroom", "beach",
+"street", "sofa", "kitchen",
+"park", "room", "restaurant",
+"car", "office"
+
+────────────────────
 HARD CONSTRAINTS:
-- If location is cafe/street/park/restaurant/office → pose cannot be
-  lying_*, kneeling, bending_over; intimacyLevel must be ≤ 1
-- If location is shower → clothingState cannot be "fully_dressed"
-- Public location → intimacyLevel automatically ≤ 1
-- activity must describe what character is doing toward user,
-  e.g. "smiling_at_you", "talking", "holding_arm", "kissing"
-  - Do NOT change, transliterate or translate ANY text inside double quotes ("...").
 
-INPUT MESSAGES:
-$sceneWindow
+- Public locations → intimacyLevel ≤ 1
+- Shower → not fully_dressed
+- Activity must describe current action toward user
+- Do NOT change, transliterate or translate ANY text inside double quotes ("...").
+
+INPUT:
+
+CURRENT MESSAGE:
+$current
+
+PREVIOUS CONTEXT:
+$context
 
 OUTPUT — ONLY JSON:
 {
@@ -262,8 +307,15 @@ OUTPUT — ONLY JSON:
   }) async {
     if (messages.isEmpty) return SceneSnapshot.fallback;
 
+    // Remove image-only messages from ALL processing
+    final textOnly = messages
+        .where((m) =>
+            m.imageLocalPath == null && m.content.trim().isNotEmpty)
+        .toList();
+    if (textOnly.isEmpty) return SceneSnapshot.fallback;
+
     // Step 1: find current scene window
-    final sceneWindow = _extractCurrentSceneWindow(messages);
+    final sceneWindow = _extractCurrentSceneWindow(textOnly);
 
     // Step 2: check cache
     final cached = _cache[branchId];
@@ -272,18 +324,29 @@ OUTPUT — ONLY JSON:
           .map((m) => m.content)
           .join(' ');
       final hasNewSignal = _hasSceneSwitchSignal(windowText);
-      if (!hasNewSignal && cached.$2 == messages.length) {
+      if (!hasNewSignal && cached.$2 == textOnly.length) {
         debugPrint('[SceneExtractor] Using cached scene');
         return cached.$1;
       }
     }
 
     // Step 3: prepare text and call DeepSeek
-    final sceneWindowText = _prepareSceneForLLM(sceneWindow);
-    debugPrint('[SceneExtractor] Scene window:\n$sceneWindowText');
+    // Split: last message = CURRENT (highest priority)
+    // Everything before = PREVIOUS CONTEXT (lower priority)
+    final lastMsg = sceneWindow.last;
+    final previousMsgs = sceneWindow.length > 1
+        ? sceneWindow.sublist(0, sceneWindow.length - 1)
+        : <ChatMessageModel>[];
 
-    final rawSnapshot =
-        await _extractWithLLM(sceneWindowText);
+    final currentText = _formatMessage(lastMsg);
+    final contextText = previousMsgs
+        .map(_formatMessage)
+        .join('\n');
+
+    debugPrint('[SceneExtractor] CURRENT: $currentText');
+    debugPrint('[SceneExtractor] CONTEXT: $contextText');
+
+    final rawSnapshot = await _extractWithLLM(currentText, contextText);
 
     // Step 4: validate
     final validated = _validateAndFix(rawSnapshot);
@@ -291,7 +354,7 @@ OUTPUT — ONLY JSON:
         '${jsonEncode(validated.toMap())}');
 
     // Step 5: cache and return
-    _cache[branchId] = (validated, messages.length);
+    _cache[branchId] = (validated, textOnly.length);
     return validated;
   }
 
@@ -304,14 +367,20 @@ OUTPUT — ONLY JSON:
   /// If no switch found, returns last 6 messages.
   List<ChatMessageModel> _extractCurrentSceneWindow(
       List<ChatMessageModel> messages) {
+    // Remove image-only messages (they have empty content)
+    final textMessages = messages
+        .where((m) => m.imageLocalPath == null && m.content.trim().isNotEmpty)
+        .toList();
+    if (textMessages.isEmpty) return [];
+    
     // Scan from newest backwards to find last scene switch
-    for (int i = messages.length - 1; i >= 0; i--) {
-      final text = messages[i].content;
+    for (int i = textMessages.length - 1; i >= 0; i--) {
+      final text = textMessages[i].content;
       final hasSwitch =
           sceneSwitchPatterns.any((p) => p.hasMatch(text));
       if (hasSwitch) {
         // Current scene = from this message to end
-        final window = messages.sublist(i);
+        final window = textMessages.sublist(i);
         debugPrint(
             '[SceneExtractor] Scene switch found at index $i, '
             'window size: ${window.length}');
@@ -319,20 +388,17 @@ OUTPUT — ONLY JSON:
       }
     }
     // No switch found — use last 6 messages
-    final fallbackWindow = messages.length > 6
-        ? messages.sublist(messages.length - 6)
-        : messages;
+    final fallbackWindow = textMessages.length > 6
+        ? textMessages.sublist(textMessages.length - 6)
+        : textMessages;
     debugPrint('[SceneExtractor] No scene switch found, '
         'using last ${fallbackWindow.length} messages');
     return fallbackWindow;
   }
 
-  /// Formats scene window messages for LLM input.
-  String _prepareSceneForLLM(List<ChatMessageModel> window) {
-    return window.map((m) {
-      final role = m.isUser ? 'User' : 'Character';
-      return '$role: ${m.content}';
-    }).join('\n');
+  String _formatMessage(ChatMessageModel m) {
+    final role = m.isUser ? 'User' : 'Character';
+    return '$role: ${m.content}';
   }
 
   bool _hasSceneSwitchSignal(String text) =>
@@ -340,7 +406,8 @@ OUTPUT — ONLY JSON:
 
   // ── LLM extraction ──────────────────────────────────────────────────
 
-  Future<SceneSnapshot> _extractWithLLM(String sceneWindowText) async {
+  Future<SceneSnapshot> _extractWithLLM(
+      String currentText, String contextText) async {
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
@@ -359,7 +426,7 @@ OUTPUT — ONLY JSON:
           'messages': [
             {
               'role': 'user',
-              'content': _buildExtractionPrompt(sceneWindowText),
+              'content': _buildExtractionPrompt(currentText, contextText),
             }
           ],
           'max_tokens': 300,
@@ -421,6 +488,38 @@ OUTPUT — ONLY JSON:
     if (s.location == 'shower' &&
         s.clothingState == 'fully_dressed') {
       s = s.copyWith(clothingState: 'nude');
+    }
+
+    // Activity-driven pose correction:
+    // If activity implies specific pose → enforce it
+    if (s.activity != null) {
+      final a = s.activity!.toLowerCase();
+
+      // Oral sex activity → must be kneeling
+      if (a.contains('oral') ||
+          a.contains('mouth') ||
+          a.contains('blowjob') ||
+          a.contains('fellatio') ||
+          a.contains('минет') ||
+          a.contains('сосёт') ||
+          a.contains('рот')) {
+        s = s.copyWith(pose: 'kneeling');
+      }
+
+      // Riding activity → must be on top
+      if (a.contains('riding') ||
+          a.contains('on top') ||
+          a.contains('верхом') ||
+          a.contains('скачет')) {
+        s = s.copyWith(pose: 'lying_on_back');
+      }
+
+      // Doggy style → bending over
+      if (a.contains('doggy') ||
+          a.contains('раком') ||
+          a.contains('четвереньк')) {
+        s = s.copyWith(pose: 'bending_over');
+      }
     }
 
     return s;
