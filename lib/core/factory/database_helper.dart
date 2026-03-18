@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 
@@ -87,6 +87,19 @@ class DatabaseHelper {
               updated_at  INTEGER NOT NULL
             )
           ''');
+
+          await db.execute('''
+            CREATE TABLE scene_generation_log (
+              id           TEXT PRIMARY KEY,
+              branch_id    TEXT NOT NULL,
+              persona_name TEXT NOT NULL,
+              extracted_at INTEGER NOT NULL,
+              scene_window TEXT NOT NULL,
+              raw_llm_json TEXT,
+              final_prompt TEXT NOT NULL,
+              image_path   TEXT NOT NULL
+            )
+          ''');
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -150,6 +163,19 @@ class DatabaseHelper {
             await db.execute(
                 'UPDATE summaries SET messages_covered = block_number * 50 WHERE messages_covered = 0',
             );
+            
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS scene_generation_log (
+                id           TEXT PRIMARY KEY,
+                branch_id    TEXT NOT NULL,
+                persona_name TEXT NOT NULL,
+                extracted_at INTEGER NOT NULL,
+                scene_window TEXT NOT NULL,
+                raw_llm_json TEXT,
+                final_prompt TEXT NOT NULL,
+                image_path   TEXT NOT NULL
+              )
+            ''');
           }
 
         },
@@ -737,6 +763,34 @@ class DatabaseHelper {
       log('deletePersonaPrompts error: $e', name: 'DB_ERROR');
       print('DatabaseHelper.deletePersonaPrompts error: $e');
       rethrow;
+    }
+  }
+
+  // ── SCENE GENERATION LOG ─────────────────────────────────────────────────
+
+  Future<void> insertSceneGenerationLog({
+    required String id,
+    required String branchId,
+    required String personaName,
+    required String sceneWindow,
+    String? rawLlmJson,
+    required String finalPrompt,
+    required String imagePath,
+  }) async {
+    try {
+      final db = await database;
+      await db.insert('scene_generation_log', {
+        'id': id,
+        'branch_id': branchId,
+        'persona_name': personaName,
+        'extracted_at': DateTime.now().millisecondsSinceEpoch,
+        'scene_window': sceneWindow,
+        'raw_llm_json': rawLlmJson,
+        'final_prompt': finalPrompt,
+        'image_path': imagePath,
+      });
+    } catch (e) {
+      debugPrint('[DB] insertSceneGenerationLog error: $e');
     }
   }
 }

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -13,8 +15,10 @@ class ChatImageService {
   /// Returns local file path of saved image.
   Future<String> generateFromScene({
     required String personaId,
+    required String personaName,
+    required String branchId,
     required String personaGalleryMode,
-    required SceneData scene,
+    required SceneSnapshot scene,
     bool regen = false,
   }) async {
     // 1. Get cleaned description for current gallery mode
@@ -23,32 +27,38 @@ class ChatImageService {
 
     final String baseDescription;
     if (prompts != null) {
-      baseDescription = switch (personaGalleryMode) {
-        'erotic'   => (prompts['erotic']   as String?) ?? '',
-        'romantic' => (prompts['romantic'] as String?) ?? '',
-        'office'   => (prompts['office']   as String?) ?? '',
-        _          => (prompts['nsfw']     as String?) ?? '',
+      baseDescription = switch (scene.intimacyLevel) {
+        0 => (prompts['romantic'] as String?) ?? '',
+        1 => (prompts['romantic'] as String?) ?? '',
+        2 => (prompts['erotic']   as String?) ?? '',
+        _ => (prompts['nsfw']     as String?) ?? '',
       };
     } else {
       baseDescription = '';
     }
 
-    // 2. Build scene part
-    final sceneParts = <String>[];
-    if (scene.location != null) sceneParts.add('in ${scene.location}');
-    if (scene.clothing != null) sceneParts.add('wearing ${scene.clothing}');
-    if (scene.pose != null) sceneParts.add(scene.pose!);
-    if (scene.intimacyLevel <= 1) sceneParts.add('properly dressed');
+    // 2. Build scene part using SceneSnapshot.toImagePrompt()
+    final sceneStr = scene.toImagePrompt();
 
-    final sceneStr = sceneParts.join(', ');
+    // Add clothing anchor for low intimacy
+    final clothingAnchor =
+        scene.intimacyLevel <= 1 ? ', properly dressed' : '';
+
     final prompt = baseDescription.isNotEmpty
-        ? '$baseDescription, $sceneStr'
-        : sceneStr;
+        ? '$baseDescription, $sceneStr$clothingAnchor'
+        : '$sceneStr$clothingAnchor';
 
-    // 3. Seed: 101 for first gen, random 1-600 for regen
+    // Log for debugging — save to DB
+    debugPrint('[ChatImageService] Final prompt: $prompt');
+
+    // 3. Seed logic
+    const int seedBase = 101;
+    const int seedRange = 200;
+    final int seedMin = (seedBase - seedRange).clamp(1, seedBase);
+    final int seedMax = seedBase + seedRange;
     final seed = regen
-        ? (Random().nextInt(600) + 1)
-        : 101;
+        ? (seedMin + Random().nextInt(seedMax - seedMin + 1))
+        : seedBase;
 
     // 4. Save to chat_images folder
     final docsDir = await getApplicationDocumentsDirectory();
@@ -59,6 +69,17 @@ class ChatImageService {
     // 5. Generate via NovitaImageService (no HTTP code here)
     final localPath = await NovitaImageService.instance
         .generateImageTo(prompt, saveDir, saveId, seed: seed);
+
+    // 6. Log generation to database
+    await DatabaseHelper.instance.insertSceneGenerationLog(
+      id: saveId,
+      branchId: branchId,
+      personaName: personaName,
+      sceneWindow: '', // filled by caller via extractScene
+      rawLlmJson: jsonEncode(scene.toMap()),
+      finalPrompt: prompt,
+      imagePath: localPath,
+    );
 
     return localPath;
   }

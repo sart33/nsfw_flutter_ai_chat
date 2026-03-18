@@ -495,6 +495,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
       // Generate image (no DB insert here — done below)
       final localPath = await ChatImageService.instance.generateFromScene(
         personaId: persona.id,
+        personaName: persona.name,
+        branchId: _branchId,
         personaGalleryMode: persona.galleryMode,
         scene: scene,
         regen: regen,
