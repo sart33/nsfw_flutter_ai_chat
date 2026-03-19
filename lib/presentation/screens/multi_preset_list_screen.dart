@@ -125,7 +125,7 @@ class MultiPresetListScreen extends ConsumerWidget {
 
   Widget _buildAvatarGroup(MultiPresetEntity preset, List<PersonaEntity> personas) {
     const double avatarSize = 52.0;
-    const double overlap = 56.0;
+    const double overlap = 44.0;
 
     // Filter personas to only those whose id is in preset.personaIds, preserving order
     final matchedPersonas = <PersonaEntity>[];
