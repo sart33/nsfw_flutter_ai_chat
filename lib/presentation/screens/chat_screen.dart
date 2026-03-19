@@ -80,7 +80,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (preset != null) {
         _multiPersonas =
             personas.where((p) => preset.personaIds.contains(p.id)).toList();
-        _multiBehavior = preset.behavior ?? '';
+        final String trimmedBehavior = preset.behavior!.trim().replaceFirst(RegExp(r'[,.]+$'), '').trim();
+        _multiBehavior = trimmedBehavior.isNotEmpty
+            ? '$trimmedBehavior. Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.'
+            : 'Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.';
+        debugPrint('Resolved multi-preset behavior: $_multiBehavior', wrapWidth: 2000);
       }
     }
   }

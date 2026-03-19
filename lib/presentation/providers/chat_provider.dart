@@ -211,7 +211,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     bool isQuickAction = false,
   }) async {
     final repo = await _repo();
-
+    debugPrint('[ChatNotifier] sendMultiMessage called with content="$content", behavior="$behavior"');
     if (!skipSave) {
       final userMsg = ChatMessageModel(
         id: const Uuid().v4(),
@@ -247,17 +247,22 @@ class ChatNotifier extends StateNotifier<ChatState> {
         branchId: _branchId,
       );
 
-      final aiMsg = ChatMessageModel(
-        id: const Uuid().v4(),
-        senderName: _extractSenderName(reply, personas),
-        content: _extractContent(reply),
-        isUser: false,
-      );
+      final parsed = _parseMultiReply(reply, personas);
+      final newMessages = <ChatMessageModel>[];
+      for (final entry in parsed) {
+        final msg = ChatMessageModel(
+          id: const Uuid().v4(),
+          senderName: entry.senderName,
+          content: entry.content,
+          isUser: false,
+        );
+        newMessages.add(msg);
+        await repo.saveMessage(msg, _branchId);
+      }
       state = state.copyWith(
-        messages: [...state.messages, aiMsg],
+        messages: [...state.messages, ...newMessages],
         isLoading: false,
       );
-      await repo.saveMessage(aiMsg, _branchId);
     } catch (e) {
       debugPrint('[ChatNotifier] sendMultiMessage error: $e');
       state = state.copyWith(
@@ -396,17 +401,22 @@ class ChatNotifier extends StateNotifier<ChatState> {
           maxTokens: effectiveTokens,
           branchId: _branchId,
         );
-        final aiMsg = ChatMessageModel(
-          id: const Uuid().v4(),
-          senderName: _extractSenderName(reply, personas),
-          content: _extractContent(reply),
-          isUser: false,
-        );
+        final parsed = _parseMultiReply(reply, personas);
+        final newMessages = <ChatMessageModel>[];
+        for (final entry in parsed) {
+          final msg = ChatMessageModel(
+            id: const Uuid().v4(),
+            senderName: entry.senderName,
+            content: entry.content,
+            isUser: false,
+          );
+          newMessages.add(msg);
+          await repo.saveMessage(msg, _branchId);
+        }
         state = state.copyWith(
-          messages: [...state.messages, aiMsg],
+          messages: [...state.messages, ...newMessages],
           isLoading: false,
         );
-        await repo.saveMessage(aiMsg, _branchId);
       } catch (e) {
         debugPrint('[ChatNotifier] regenLastAI (multi) error: $e');
         state = state.copyWith(
@@ -530,21 +540,51 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   // ── PRIVATE HELPERS ────────────────────────────────────────────────────
 
-  String _extractSenderName(String reply, List<PersonaEntity> personas) {
-    for (final p in personas) {
-      if (reply.startsWith('[${p.name}]:') || reply.startsWith('${p.name}:')) {
-        return p.name;
+  /// Parses a multi-persona reply into separate sender-name/content pairs.
+  /// Returns a list of records in the order they appear in the reply.
+  List<({String senderName, String content})> _parseMultiReply(
+      String reply,
+      List<PersonaEntity> personas,
+      ) {
+    final nameAlts = personas.map((p) => RegExp.escape(p.name)).join('|');
+    final pattern = RegExp(
+      r'^\s*(?:\[(?:' + nameAlts + r')\]|(?:' + nameAlts + r'))\s*:\s*',
+      multiLine: true,
+    );
+
+    final matches = pattern.allMatches(reply).toList();
+    if (matches.isEmpty) {
+      return [(
+      senderName: personas.isNotEmpty ? personas.first.name : ChatConstants.aiSender,
+      content: reply.trim(),
+      )];
+    }
+
+    final result = <({String senderName, String content})>[];
+    for (int i = 0; i < matches.length; i++) {
+      final match = matches[i];
+      final rawName = match.group(0)!
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .replaceAll(':', '')
+          .trim();
+
+      final senderName = personas
+          .where((p) => p.name == rawName)
+          .firstOrNull
+          ?.name ?? rawName;
+
+      final contentStart = match.end;
+      final contentEnd = i + 1 < matches.length
+          ? matches[i + 1].start
+          : reply.length;
+
+      final content = reply.substring(contentStart, contentEnd).trim();
+      if (content.isNotEmpty) {
+        result.add((senderName: senderName, content: content));
       }
     }
-    return personas.isNotEmpty ? personas.first.name : ChatConstants.aiSender;
-  }
-
-  String _extractContent(String reply) {
-    final colonIndex = reply.indexOf(':');
-    if (colonIndex > 0 && colonIndex < 30) {
-      return reply.substring(colonIndex + 1).trim();
-    }
-    return reply;
+    return result;
   }
 }
 
