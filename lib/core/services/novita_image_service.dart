@@ -18,7 +18,7 @@ class NovitaImageService {
   NovitaImageService._();
   static final NovitaImageService instance = NovitaImageService._();
 
-  static const _baseUrl = 'https://api.novita.ai/v3/async';
+  static const _baseUrl = AppConfig.novitaBaseUrl;
   // ignore: unused_field
   static const _negativePrompt =
       'blurry, lowres, deformed, ugly, bad anatomy, bad hands, extra limbs, watermark, text, censored';
@@ -28,7 +28,7 @@ class NovitaImageService {
   /// Generates an image, saves to standard persona gallery path.
   Future<String> generateImage(
       String promptTemplate, String personaId, String saveId,
-      {int seed = 101}) async {
+      {int seed = AppConfig.defaultSeed}) async {
     final bytes = await _generateBytes(promptTemplate, seed: seed);
     final docsDir = await getApplicationDocumentsDirectory();
     final dirPath = '${docsDir.path}/characters/$personaId/gallery';
@@ -41,7 +41,7 @@ class NovitaImageService {
   /// Generates an image, saves to a custom directory.
   Future<String> generateImageTo(
       String promptTemplate, String saveDir, String saveId,
-      {int seed = 101}) async {
+      {int seed = AppConfig.defaultSeed}) async {
     final bytes = await _generateBytes(promptTemplate, seed: seed);
     await Directory(saveDir).create(recursive: true);
     final savePath = '$saveDir/$saveId.jpg';
@@ -51,7 +51,7 @@ class NovitaImageService {
 
   /// Core generation logic: submit → poll → download bytes.
   Future<List<int>> _generateBytes(String promptTemplate,
-      {int seed = 101}) async {
+      {int seed = AppConfig.defaultSeed}) async {
     // 0. Get API key from secure storage
     final apiKey = await AppConfig.getNovitaApiKey();
     if (apiKey.isEmpty) {

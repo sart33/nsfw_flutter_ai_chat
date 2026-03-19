@@ -499,7 +499,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final scene = await SceneExtractorService.instance.extractScene(
         branchId: _branchId,
         messages: state.messages,
-        personaGalleryMode: persona.galleryMode,
       );
 
       // Generate image (no DB insert here — done below)
@@ -507,7 +506,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
         personaId: persona.id,
         personaName: persona.name,
         branchId: _branchId,
-        personaGalleryMode: persona.galleryMode,
         scene: scene,
         regen: regen,
       );

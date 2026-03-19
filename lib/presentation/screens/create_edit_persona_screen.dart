@@ -9,6 +9,7 @@ import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/core/services/novita_avatar_service.dart';
 import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
+import 'package:nsfw_chat/core/utils/seed_utils.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -443,7 +444,7 @@ class _CreateEditPersonaScreenState
   }
 
   /// Generate avatar via Novita AI.
-  Future<void> _generateAvatar() async {
+  Future<void> _generateAvatar({int? seed}) async {
     if (_descCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.fillCharacterDescription)),
@@ -458,6 +459,7 @@ class _CreateEditPersonaScreenState
       final path = await NovitaAvatarService.generateAvatar(
         _descCtrl.text.trim(),
         dir.path,
+        seed: seed ?? 101,
       );
       if (mounted) {
         setState(() => _generatedAvatarPreviewPath = path);
@@ -479,7 +481,7 @@ class _CreateEditPersonaScreenState
   Future<void> _regenerateAvatar() async {
     _deleteTempPreview();
     setState(() => _generatedAvatarPreviewPath = null);
-    await _generateAvatar();
+    await _generateAvatar(seed: regenSeed());
   }
 
   /// Crop the generated preview and promote it to the confirmed avatar.

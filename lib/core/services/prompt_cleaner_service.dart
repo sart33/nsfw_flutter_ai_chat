@@ -8,7 +8,7 @@ class PromptCleanerService {
   PromptCleanerService._();
   static final PromptCleanerService instance = PromptCleanerService._();
 
-  static const _endpoint = 'https://api.deepseek.com/chat/completions';
+  static const _endpoint = '${AppConfig.deepSeekBaseUrl}/chat/completions';
 
   // Builds the cleaning prompt sent to DeepSeek.
   // nude is NOT requested — caller copies raw description.

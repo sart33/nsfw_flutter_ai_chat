@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:nsfw_chat/core/config/app_config.dart';
+import 'package:nsfw_chat/core/factory/database_helper.dart';
+import 'package:nsfw_chat/core/services/novita_image_service.dart';
+import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:nsfw_chat/core/factory/database_helper.dart';
-import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
-import 'package:nsfw_chat/core/services/novita_image_service.dart';
+
+import '../utils/seed_utils.dart';
 
 class ChatImageService {
   ChatImageService._();
@@ -17,7 +19,6 @@ class ChatImageService {
     required String personaId,
     required String personaName,
     required String branchId,
-    required String personaGalleryMode,
     required SceneSnapshot scene,
     bool regen = false,
   }) async {
@@ -52,13 +53,10 @@ class ChatImageService {
     debugPrint('[ChatImageService] Final prompt: $prompt');
 
     // 3. Seed logic
-    const int seedBase = 101;
-    const int seedRange = 200;
-    final int seedMin = (seedBase - seedRange).clamp(1, seedBase);
-    final int seedMax = seedBase + seedRange;
+    const int seedBase = AppConfig.defaultSeed;
     final seed = regen
-        ? (seedMin + Random().nextInt(seedMax - seedMin + 1))
-        : seedBase;
+        ? seedBase
+        : regenSeed(); // new random seed for first gen, or if regenerating use same seed
 
     // 4. Save to chat_images folder
     final docsDir = await getApplicationDocumentsDirectory();

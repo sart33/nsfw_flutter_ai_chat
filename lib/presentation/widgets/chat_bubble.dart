@@ -140,6 +140,7 @@ class ChatBubble extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
+                    (showRegenButton && !isUser) ?
                     InkWell(
                       onTap: onImageRegen,
                       borderRadius: BorderRadius.circular(12),
@@ -152,7 +153,7 @@ class ChatBubble extends StatelessWidget {
                                 size: 16, color: AppTheme.textSecondary),
                             const SizedBox(width: 4),
                             Text(
-                              'Перегенерировать',
+                              context.l10n.regenerate,
                               style: TextStyle(
                                 color: AppTheme.textSecondary,
                                 fontSize: 11,
@@ -161,7 +162,8 @@ class ChatBubble extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
+                    )
+    : const SizedBox(height: 8),
                   ],
                   // Regen button — only for the last AI message.
                   if (showRegenButton && !isUser && imageLocalPath == null)

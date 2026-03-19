@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 
+import '../config/app_config.dart';
+
 /// Service that compresses long chat histories into concise summaries.
 /// Uses DeepSeek API with a specialized system prompt.
 class SummarizationService {
@@ -56,7 +58,7 @@ class SummarizationService {
       log(jsonEncode(requestBody), name: 'SUMMARIZATION_REQUEST');
 
       final response = await _dio.post(
-        'https://api.deepseek.com/v1/chat/completions',
+        '${AppConfig.deepSeekBaseUrl}/v1/chat/completions',
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );

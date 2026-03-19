@@ -8,6 +8,8 @@ class AppConfig {
   /// Base URL for the DeepSeek chat completions endpoint.
   static const String deepSeekBaseUrl = 'https://api.deepseek.com';
 
+  static const String novitaBaseUrl = 'https://api.novita.ai/v3/async';
+
   /// Model identifier sent in every request.
   static const String deepSeekModel = 'deepseek-chat';
 
@@ -21,6 +23,12 @@ class AppConfig {
   /// Corresponding max_tokens value sent to the API (rough char/4 estimate).
   static const int aiResponseMaxTokens = 1000;
 
+  // Image generation
+  static const int defaultSeed = 101;
+  static const int seedRange = 200;
+
+  // Prompts / system strings — да, сюда
+  static const String addToMultiChatBehavior = 'Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.';
   // ── Secure storage API key access ─────────────────────────────────────
 
   

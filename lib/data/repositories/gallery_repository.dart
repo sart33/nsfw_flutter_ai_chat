@@ -11,6 +11,7 @@ import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 
+import '../../core/utils/seed_utils.dart';
 import '../../domain/result/result.dart';
 
 /// Manages gallery image generation, persistence, and deletion for personas.
@@ -150,7 +151,7 @@ class GalleryRepository {
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
       final tempPath =
-      await _novita.generateImageTo(prompt, tempDir, saveId);
+      await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed());
 
       return Result.success(PreviewResult(
         tempPath: tempPath,
@@ -213,7 +214,7 @@ class GalleryRepository {
       debugPrint('Regenerating with prompt: $prompt');
       final saveId = _uuid.v4();
       final localPath =
-          await _novita.generateImage(prompt, personaId, saveId);
+          await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed());
 
       final now = DateTime.now();
       await _db.insertGalleryImage(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
@@ -82,8 +83,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             personas.where((p) => preset.personaIds.contains(p.id)).toList();
         final String trimmedBehavior = preset.behavior!.trim().replaceFirst(RegExp(r'[,.]+$'), '').trim();
         _multiBehavior = trimmedBehavior.isNotEmpty
-            ? '$trimmedBehavior. Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.'
-            : 'Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.';
+            ? '$trimmedBehavior. ${AppConfig.addToMultiChatBehavior}'
+            : AppConfig.addToMultiChatBehavior;
         debugPrint('Resolved multi-preset behavior: $_multiBehavior', wrapWidth: 2000);
       }
     }
@@ -220,7 +221,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   onImageTap: msg.imageLocalPath != null
                       ? () => _openImageFullscreen(context, msg.imageLocalPath!)
                       : null,
-                  onImageRegen: msg.imageLocalPath != null && !chatState.isLoading
+                  onImageRegen: msg.imageLocalPath != null && !chatState.isLoading && isLastAi
                       ? () => _regenSceneImage()
                       : null,
                   chatFontSize: settings.chatFontSize,
@@ -288,7 +289,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          _QuickActionButton(
+                          if (!widget.isMulti)
+                            _QuickActionButton(
                             label: 'Фото',
                             icon: Icons.camera_alt_outlined,
                             onTap: () => _generateSceneImage(),

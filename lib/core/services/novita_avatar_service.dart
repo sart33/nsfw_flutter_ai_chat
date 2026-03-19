@@ -6,7 +6,7 @@ import 'package:nsfw_chat/core/config/app_config.dart';
 /// Generates an NSFW portrait image from a persona description,
 /// polls for completion, downloads the result, and saves it locally.
 class NovitaAvatarService {
-  static const _baseUrl = 'https://api.novita.ai/v3/async';
+  static const _baseUrl = AppConfig.novitaBaseUrl;
   // ignore: unused_field
   static const _negativePrompt =
       'blurry, lowres, deformed, ugly, bad anatomy, watermark, text, censored';
@@ -19,7 +19,7 @@ class NovitaAvatarService {
   /// Generates an avatar image from [description] and saves it to [saveDir].
   /// Returns the absolute path to the saved file.
   static Future<String> generateAvatar(
-      String description, String saveDir) async {
+      String description, String saveDir, {int seed = 101}) async {
     // 0. Get API key from secure storage
     final apiKey = await AppConfig.getNovitaApiKey();
     if (apiKey.isEmpty) {
@@ -40,7 +40,7 @@ class NovitaAvatarService {
         'Content-Type': 'application/json',
       }),
       data: {
-        'seed': 101,
+        'seed': seed,
         'size': '512*768',
         'prompt': prompt,
         // 'negative_prompt': _negativePrompt,

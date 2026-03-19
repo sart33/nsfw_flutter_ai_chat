@@ -303,7 +303,6 @@ OUTPUT — ONLY JSON:
   Future<SceneSnapshot> extractScene({
     required String branchId,
     required List<ChatMessageModel> messages,
-    required String personaGalleryMode,
   }) async {
     if (messages.isEmpty) return SceneSnapshot.fallback;
 
@@ -416,13 +415,13 @@ OUTPUT — ONLY JSON:
       }
 
       final response = await http.post(
-        Uri.parse('https://api.deepseek.com/chat/completions'),
+        Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),
         headers: {
           'Authorization': 'Bearer $apiKey',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'deepseek-chat',
+          'model': AppConfig.deepSeekModel,
           'messages': [
             {
               'role': 'user',
