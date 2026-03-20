@@ -23,7 +23,9 @@ class PersonaViewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final galleryKey = GalleryKey(persona.id, persona.galleryMode);
+    final currentPersona = ref.watch(personaProvider)
+        .firstWhere((p) => p.id == persona.id, orElse: () => persona);
+    final galleryKey = GalleryKey(currentPersona.id, currentPersona.galleryMode);
     final state = ref.watch(galleryProvider(galleryKey));
     final notifier = ref.read(galleryProvider(galleryKey).notifier);
 
@@ -59,7 +61,10 @@ class PersonaViewScreen extends ConsumerWidget {
                 builder: (_) =>
                     CreateEditPersonaScreen(personaId: persona.id),
               ),
-            ),
+            ).then((changed) {
+              if (changed == true && context.mounted) ref.invalidate(personaProvider);
+              }
+              ),
           ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
@@ -86,7 +91,7 @@ class PersonaViewScreen extends ConsumerWidget {
       body: Column(
         children: [
           // ── Avatar header ──────────────────────────────────────
-          _buildAvatarHeader(),
+          _buildAvatarHeader(currentPersona),
 
           // ── Content ────────────────────────────────────────────
           Expanded(
@@ -96,20 +101,20 @@ class PersonaViewScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Description card
-                  _buildInfoCard(context.l10n.description, persona.description,
+                  _buildInfoCard(context.l10n.description, currentPersona.description,
                       selectable: true),
                   const SizedBox(height: 12),
 
                   // Greeting card
-                  if (persona.greeting.isNotEmpty) ...[
-                    _buildInfoCard(context.l10n.greeting, persona.greeting,
+                  if (currentPersona.greeting.isNotEmpty) ...[
+                    _buildInfoCard(context.l10n.greeting, currentPersona.greeting,
                         italic: true,
                         textColor: const Color(0xFFCCCCCC)),
                     const SizedBox(height: 12),
                   ],
 
                   // ── Gallery section ────────────────────────────
-                  _buildGalleryHeader(state, notifier, context),
+                  _buildGalleryHeader(state, notifier, context, currentPersona),
                   const SizedBox(height: 12),
 
                   // Pending image preview
@@ -118,7 +123,7 @@ class PersonaViewScreen extends ConsumerWidget {
                       path: state.pendingImagePath!,
                       onSave: () async {
                         await notifier.confirmPending(
-                            persona.id, persona.description);
+                            currentPersona.id, currentPersona.description);
                         if (!context.mounted) return;
                         if (ref.read(galleryProvider(galleryKey)).error ==
                             null) {
@@ -127,7 +132,7 @@ class PersonaViewScreen extends ConsumerWidget {
                         }
                       },
                       onRegenerate: () =>
-                          notifier.regeneratePending(persona.description),
+                          notifier.regeneratePending(currentPersona.description),
                       onDiscard: () => notifier.discardPending(),
                       isLoading: state.isGenerating,
                     ),
@@ -139,7 +144,7 @@ class PersonaViewScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           LinearProgressIndicator(
-                            color: const Color(0xFF7C4DFF),
+                            color: AppTheme.primaryAccent,
                             backgroundColor: AppTheme.surface,
                           ),
                           const SizedBox(height: 8),
@@ -194,9 +199,9 @@ class PersonaViewScreen extends ConsumerWidget {
                               builder: (_) => GalleryFullscreenScreen(
                                 images: state.images,
                                 initialIndex: index,
-                                personaDescription: persona.description,
-                                personaId: persona.id,
-                                galleryMode: persona.galleryMode,
+                                personaDescription: currentPersona.description,
+                                personaId: currentPersona.id,
+                                galleryMode: currentPersona.galleryMode,
                               ),
                             ),
                           ),
@@ -214,9 +219,9 @@ class PersonaViewScreen extends ConsumerWidget {
 
   // ── Avatar header ─────────────────────────────────────────────────────
 
-  Widget _buildAvatarHeader() {
+  Widget _buildAvatarHeader(PersonaEntity p) {
     final hasAvatar =
-        persona.avatarPath != null && File(persona.avatarPath!).existsSync();
+        p.avatarPath != null && File(p.avatarPath!).existsSync();
     return SizedBox(
       height: 320,
       width: double.infinity,
@@ -225,7 +230,7 @@ class PersonaViewScreen extends ConsumerWidget {
         children: [
           if (hasAvatar)
             Image.file(
-              File(persona.avatarPath!),
+              File(p.avatarPath!),
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
             )
@@ -234,7 +239,7 @@ class PersonaViewScreen extends ConsumerWidget {
               color: const Color(0xFF1A1A1A),
               child: Center(
                 child: Text(
-                  _initials(persona.name),
+                  _initials(p.name),
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 64,
@@ -268,19 +273,19 @@ class PersonaViewScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  persona.name,
+                  p.name,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (persona.behavior != null &&
-                    persona.behavior!.isNotEmpty)
+                if (p.behavior != null &&
+                    p.behavior!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      persona.behavior!,
+                      p.behavior!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -384,7 +389,7 @@ class PersonaViewScreen extends ConsumerWidget {
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF7C4DFF);
+                  return AppTheme.primaryAccent;
                 }
                 return const Color(0xFF1A1A1A);
               }),
@@ -409,7 +414,7 @@ class PersonaViewScreen extends ConsumerWidget {
 
   // ── Gallery header row ────────────────────────────────────────────────
 
-  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier, BuildContext context) {
+  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier, BuildContext context, PersonaEntity currentPersona) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -440,7 +445,7 @@ class PersonaViewScreen extends ConsumerWidget {
                     tooltip: context.l10n.generate,
                     onPressed: state.isGenerating
                         ? null
-                        : () => notifier.generatePreview(persona.description),
+                        : () => notifier.generatePreview(currentPersona.description),
                   ),
               ],
             ),

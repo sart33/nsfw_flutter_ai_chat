@@ -117,7 +117,14 @@ class PersonaListScreen extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(ctx);
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => CreateEditPersonaScreen(personaId: persona.id)));
+                    builder: (_) => CreateEditPersonaScreen(personaId: persona.id)
+                ),
+                ).then((changed) {
+                  if (changed == true) {
+                    // Refresh persona list after editing
+                    ref.invalidate(personaProvider);
+                  }
+                });
               },
             ),
             ListTile(

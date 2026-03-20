@@ -318,34 +318,6 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
 
-            // ── Reminder interval ────────────────────────────────
-            Text(
-              context.l10n.reminderFrequency,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.l10n.everyNMessages(settings.reminderInterval),
-              style: const TextStyle(
-                color: AppTheme.primaryAccent,
-                fontSize: 14,
-              ),
-            ),
-            Slider(
-              value: settings.reminderInterval.toDouble(),
-              min: 1,
-              max: 20,
-              divisions: 19,
-              label: '${settings.reminderInterval}',
-              onChanged: (v) => notifier.setReminderInterval(v.round()),
-            ),
-
-            const SizedBox(height: 24),
-
             // ── Chat font size ─────────────────────────────────────
             Text(
               context.l10n.chatFontSize,
@@ -389,6 +361,35 @@ class SettingsScreen extends ConsumerWidget {
             ),
 
             const SizedBox(height: 8),
+
+            // ── Reminder interval ────────────────────────────────
+            Text(
+              context.l10n.reminderFrequency,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              context.l10n.everyNMessages(settings.reminderInterval),
+              style: const TextStyle(
+                color: AppTheme.primaryAccent,
+                fontSize: 14,
+              ),
+            ),
+            Slider(
+              value: settings.reminderInterval.toDouble(),
+              min: 1,
+              max: 20,
+              divisions: 19,
+              label: '${settings.reminderInterval}',
+              onChanged: (v) => notifier.setReminderInterval(v.round()),
+            ),
+
+            const SizedBox(height: 24),
+
 
             // ── YAML persona toggle ──────────────────────────────
             SwitchListTile(
