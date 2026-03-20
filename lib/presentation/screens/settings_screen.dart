@@ -477,6 +477,51 @@ class SettingsScreen extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
+            // ── Auto-delete chat images toggle ───────────────────
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text('Auto-delete old chat images',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              subtitle: Text('Automatically delete chat images older than specified days',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              ),
+              value: settings.autoDeleteChatImagesEnabled,
+              onChanged: (v) => notifier.setAutoDeleteEnabled(v),
+              activeColor: AppTheme.primaryAccent,
+            ),
+
+            if (settings.autoDeleteChatImagesEnabled) ...[
+              const SizedBox(height: 4),
+              Text('Auto-delete after',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${settings.autoDeleteChatImagesDays} days',
+                style: const TextStyle(
+                  color: AppTheme.primaryAccent,
+                  fontSize: 14,
+                ),
+              ),
+              Slider(
+                value: settings.autoDeleteChatImagesDays.toDouble(),
+                min: 7,
+                max: 60,
+                divisions: 53,
+                activeColor: AppTheme.primaryAccent,
+                label: '${settings.autoDeleteChatImagesDays}',
+                onChanged: (v) =>
+                    notifier.setAutoDeleteDays(v.round()),
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
             // ── Clear all summaries ──────────────────────────────
             Card(
               color: AppTheme.surface,

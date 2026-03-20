@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +14,8 @@ class SettingsState {
   final double generationTemperature;
   final bool summarizationEnabled;
   final int summarizationThreshold;
+  final bool autoDeleteChatImagesEnabled;
+  final int autoDeleteChatImagesDays;
 
   const SettingsState({
     this.userInputLimit = 2000,
@@ -24,6 +27,8 @@ class SettingsState {
     this.generationTemperature = 0.9,
     this.summarizationEnabled = true,  // default true
     this.summarizationThreshold = 50,  // default 50
+    this.autoDeleteChatImagesEnabled = false, // default false
+    this.autoDeleteChatImagesDays = AppConfig.autoDeleteDefaultDays, // default from AppConfig
   });
 
   SettingsState copyWith({
@@ -36,6 +41,8 @@ class SettingsState {
     double? generationTemperature,
     bool? summarizationEnabled,
     int? summarizationThreshold,
+    bool? autoDeleteChatImagesEnabled,
+    int? autoDeleteChatImagesDays,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
@@ -47,6 +54,8 @@ class SettingsState {
         generationTemperature: generationTemperature ?? this.generationTemperature,
         summarizationEnabled: summarizationEnabled ?? this.summarizationEnabled,
         summarizationThreshold: summarizationThreshold ?? this.summarizationThreshold,
+        autoDeleteChatImagesEnabled: autoDeleteChatImagesEnabled ?? this.autoDeleteChatImagesEnabled,
+        autoDeleteChatImagesDays: autoDeleteChatImagesDays ?? this.autoDeleteChatImagesDays,
       );
 }
 
@@ -61,6 +70,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyGenerationTemperature = 'generation_temperature';
   static const _keySummarizationEnabled = 'settings_summarization_enabled';
   static const _keySummarizationThreshold = 'settings_summarization_threshold';
+  static const _keyAutoDeleteEnabled = 'settings_auto_delete_enabled';
+  static const _keyAutoDeleteDays = 'settings_auto_delete_days';
 
   SettingsNotifier() : super(const SettingsState()) {
     _load();
@@ -77,6 +88,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final temperature = prefs.getDouble(_keyGenerationTemperature) ?? 0.9;
     final summarizationEnabled = prefs.getBool(_keySummarizationEnabled) ?? true;
     final summarizationThreshold = prefs.getInt(_keySummarizationThreshold) ?? 50;
+    final autoDeleteEnabled = prefs.getBool(_keyAutoDeleteEnabled) ?? false;
+    final autoDeleteDays = prefs.getInt(_keyAutoDeleteDays) ?? AppConfig.autoDeleteDefaultDays;
     state = SettingsState(
       userInputLimit: userLimit,
       aiResponseLimit: aiLimit,
@@ -87,6 +100,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       generationTemperature: temperature,
       summarizationEnabled: summarizationEnabled,
       summarizationThreshold: summarizationThreshold,
+      autoDeleteChatImagesEnabled: autoDeleteEnabled,
+      autoDeleteChatImagesDays: autoDeleteDays,
     );
   }
 
@@ -167,6 +182,21 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       print('Error clearing summaries: $e');
       rethrow;
     }
+  }
+
+  /// Enable or disable auto-delete for chat images.
+  Future<void> setAutoDeleteEnabled(bool value) async {
+    state = state.copyWith(autoDeleteChatImagesEnabled: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyAutoDeleteEnabled, value);
+  }
+
+  /// Set auto-delete days (7–60).
+  Future<void> setAutoDeleteDays(int value) async {
+    final clamped = value.clamp(7, 60);
+    state = state.copyWith(autoDeleteChatImagesDays: clamped);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyAutoDeleteDays, clamped);
   }
 }
 

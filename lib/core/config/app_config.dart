@@ -27,6 +27,9 @@ class AppConfig {
   static const int defaultSeed = 101;
   static const int seedRange = 200;
 
+  // Auto-delete for chat images
+  static const int autoDeleteDefaultDays = 30;
+
   // Prompts / system strings — да, сюда
   static const String addToMultiChatBehavior = 'Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.';
   // ── Secure storage API key access ─────────────────────────────────────

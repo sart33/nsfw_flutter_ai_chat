@@ -794,4 +794,24 @@ class DatabaseHelper {
       debugPrint('[DB] insertSceneGenerationLog error: $e');
     }
   }
+
+  /// Returns all messages where imageLocalPath IS NOT NULL and timestamp < cutoffMs
+  Future<List<Map<String, dynamic>>> getOldChatImageMessages(int cutoffMs) async {
+    final db = await database;
+    return db.query('messages',
+      where: 'imageLocalPath IS NOT NULL AND timestamp < ?',
+      whereArgs: [cutoffMs],
+    );
+  }
+
+  /// Deletes messages by list of ids
+  Future<void> deleteMessagesByIds(List<String> ids) async {
+    if (ids.isEmpty) return;
+    final db = await database;
+    final placeholders = ids.map((_) => '?').join(',');
+    await db.delete('messages',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+  }
 }
