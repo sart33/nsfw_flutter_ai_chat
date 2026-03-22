@@ -159,6 +159,7 @@ class MultiPresetListScreen extends ConsumerWidget {
               left: i * overlap,
               child: AvatarWidget(
                 imagePath: displayPersonas[i].avatarPath,
+                assetPath: displayPersonas[i].avatarAssetPath,
                 name: displayPersonas[i].name,
                 size: avatarSize,
               ),

@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Thrown when a Novita AI generation task fails or times out.
 class NovitaException implements Exception {
@@ -33,7 +34,7 @@ class NovitaImageService {
     final docsDir = await getApplicationDocumentsDirectory();
     final dirPath = '${docsDir.path}/characters/$personaId/gallery';
     await Directory(dirPath).create(recursive: true);
-    final savePath = '$dirPath/$saveId.jpg';
+    final savePath = '$dirPath/$saveId.webp';
     await File(savePath).writeAsBytes(bytes, flush: true);
     return savePath;
   }
@@ -44,7 +45,7 @@ class NovitaImageService {
       {int seed = AppConfig.defaultSeed}) async {
     final bytes = await _generateBytes(promptTemplate, seed: seed);
     await Directory(saveDir).create(recursive: true);
-    final savePath = '$saveDir/$saveId.jpg';
+    final savePath = '$saveDir/$saveId.webp';
     await File(savePath).writeAsBytes(bytes, flush: true);
     return savePath;
   }
@@ -119,7 +120,7 @@ class NovitaImageService {
     if (resultJson == null) {
       throw NovitaException('Timed out waiting for generation result');
     }
-
+    // debugPrint('Novita generation succeeded: $resultJson');
     // 5. Extract image URL
     final images = resultJson['images'] as List<dynamic>?;
     if (images == null || images.isEmpty) {

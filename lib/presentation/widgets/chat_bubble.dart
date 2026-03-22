@@ -27,6 +27,7 @@ class ChatBubble extends StatelessWidget {
   final String senderName;
   final String content;
   final String? avatarPath;
+  final String? avatarAssetPath;
   final String? imageLocalPath;
   final VoidCallback? onImageTap;
   final VoidCallback? onImageRegen;
@@ -52,6 +53,7 @@ class ChatBubble extends StatelessWidget {
     required this.senderName,
     required this.content,
     this.avatarPath,
+    this.avatarAssetPath,
     this.imageLocalPath,
     this.onImageTap,
     this.onImageRegen,
@@ -78,6 +80,7 @@ class ChatBubble extends StatelessWidget {
                 onTap: onAvatarTap,
                 child: AvatarWidget(
                   imagePath: avatarPath,
+                  assetPath: avatarAssetPath,
                   name: senderName,
                   size: 36,
                 ),

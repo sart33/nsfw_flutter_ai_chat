@@ -29,6 +29,9 @@ erotic:
 - remove tongue piercing and tongue ball mentions
 - keep breast size mentions
 - keep tattoos with body location
+- remove any fetish gear or sexual accessories (e.g. anal plugs, BDSM items)
+- remove any clothing, outfit, lingerie, underwear, or wearable items completely
+- remove any mentions of clothing or worn items (e.g. lingerie, underwear, bra, panties, swimsuit, dress, skirt, straps, harness, corset, latex, uniform)
 - append "properly dressed" at the end
 
 romantic:
@@ -38,11 +41,19 @@ romantic:
 - remove all genital mentions
 - remove tongue piercing and tongue ball mentions
 - keep tattoo mention but change location to arms only
+- remove any clothing, outfit, lingerie, underwear, or wearable items completely
+- remove any mentions of clothing or worn items (e.g. lingerie, underwear, bra, panties, swimsuit, dress, skirt, straps, harness, corset, latex, uniform)
 - append "properly dressed" at the end
 
 office:
 - same as romantic
 - remove all tattoo mentions entirely
+- remove any mentions of fetish clothing, BDSM elements, or sexualized accessories (e.g. straps, harnesses, chokers, latex, corsets used in sexual context)
+- remove any clothing descriptions that imply sexualized style or exposure
+- remove phrases implying seduction, sexual intent, or body used for attraction
+- remove any clothing, outfit, lingerie, underwear, or wearable items completely
+- remove any mentions of clothing or worn items (e.g. lingerie, underwear, bra, panties, swimsuit, dress, skirt, straps, harness, corset, latex, uniform)
+- remove any phrases implying seduction, sexual intent, or provocative use of the body
 - append "properly dressed" at the end
 
 Input:
@@ -98,6 +109,7 @@ Return only this JSON, nothing else:
       final erotic   = (result['erotic']   as String?) ?? description;
       final romantic = (result['romantic'] as String?) ?? description;
       final office   = (result['office']   as String?) ?? description;
+      debugPrint('[PromptCleanerService] : description="$description"' );
 
       await DatabaseHelper.instance.upsertPersonaPrompts(
         personaId:  personaId,

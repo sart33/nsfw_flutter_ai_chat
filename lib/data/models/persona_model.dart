@@ -8,6 +8,7 @@ class PersonaModel {
   final String description;
   final String greeting;
   final String? avatarPath;
+  final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
 
@@ -17,6 +18,7 @@ class PersonaModel {
     required this.description,
     required this.greeting,
     this.avatarPath,
+    this.avatarAssetPath,
     this.behavior,
     this.galleryMode = 'nude',
   }) : id = id ?? const Uuid().v4();
@@ -29,6 +31,7 @@ class PersonaModel {
         'description': description,
         'greeting': greeting,
         'avatarPath': avatarPath,
+        'avatarAssetPath': avatarAssetPath,
         'behavior': behavior,
         'galleryMode': galleryMode,
       };
@@ -39,6 +42,7 @@ class PersonaModel {
         description: map['description'] as String,
         greeting: map['greeting'] as String,
         avatarPath: map['avatarPath'] as String?,
+        avatarAssetPath: map['avatarAssetPath'] as String?,
         behavior: map['behavior'] as String?,
         galleryMode: (map['galleryMode'] as String?) ?? 'nude',
       );
@@ -54,6 +58,7 @@ class PersonaModel {
     String? description,
     String? greeting,
     String? avatarPath,
+    String? avatarAssetPath,
     String? behavior,
     String? galleryMode,
   }) =>
@@ -63,6 +68,7 @@ class PersonaModel {
         description: description ?? this.description,
         greeting: greeting ?? this.greeting,
         avatarPath: avatarPath ?? this.avatarPath,
+        avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
         behavior: behavior ?? this.behavior,
         galleryMode: galleryMode ?? this.galleryMode,
       );

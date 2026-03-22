@@ -220,17 +220,23 @@ class PersonaViewScreen extends ConsumerWidget {
   // ── Avatar header ─────────────────────────────────────────────────────
 
   Widget _buildAvatarHeader(PersonaEntity p) {
-    final hasAvatar =
-        p.avatarPath != null && File(p.avatarPath!).existsSync();
+    final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
+    final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
     return SizedBox(
       height: 320,
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (hasAvatar)
+          if (hasFile)
             Image.file(
               File(p.avatarPath!),
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+            )
+          else if (hasAsset)
+            Image.asset(
+              p.avatarAssetPath!,
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
             )

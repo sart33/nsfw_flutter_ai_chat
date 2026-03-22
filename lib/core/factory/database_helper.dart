@@ -1,7 +1,7 @@
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
-import 'package:sqflite/sqflite.dart';
+
 import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
 
 /// Singleton helper that owns the SQLite database for branches & messages.
 class DatabaseHelper {
@@ -791,7 +791,7 @@ class DatabaseHelper {
         'image_path': imagePath,
       });
     } catch (e) {
-      debugPrint('[DB] insertSceneGenerationLog error: $e');
+      // debugPrint('[DB] insertSceneGenerationLog error: $e');
     }
   }
 

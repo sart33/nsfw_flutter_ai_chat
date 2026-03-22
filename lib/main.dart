@@ -4,12 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nsfw_chat/l10n/app_localizations.dart';
-import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/services/chat_image_cleanup_service.dart';
+import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
-import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 import 'package:nsfw_chat/presentation/screens/home_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -59,15 +57,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkApiKeyAndNavigate() async {
     await Future.delayed(const Duration(milliseconds: 500)); // brief splash
-    final key = await AppConfig.getDeepSeekApiKey();
-    if (key.isEmpty) {
-      // No key, redirect to API Keys screen
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-      );
-    } else {
-      // Key present, go to home screen
       // Run chat image cleanup in background if enabled
       if (!mounted) return;
       final container = ProviderScope.containerOf(context);
@@ -78,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
-    }
+    // }
   }
 
   @override

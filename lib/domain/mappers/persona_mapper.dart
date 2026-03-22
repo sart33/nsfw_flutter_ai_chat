@@ -11,6 +11,7 @@ class PersonaMapper {
         description: model.description,
         greeting: model.greeting,
         avatarPath: model.avatarPath,
+        avatarAssetPath: model.avatarAssetPath,
         behavior: model.behavior,
         galleryMode: model.galleryMode,
       );
@@ -21,6 +22,7 @@ class PersonaMapper {
         description: entity.description,
         greeting: entity.greeting,
         avatarPath: entity.avatarPath,
+        avatarAssetPath: entity.avatarAssetPath,
         behavior: entity.behavior,
         galleryMode: entity.galleryMode,
       );

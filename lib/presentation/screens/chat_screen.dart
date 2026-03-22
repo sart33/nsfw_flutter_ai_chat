@@ -18,6 +18,8 @@ import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 
+import 'api_keys_screen.dart';
+
 /// Chat screen — works for both single-persona and multi-preset chats.
 ///
 /// Args received via constructor:
@@ -85,7 +87,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _multiBehavior = trimmedBehavior.isNotEmpty
             ? '$trimmedBehavior. ${AppConfig.addToMultiChatBehavior}'
             : AppConfig.addToMultiChatBehavior;
-        debugPrint('Resolved multi-preset behavior: $_multiBehavior', wrapWidth: 2000);
+        // debugPrint('Resolved multi-preset behavior: $_multiBehavior', wrapWidth: 2000);
       }
     }
   }
@@ -200,13 +202,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                 // Resolve avatar for AI messages.
                 String? avatarPath;
+                String? avatarAssetPath;
                 if (!msg.isUser && !widget.isMulti && _singlePersona != null) {
                   avatarPath = _singlePersona!.avatarPath;
+                  avatarAssetPath = _singlePersona!.avatarAssetPath;
                 } else if (!msg.isUser && widget.isMulti) {
                   final matched = _multiPersonas
                       .where((p) => p.name == msg.senderName)
                       .firstOrNull;
                   avatarPath = matched?.avatarPath;
+                  avatarAssetPath = matched?.avatarAssetPath;
                 }
 
                 // Show regen only on the last AI message, when not loading.
@@ -217,6 +222,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   senderName: msg.senderName,
                   content: msg.content,
                   avatarPath: avatarPath,
+                  avatarAssetPath: avatarAssetPath,
                   imageLocalPath: msg.imageLocalPath,
                   onImageTap: msg.imageLocalPath != null
                       ? () => _openImageFullscreen(context, msg.imageLocalPath!)
@@ -350,9 +356,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 
   /// Send user message (single or multi depending on [isMulti]).
-  void _send(SettingsState settings) {
+  void _send(SettingsState settings) async {
     final content = _inputCtrl.text.trim();
     if (content.isEmpty) return;
+    if (!await _ensureApiKey()) return;
     _inputCtrl.clear();
     setState(() {});
 
@@ -376,7 +383,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   /// Sends a predefined quick-action message without touching _inputCtrl.
-  void _sendQuick(String content, SettingsState settings) {
+  void _sendQuick(String content, SettingsState settings) async {
+    if (!await _ensureApiKey()) return;
     final tokens = _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
 
@@ -416,6 +424,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         maxTokens: tokens,
       );
     }
+  }
+
+  /// Returns true if API key is present, false + shows SnackBar if not.
+  Future<bool> _ensureApiKey() async {
+    final apiKey = await AppConfig.getDeepSeekApiKey();
+    if (apiKey.isNotEmpty) return true;
+    if (!mounted) return false;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFFD74D00),
+        content: Text(
+          context.l10n.noApiKeyMessage,
+          style: const TextStyle(color: Colors.white),
+        ),
+        action: SnackBarAction(
+          label: context.l10n.noApiKeyAction,
+          textColor: Colors.white,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+          ),
+        ),
+        duration: const Duration(seconds: 8),
+      ),
+    );
+    return false;
   }
 
   void _generateSceneImage() {

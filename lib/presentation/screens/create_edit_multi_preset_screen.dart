@@ -106,6 +106,7 @@ class _CreateEditMultiPresetScreenState
                     },
                     secondary: AvatarWidget(
                       imagePath: p.avatarPath,
+                      assetPath: p.avatarAssetPath,
                       name: p.name,
                       size: 40,
                     ),

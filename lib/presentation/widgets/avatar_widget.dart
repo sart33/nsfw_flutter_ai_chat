@@ -2,12 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 
-/// Displays a persona avatar from a file path.
+/// Displays a persona avatar with fallback priority:
+/// 1. [imagePath] — File on disk (user uploaded / generated). Check existsSync().
+/// 2. [assetPath] — Flutter asset (e.g. "assets/avatars/natasha.png").
+/// 3. Initials fallback — colored circle with first letter.
+///
 /// - Square crop for thumbnail/icon usage.
 /// - Top-crop for portrait display (shows face, not legs).
-/// - Falls back to initials on a coloured circle if no image.
 class AvatarWidget extends StatelessWidget {
   final String? imagePath;
+  final String? assetPath;
   final String name;
   final double size;
   final bool portraitMode;
@@ -15,6 +19,7 @@ class AvatarWidget extends StatelessWidget {
   const AvatarWidget({
     super.key,
     this.imagePath,
+    this.assetPath,
     required this.name,
     this.size = 48,
     this.portraitMode = false,
@@ -22,18 +27,19 @@ class AvatarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage =
+    final hasFileImage =
         imagePath != null && imagePath!.isNotEmpty && File(imagePath!).existsSync();
+    final hasAssetImage = assetPath != null && assetPath!.isNotEmpty;
 
     if (portraitMode) {
-      return _portraitView(hasImage);
+      return _portraitView(hasFileImage, hasAssetImage);
     }
-    return _squareView(hasImage);
+    return _squareView(hasFileImage, hasAssetImage);
   }
 
   /// Square thumbnail (for lists / icons).
-  Widget _squareView(bool hasImage) {
-    if (hasImage) {
+  Widget _squareView(bool hasFileImage, bool hasAssetImage) {
+    if (hasFileImage) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(size / 4),
         child: SizedBox(
@@ -47,12 +53,27 @@ class AvatarWidget extends StatelessWidget {
         ),
       );
     }
+    if (hasAssetImage) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(size / 4),
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Image.asset(
+            assetPath!,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter, // top-crop
+            errorBuilder: (_, __, ___) => _initialsCircle(),
+          ),
+        ),
+      );
+    }
     return _initialsCircle();
   }
 
   /// Portrait view (300×500-ish, top portion visible) for chat messages.
-  Widget _portraitView(bool hasImage) {
-    if (hasImage) {
+  Widget _portraitView(bool hasFileImage, bool hasAssetImage) {
+    if (hasFileImage) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
@@ -62,6 +83,21 @@ class AvatarWidget extends StatelessWidget {
             File(imagePath!),
             fit: BoxFit.cover,
             alignment: Alignment.topCenter, // top-crop for portrait
+          ),
+        ),
+      );
+    }
+    if (hasAssetImage) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: size,
+          height: size * 1.67, // ~300x500 ratio
+          child: Image.asset(
+            assetPath!,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter, // top-crop for portrait
+            errorBuilder: (_, __, ___) => _initialsCircle(),
           ),
         ),
       );

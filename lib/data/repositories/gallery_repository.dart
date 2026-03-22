@@ -312,7 +312,7 @@ class GalleryRepository {
     if (templateId >= 1 && templateId <= 20) return 'nude';
     if (templateId >= 21 && templateId <= 40) return 'romantic';
     if (templateId >= 41 && templateId <= 60) return 'erotic';
-    if (templateId >= 61 && templateId <= 61) return 'office';
+    if (templateId >= 61 && templateId <= 81) return 'office';
     return 'nude'; // fallback
   }
 }

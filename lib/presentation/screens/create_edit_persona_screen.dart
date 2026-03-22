@@ -312,8 +312,12 @@ class _CreateEditPersonaScreenState
     }
 
     // Show confirmed avatar
-    final hasAvatar =
-        _avatarPath != null && File(_avatarPath!).existsSync();
+    final hasFile = _avatarPath != null && File(_avatarPath!).existsSync();
+    final persona = _isEdit
+        ? ref.read(personaProvider.notifier).getById(widget.personaId!)
+        : null;
+    final assetPath = persona?.avatarAssetPath;
+    final hasAsset = !hasFile && assetPath != null && assetPath.isNotEmpty;
     return Container(
       width: 120,
       height: 160,
@@ -321,14 +325,19 @@ class _CreateEditPersonaScreenState
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.userBubble),
-        image: hasAvatar
+        image: hasFile
             ? DecorationImage(
-                image: FileImage(File(_avatarPath!)),
-                fit: BoxFit.cover,
-              )
+          image: FileImage(File(_avatarPath!)),
+          fit: BoxFit.cover,
+        )
+            : hasAsset
+            ? DecorationImage(
+          image: AssetImage(assetPath!),
+          fit: BoxFit.cover,
+        )
             : null,
       ),
-      child: hasAvatar
+      child: (hasFile || hasAsset)
           ? null
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -592,6 +601,9 @@ class _CreateEditPersonaScreenState
 
   // ── Save ─────────────────
   void _save() {
+    final persona = _isEdit
+        ? ref.read(personaProvider.notifier).getById(widget.personaId!)
+        : null;
     if (!_formKey.currentState!.validate()) return;
 
     if (_descCtrl.text.length > _descMax) {
@@ -619,6 +631,7 @@ class _CreateEditPersonaScreenState
       description: _descCtrl.text.trim(),
       greeting: _greetCtrl.text.trim(),
       avatarPath: _avatarPath,
+      avatarAssetPath: persona?.avatarAssetPath,
       behavior: _behaviorCtrl.text.trim().isEmpty
           ? null
           : _behaviorCtrl.text.trim(),

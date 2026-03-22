@@ -137,6 +137,7 @@ class BranchListScreen extends ConsumerWidget {
       if (persona != null) {
         return AvatarWidget(
           imagePath: persona.avatarPath,
+          assetPath: persona.avatarAssetPath,
           name: persona.name,
           size: avatarSize,
         );
@@ -184,6 +185,7 @@ class BranchListScreen extends ConsumerWidget {
               left: reverseIndex * overlap,
               child: AvatarWidget(
                 imagePath: persona.avatarPath,
+                assetPath: persona.avatarAssetPath,
                 name: persona.name,
                 size: avatarSize,
               ),

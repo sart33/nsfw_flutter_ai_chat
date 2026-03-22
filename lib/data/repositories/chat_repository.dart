@@ -54,7 +54,7 @@ class ChatRepository {
 
   Future<void> setReminderCounter(int value) async {
     await _prefs.setInt('reminder_counter', value);
-    debugPrint('[Reminder] Counter set to $value');
+    // debugPrint('[Reminder] Counter set to $value');
   }
 
   int _getReminderCounter() => _prefs.getInt('reminder_counter') ?? 0;

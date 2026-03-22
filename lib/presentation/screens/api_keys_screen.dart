@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 
-import 'home_screen.dart';
-
 /// Screen for managing API keys stored securely.
 class ApiKeysScreen extends StatefulWidget {
   const ApiKeysScreen({super.key});
@@ -23,7 +21,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   bool _loading = true;
   bool _deepSeekChanged = false;
   bool _novitaChanged = false;
-  bool _showHomeButton = false;
 
   @override
   void initState() {
@@ -69,10 +66,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     });
 
     _showSnackBar(context.l10n.deepSeekKeySaved);
-    // Show home button if this is the first time setting the key (i.e. we came from splash screen)
-    if (!Navigator.canPop(context) && mounted) {
-      setState(() => _showHomeButton = true);
-    }
   }
 
   Future<void> _deleteDeepSeekKey() async {
@@ -163,7 +156,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
     );
   }
 
@@ -330,22 +323,6 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
               emptyHint: context.l10n.pasteNovitaKey,
             ),
             const SizedBox(height: 24),
-            if (_showHomeButton)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.home),
-                    label: Text(context.l10n.goToApp),
-                    onPressed:
-                        () => Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HomeScreen()),
-                        ),
-                  ),
-                ),
-              ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
               child: Text(

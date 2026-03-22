@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 
 /// Minimal Novita AI avatar generation service.
@@ -31,7 +32,7 @@ class NovitaAvatarService {
         'Эротическое фото $description, explicit nsfw details, aroused expression, '
         'detailed skin texture, erotic pose with focus on body and face. '
         'Masterpiece, best quality, ultra detailed';
-
+    debugPrint('[NovitaAvatarService] prompt: $prompt');
     // 2. Submit generation task
     final submitResp = await _dio.post(
       '$_baseUrl/z-image-turbo',

@@ -6,6 +6,7 @@ class PersonaEntity {
   final String description;
   final String greeting;
   final String? avatarPath;
+  final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
 
@@ -15,6 +16,7 @@ class PersonaEntity {
     required this.description,
     required this.greeting,
     this.avatarPath,
+    this.avatarAssetPath,
     this.behavior,
     required this.galleryMode,
   });
@@ -25,6 +27,7 @@ class PersonaEntity {
     String? description,
     String? greeting,
     String? avatarPath,
+    String? avatarAssetPath,
     String? behavior,
     String? galleryMode,
   }) =>
@@ -34,6 +37,7 @@ class PersonaEntity {
         description: description ?? this.description,
         greeting: greeting ?? this.greeting,
         avatarPath: avatarPath ?? this.avatarPath,
+        avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
         behavior: behavior ?? this.behavior,
         galleryMode: galleryMode ?? this.galleryMode,
       );

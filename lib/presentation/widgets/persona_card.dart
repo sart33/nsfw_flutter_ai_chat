@@ -35,6 +35,7 @@ class PersonaCard extends StatelessWidget {
             children: [
               AvatarWidget(
                 imagePath: persona.avatarPath,
+                assetPath: persona.avatarAssetPath,
                 name: persona.name,
                 size: 52,
               ),

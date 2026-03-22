@@ -27,6 +27,7 @@ dependencies:
   sqflite: ^2.3.3
   sqflite_common_ffi: ^2.3.3
   path: any
+  collection: ^1.19.0
 
 dev_dependencies:
   flutter_test:
@@ -39,3 +40,4 @@ flutter:
   assets:
     - assets/json/image_templates.json
     - assets/characters/
+    - assets/avatars/
