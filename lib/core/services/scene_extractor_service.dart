@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
+import 'package:nsfw_chat/core/utils/app_snack_bar.dart';
 
 class SceneSnapshot {
   final String? location;
@@ -409,10 +410,7 @@ OUTPUT — ONLY JSON:
       String currentText, String contextText) async {
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) {
-        debugPrint('[SceneExtractor] No API key, using fallback');
-        return SceneSnapshot.fallback;
-      }
+      if (apiKey.isEmpty) return SceneSnapshot.fallback;
 
       final response = await http.post(
         Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),
@@ -433,8 +431,19 @@ OUTPUT — ONLY JSON:
         }),
       );
 
+      if (response.statusCode == 401) {
+        AppSnackBar.showCriticalWithLang(
+          'DeepSeek API key is invalid. Image generation unavailable.',
+          'Ключ DeepSeek недействителен. Генерация изображений недоступна.',
+        );
+        return SceneSnapshot.fallback;
+      }
+
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint('[SceneExtractor] HTTP error: ${response.statusCode}');
+        AppSnackBar.showErrorWithLang(
+          'Scene extraction failed: HTTP ${response.statusCode}',
+          'Ошибка извлечения сцены: HTTP ${response.statusCode}',
+        );
         return SceneSnapshot.fallback;
       }
 
@@ -453,7 +462,10 @@ OUTPUT — ONLY JSON:
       final map = jsonDecode(cleaned) as Map<String, dynamic>;
       return SceneSnapshot.fromJson(map);
     } catch (e) {
-      debugPrint('[SceneExtractor] LLM error: $e');
+      AppSnackBar.showErrorWithLang(
+        'Scene extraction error: $e',
+        'Ошибка анализа сцены: $e',
+      );
       return SceneSnapshot.fallback;
     }
   }
@@ -473,52 +485,44 @@ OUTPUT — ONLY JSON:
       if (s.intimacyLevel > 1) {
         s = s.copyWith(intimacyLevel: 1);
       }
-      final impossiblePoses = {
-        'lying_on_back', 'lying_on_side',
-        'lying_on_stomach', 'kneeling', 'bending_over',
-      };
-      if (s.pose != null &&
-          impossiblePoses.contains(s.pose!.toLowerCase())) {
-        s = s.copyWith(pose: 'sitting');
+      // Public poses should be standing or sitting, not intimate poses
+      if (s.pose != null && 
+          ['lying_on_back', 'lying_on_side', 'lying_on_stomach', 'kneeling', 'bending_over']
+              .contains(s.pose!.toLowerCase())) {
+        s = s.copyWith(pose: 'standing');
       }
     }
 
-    // Shower: cannot be fully dressed
-    if (s.location == 'shower' &&
-        s.clothingState == 'fully_dressed') {
-      s = s.copyWith(clothingState: 'nude');
+    // Shower/bathroom: cannot be fully dressed
+    if (s.location != null &&
+        (s.location!.toLowerCase().contains('shower') ||
+         s.location!.toLowerCase().contains('bathroom'))) {
+      if (s.clothingState == 'fully_dressed') {
+        s = s.copyWith(clothingState: 'casual');
+      }
     }
 
-    // Activity-driven pose correction:
-    // If activity implies specific pose → enforce it
-    if (s.activity != null) {
-      final a = s.activity!.toLowerCase();
-
-      // Oral sex activity → must be kneeling
-      if (a.contains('oral') ||
-          a.contains('mouth') ||
-          a.contains('blowjob') ||
-          a.contains('fellatio') ||
-          a.contains('минет') ||
-          a.contains('сосёт') ||
-          a.contains('рот')) {
-        s = s.copyWith(pose: 'kneeling');
+    // Bedroom: intimacy can be higher
+    if (s.location != null &&
+        (s.location!.toLowerCase().contains('bed') ||
+         s.location!.toLowerCase().contains('bedroom'))) {
+      if (s.intimacyLevel < 2) {
+        s = s.copyWith(intimacyLevel: 2);
       }
+    }
 
-      // Riding activity → must be on top
-      if (a.contains('riding') ||
-          a.contains('on top') ||
-          a.contains('верхом') ||
-          a.contains('скачет')) {
-        s = s.copyWith(pose: 'lying_on_back');
-      }
+    // Ensure confidence is within bounds
+    if (s.confidence < 0.0) {
+      s = s.copyWith(confidence: 0.0);
+    } else if (s.confidence > 1.0) {
+      s = s.copyWith(confidence: 1.0);
+    }
 
-      // Doggy style → bending over
-      if (a.contains('doggy') ||
-          a.contains('раком') ||
-          a.contains('четвереньк')) {
-        s = s.copyWith(pose: 'bending_over');
-      }
+    // Ensure intimacy level is within bounds
+    if (s.intimacyLevel < 0) {
+      s = s.copyWith(intimacyLevel: 0);
+    } else if (s.intimacyLevel > 4) {
+      s = s.copyWith(intimacyLevel: 4);
     }
 
     return s;

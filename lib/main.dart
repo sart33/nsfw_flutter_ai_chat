@@ -20,12 +20,16 @@ void main() {
   runApp(const ProviderScope(child: NsfwChatApp()));
 }
 
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
 class NsfwChatApp extends StatelessWidget {
   const NsfwChatApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'NSFW Chat',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,

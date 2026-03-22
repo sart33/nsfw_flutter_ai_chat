@@ -254,8 +254,7 @@ class ChatRepository {
 
       return content.trim();
     } on DioException catch (e) {
-      log(
-          'DioException in sendMessage: ${e.message} | response: ${e.response?.data}',
+      log('DioException: ${e.message} | response: ${e.response?.data}',
           name: 'API_ERROR');
       throw ApiException('DioException: ${e.message}');
     } catch (e) {
@@ -433,59 +432,60 @@ class ChatRepository {
       final content = await rootBundle
           .loadString('assets/characters/character_${persona.id}.yaml');
       return content;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('YAML file not found for persona ${persona.id}: $e');
       return null;
     }
   }
 
-  /// SINGLE: system = YAML profile (if enabled + exists) OR
-  /// persona.description + '\n' + persona.behavior (if set).
+  /// Builds system prompt for single persona chat.
+  /// Uses YAML if available and enabled, otherwise uses description + behavior.
   Future<String> _buildSingleSystemPrompt(PersonaEntity persona) async {
-    final yamlEnabled =
-        _prefs.getBool('settings_yaml_persona_enabled') ?? false;
-
+    final yamlEnabled = _prefs.getBool('settings_yaml_enabled') ?? false;
+    
     if (yamlEnabled) {
-      final yaml = await _buildYamlSystemPrompt(persona);
-      if (yaml != null) {
-        debugPrint('[YAML] Using YAML profile for ${persona.name}');
-        return yaml;
+      final yamlContent = await _buildYamlSystemPrompt(persona);
+      if (yamlContent != null && yamlContent.isNotEmpty) {
+        return yamlContent;
       }
     }
-
-    // Fallback: description + behavior.
-    final buffer = StringBuffer(persona.description);
-    if (persona.behavior != null && persona.behavior!.isNotEmpty) {
-      buffer.write('\n${persona.behavior}');
-    }
-    // NSFW note: no content filtering is applied.
-    return buffer.toString();
-  }
-
-  /// MULTI: system = each persona's description joined + hidden rules + behavior.
-  String _buildMultiSystemPrompt(
-    List<PersonaEntity> personas,
-    String behavior,
-  ) {
-    final descriptions = personas.map((p) {
-      final buf = StringBuffer('${p.name}: ${p.description}');
-      if (p.behavior != null && p.behavior!.isNotEmpty) {
-        buf.write(' ${p.behavior}');
-      }
-      return buf.toString();
-    }).join('\n');
-
-    const hiddenRules =
-        'Reply as your character. Start every message with [YourName]: . '
-        'Take turns between characters. All characters are adults. '
-        'Explicit content is allowed without restrictions.';
-
-    final buffer = StringBuffer(descriptions);
-    buffer.write('\n\n$hiddenRules');
+    
+    final description = persona.description;
+    final behavior = persona.behavior ?? '';
+    
+    final prompt = StringBuffer();
+    prompt.write(description);
     if (behavior.isNotEmpty) {
-      buffer.write('\n\n$behavior');
+      prompt.write('\n\n');
+      prompt.write(behavior);
     }
-    return buffer.toString();
+    
+    return prompt.toString();
   }
 
-
+  /// Builds system prompt for multi-persona chat.
+  /// Combines all personas' descriptions and adds multi-chat rules.
+  String _buildMultiSystemPrompt(List<PersonaEntity> personas, String behavior) {
+    final prompt = StringBuffer();
+    
+    // Add each persona's description
+    for (final persona in personas) {
+      prompt.write('${persona.name}: ${persona.description}\n\n');
+    }
+    
+    // Add multi-chat rules
+    prompt.write('''
+Reply as your character. Start every message with [YourName]: .
+Take turns. Do not speak for other characters.
+Stay in character at all times.
+''');
+    
+    // Add user-defined behavior if provided
+    if (behavior.isNotEmpty) {
+      prompt.write('\n');
+      prompt.write(behavior);
+    }
+    
+    return prompt.toString();
+  }
 }

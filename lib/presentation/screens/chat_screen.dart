@@ -17,6 +17,8 @@ import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
+import 'package:nsfw_chat/core/utils/app_snack_bar.dart';
+import 'package:nsfw_chat/main.dart';
 
 import 'api_keys_screen.dart';
 
@@ -131,12 +133,68 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // ── Error listener ───────────────────────────────────────────────────
     ref.listen<ChatState>(chatProvider(widget.branchId), (prev, next) {
       if (next.error != null && next.error != prev?.error) {
-        final msg = switch (next.error) {
-          ApiException() => context.l10n.errorApi,
-          HistoryException() => context.l10n.errorHistory,
-          _ => context.l10n.errorUnknown,
-        };
-        Fluttertoast.showToast(msg: msg);
+        final error = next.error!;
+        
+        // Handle ApiException (DeepSeek API errors)
+        if (error is ApiException) {
+          final is401 = error.toString().contains('401');
+          final messageEn = is401 
+              ? 'API key is invalid. Please update it in settings.'
+              : 'Connection error. Check your internet.';
+          final messageRu = is401
+              ? 'Ключ API недействителен. Обновите его в настройках.'
+              : 'Ошибка соединения. Проверьте интернет.';
+          
+          final backgroundColor = is401 
+              ? const Color(0xFFB71C1C) // red
+              : const Color(0xFFE65100); // orange
+          
+          final snackBar = SnackBar(
+            backgroundColor: backgroundColor,
+            duration: const Duration(seconds: 6),
+            content: Text(
+              AppSnackBar.isRussian() ? messageRu : messageEn,
+              style: const TextStyle(color: Colors.white),
+            ),
+            action: is401 ? SnackBarAction(
+              label: AppSnackBar.isRussian() ? 'Настройки' : 'Settings',
+              textColor: Colors.white,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+              ),
+            ) : null,
+          );
+          
+          scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
+          scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
+        }
+        // Handle GenerationException (Novita image generation errors)
+        else if (error is GenerationException) {
+          final messageEn = 'Image generation failed. Check your Novita API key.';
+          final messageRu = 'Ошибка генерации изображения. Проверьте ключ Novita.';
+          
+          final snackBar = SnackBar(
+            backgroundColor: const Color(0xFFE65100), // orange
+            duration: const Duration(seconds: 6),
+            content: Text(
+              AppSnackBar.isRussian() ? messageRu : messageEn,
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+          
+          scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
+          scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
+        }
+        // Handle other exceptions
+        else {
+          final msg = switch (error) {
+            HistoryException() => context.l10n.errorHistory,
+            _ => context.l10n.errorUnknown,
+          };
+          AppSnackBar.showError(msg);
+        }
+        
         ref.read(chatProvider(widget.branchId).notifier).clearError();
       }
     });

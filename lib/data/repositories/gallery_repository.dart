@@ -26,7 +26,7 @@ class GalleryRepository {
   // Template IDs where clothing covers arms/tattoos fully.
   // Uses romantic2 (office-cleaned) description instead of romantic.
   static const _romantic2TemplateIds = <int>[
-    27, 29, 39, 40
+    23, 27, 28, 29, 33, 34, 39, 40,
   ];
 
   // ── Read ─────────────────────────────────────────────────────────────────
@@ -244,7 +244,7 @@ class GalleryRepository {
     final saveId = _uuid.v4();
     final dirPath = '${docsDir.path}/characters/$personaId/gallery';
     await Directory(dirPath).create(recursive: true);
-    final savePath = '$dirPath/$saveId.jpg';
+    final savePath = '$dirPath/$saveId.webp';
     await File(tempPath).copy(savePath);
 
     // Remove temp file
