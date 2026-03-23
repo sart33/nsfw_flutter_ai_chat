@@ -22,7 +22,6 @@ class DioFactory {
       requestBody: true,
       responseBody: true,
     ));
-
     return dio;
   }
 }

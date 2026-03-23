@@ -10,6 +10,9 @@ import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../../domain/exceptions/app_exceptions.dart';
+import 'api_keys_screen.dart';
+
 class GalleryFullscreenScreen extends ConsumerStatefulWidget {
   final List<GalleryImageEntity> images;
   final int initialIndex;
@@ -49,11 +52,54 @@ class _GalleryFullscreenScreenState
     super.dispose();
   }
 
+  void _showSnack(String msg, {bool isKeyError = false}) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: isKeyError
+          ? const Color(0xFFB71C1C)
+          : const Color(0xFFE65100),
+      duration: Duration(seconds: isKeyError ? 8 : 6),
+      content: Text(msg, style: const TextStyle(color: Colors.white)),
+      action: isKeyError ? SnackBarAction(
+        label: context.l10n.settings,
+        textColor: Colors.white,
+        onPressed: () =>
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+            ),
+      ) : null,
+    ));
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final galleryKey = GalleryKey(widget.personaId, widget.galleryMode);
     final state = ref.watch(galleryProvider(galleryKey));
     final notifier = ref.read(galleryProvider(galleryKey).notifier);
+
+    ref.listen<GalleryState>(galleryProvider(galleryKey), (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        final isKeyError = next.error is GenerationException &&
+            (next.error!.technicalMessage?.contains('api_key') ?? false);
+        final msg = switch (next.error) {
+          GalleryFullException() => context.l10n.galleryFull,
+          GenerationException() when next.error!.technicalMessage ==
+              'api_key_not_set'
+          => context.l10n.errorNovitaKeyNotSet,
+          GenerationException() when next.error!.technicalMessage ==
+              'api_key_invalid'
+          => context.l10n.errorNovitaKeyInvalid,
+          GenerationException() => context.l10n.errorImageGeneration,
+          SaveException() => context.l10n.errorSave,
+          DeleteException() => context.l10n.errorDelete,
+          _ => context.l10n.errorUnknown,
+        };
+        _showSnack(msg, isKeyError: isKeyError);
+        ref.read(galleryProvider(galleryKey).notifier).clearError();
+      }
+    });
     final imgs = state.images;
 
     if (imgs.isEmpty) {
@@ -81,7 +127,7 @@ class _GalleryFullscreenScreenState
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 2.5,
                 backgroundDecoration:
-                    const BoxDecoration(color: Colors.black),
+                const BoxDecoration(color: Colors.black),
               );
             },
           ),
@@ -89,7 +135,10 @@ class _GalleryFullscreenScreenState
           if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
             // LEFT
             Positioned(
-              left: 0, top: 0, bottom: 0, width: 80,
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 80,
               child: GestureDetector(
                 onTap: () {
                   if (_currentIndex > 0) {
@@ -112,7 +161,10 @@ class _GalleryFullscreenScreenState
             ),
             // RIGHT
             Positioned(
-              right: 0, top: 0, bottom: 0, width: 80,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 80,
               child: GestureDetector(
                 onTap: () {
                   if (_currentIndex < imgs.length - 1) {
@@ -219,38 +271,40 @@ class _GalleryFullscreenScreenState
     );
   }
 
+
   void _confirmDelete(BuildContext context, GalleryNotifier notifier,
       List<GalleryImageEntity> imgs, int idx) {
     final img = imgs[idx];
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(context.l10n.deleteImage,
-            style: TextStyle(color: AppTheme.textPrimary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.cancel),
+      builder: (ctx) =>
+          AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(context.l10n.deleteImage,
+                style: TextStyle(color: AppTheme.textPrimary)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  notifier.deleteImage(img.id, img.localPath);
+                  if (imgs.length <= 1) {
+                    Navigator.pop(context);
+                  } else if (idx >= imgs.length - 1) {
+                    _pageCtrl.previousPage(
+                      duration: Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                },
+                child: Text(context.l10n.delete,
+                    style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              notifier.deleteImage(img.id, img.localPath);
-              if (imgs.length <= 1) {
-                Navigator.pop(context);
-              } else if (idx >= imgs.length - 1) {
-                _pageCtrl.previousPage(
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                );
-              }
-            },
-            child: Text(context.l10n.delete,
-                style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -44,3 +44,11 @@ class DeleteException extends AppException {
 class SummarizationException extends AppException {
   const SummarizationException([super.technicalMessage]);
 }
+
+/// Thrown when a Novita AI generation task fails or times out.
+class NovitaException implements Exception {
+  final String message;
+  const NovitaException(this.message);
+  @override
+  String toString() => 'NovitaException: $message';
+}

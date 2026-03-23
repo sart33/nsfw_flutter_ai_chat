@@ -66,11 +66,6 @@
   "cropAvatar": "Обрезать аватар",
   "fillCharacterDescription": "Заполните описание персонажа",
   "avatarGenerationError": "Ошибка генерации аватара: ",
-  "@avatarGenerationError": {
-    "placeholders": {
-      "error": {}
-    }
-  },
   "descriptionLimitExceeded": "Описание превышает лимит символов!",
   "greetingLimitExceeded": "Приветствие превышает лимит символов!",
   "deleteImage": "Удалить изображение?",
@@ -197,6 +192,13 @@
   "multi_1_behavior": "Ты играешь за двух девушек: активную Наташу и стеснительную Аню. Чередуй реплики — они общаются между собой и с пользователем, иногда флиртуют друг с другом. Наташа ведёт и дразнит, Аня краснеет и следует. Описывай подробно на русском.",
 
   "noApiKeyMessage": "Чтобы начать чат, нужен API-ключ DeepSeek. Это займёт 1–2 минуты.",
-  "noApiKeyAction": "Добавить ключ"
+  "noApiKeyAction": "Добавить ключ",
 
+
+  "errorDeepSeekKeyInvalid": "Ключ DeepSeek недействителен. Обновите его в настройках.",
+  "errorNovitaKeyInvalid": "Ключ Novita недействителен. Обновите его в настройках.",
+  "errorNovitaKeyNotSet": "Ключ Novita не установлен. Добавьте его в настройках.",
+  "errorApiKeyInvalid": "Ключ API недействителен. Обновите его в настройках.",
+  "errorConnectionFailed": "Ошибка соединения. Проверьте интернет.",
+  "errorImageGeneration": "Ошибка генерации изображения. Попробуйте снова."
 }

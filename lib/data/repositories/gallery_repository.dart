@@ -105,8 +105,8 @@ class GalleryRepository {
       ));
     }  on GalleryFullException {
       rethrow;
-    } on NovitaException {
-      rethrow;
+    } on NovitaException catch (e) {
+      return Result.failure(e.message, e);
     } catch (e) {
       return Result.failure(e.toString(), e is Exception ? e : null);
     }
@@ -157,8 +157,8 @@ class GalleryRepository {
         tempPath: tempPath,
         templateId: templateId,
       ));
-    } on NovitaException catch(e){
-      return Result.failure('generation failed: ${e.message}', e);
+    } on NovitaException catch (e) {
+      return Result.failure(e.message, e);
     } catch (e) {
       return Result.failure(e.toString(), e is Exception ? e : null);
     }
@@ -230,8 +230,8 @@ class GalleryRepository {
         generatedAt: now,
       ));
 
-    } on NovitaException {
-      rethrow;
+    } on NovitaException catch (e) {
+      return Result.failure(e.message, e);
     } catch (e) {
         return Result.failure(e.toString(), e is Exception ? e : null);
       }

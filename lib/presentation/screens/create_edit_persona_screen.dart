@@ -16,6 +16,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 
+import '../../domain/exceptions/app_exceptions.dart';
+import 'api_keys_screen.dart';
+
 /// Create or edit a persona.
 /// Form: name (required), description (max 4000, char count, red if over),
 /// greeting (max 200), behavior (optional), avatar picker with crop.
@@ -78,6 +81,25 @@ class _CreateEditPersonaScreenState
     super.dispose();
   }
 
+
+  void _showSnack(String msg, {bool isKeyError = false}) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: isKeyError
+          ? const Color(0xFFB71C1C)
+          : const Color(0xFFE65100),
+      duration: Duration(seconds: isKeyError ? 8 : 6),
+      content: Text(msg, style: const TextStyle(color: Colors.white)),
+      action: isKeyError ? SnackBarAction(
+        label: context.l10n.settings,
+        textColor: Colors.white,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+        ),
+      ) : null,
+    ));
+  }
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -332,7 +354,7 @@ class _CreateEditPersonaScreenState
         )
             : hasAsset
             ? DecorationImage(
-          image: AssetImage(assetPath!),
+          image: AssetImage(assetPath),
           fit: BoxFit.cover,
         )
             : null,
@@ -474,16 +496,23 @@ class _CreateEditPersonaScreenState
       if (mounted) {
         setState(() => _generatedAvatarPreviewPath = path);
       }
+    } on NovitaException catch (e) {
+      debugPrint('[Avatar] generation error: $e');
+      if (!mounted) return;
+      final isKeyError = e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
+      final msg = switch (e.message) {
+        'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
+        'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
+        'timeout' => context.l10n.errorImageGeneration,
+        _ => context.l10n.errorImageGeneration,
+      };
+      _showSnack(msg, isKeyError: isKeyError);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${context.l10n.avatarGenerationError} $e')),
-        );
-      }
+      debugPrint('[Avatar] generation error: $e');
+      if (mounted)  _showSnack(context.l10n.errorImageGeneration);
+
     } finally {
-      if (mounted) {
-        setState(() => _isGeneratingAvatar = false);
-      }
+      if (mounted) setState(() => _isGeneratingAvatar = false);
     }
   }
 

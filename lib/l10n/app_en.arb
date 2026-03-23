@@ -66,11 +66,6 @@
   "cropAvatar": "Crop avatar",
   "fillCharacterDescription": "Fill character description",
   "avatarGenerationError": "Avatar generation error: ",
-  "@avatarGenerationError": {
-    "placeholders": {
-      "error": {}
-    }
-  },
   "descriptionLimitExceeded": "Description exceeds character limit!",
   "greetingLimitExceeded": "Greeting exceeds character limit!",
   "deleteImage": "Delete image?",
@@ -196,6 +191,12 @@
   "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail in English.",
 
   "noApiKeyMessage": "To start chatting, you need a DeepSeek API key. Takes 1–2 minutes.",
-  "noApiKeyAction": "Add key"
+  "noApiKeyAction": "Add key",
 
+  "errorDeepSeekKeyInvalid": "DeepSeek key is invalid. Please update it in settings.",
+  "errorNovitaKeyInvalid": "Novita key is invalid. Please update it in settings.",
+  "errorNovitaKeyNotSet": "Novita key not set. Please add it in settings.",
+  "errorApiKeyInvalid": "API key is invalid. Please update it in settings.",
+  "errorConnectionFailed": "Connection error. Check your internet.",
+  "errorImageGeneration": "Image generation failed. Please try again."
 }

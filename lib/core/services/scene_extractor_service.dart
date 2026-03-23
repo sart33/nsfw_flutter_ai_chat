@@ -1,9 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
-import 'package:nsfw_chat/core/utils/app_snack_bar.dart';
 
 class SceneSnapshot {
   final String? location;
@@ -408,7 +408,6 @@ OUTPUT — ONLY JSON:
 
   Future<SceneSnapshot> _extractWithLLM(
       String currentText, String contextText) async {
-    try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) return SceneSnapshot.fallback;
 
@@ -431,21 +430,10 @@ OUTPUT — ONLY JSON:
         }),
       );
 
-      if (response.statusCode == 401) {
-        AppSnackBar.showCriticalWithLang(
-          'DeepSeek API key is invalid. Image generation unavailable.',
-          'Ключ DeepSeek недействителен. Генерация изображений недоступна.',
-        );
-        return SceneSnapshot.fallback;
-      }
+      if (response.statusCode == 401) throw Exception('api_key_invalid');
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        AppSnackBar.showErrorWithLang(
-          'Scene extraction failed: HTTP ${response.statusCode}',
-          'Ошибка извлечения сцены: HTTP ${response.statusCode}',
-        );
-        return SceneSnapshot.fallback;
-      }
+      if (response.statusCode < 200 || response.statusCode >= 300) throw Exception('api_key_not_set');
+
 
       final responseJson =
           jsonDecode(response.body) as Map<String, dynamic>;
@@ -461,13 +449,6 @@ OUTPUT — ONLY JSON:
 
       final map = jsonDecode(cleaned) as Map<String, dynamic>;
       return SceneSnapshot.fromJson(map);
-    } catch (e) {
-      AppSnackBar.showErrorWithLang(
-        'Scene extraction error: $e',
-        'Ошибка анализа сцены: $e',
-      );
-      return SceneSnapshot.fallback;
-    }
   }
 
   // ── Validation ──────────────────────────────────────────────────────

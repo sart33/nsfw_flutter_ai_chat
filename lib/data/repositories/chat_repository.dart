@@ -254,9 +254,9 @@ class ChatRepository {
 
       return content.trim();
     } on DioException catch (e) {
-      log('DioException: ${e.message} | response: ${e.response?.data}',
+      log('DioException: ${e.message} | response: ${e.response?.data} | status: ${e.response?.statusCode}',
           name: 'API_ERROR');
-      throw ApiException('DioException: ${e.message}');
+      throw ApiException('${e.response?.statusCode ?? 0}|${e.requestOptions.uri}|${e.message}');
     } catch (e) {
       log('Unexpected error in sendMessage: $e', name: 'API_ERROR');
       throw ApiException(e.toString());

@@ -1,18 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
-import 'package:nsfw_chat/core/utils/app_snack_bar.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../domain/exceptions/app_exceptions.dart';
+
 /// Thrown when a Novita AI generation task fails or times out.
-class NovitaException implements Exception {
-  final String message;
-  const NovitaException(this.message);
-  @override
-  String toString() => 'NovitaException: $message';
-}
+
 
 /// Singleton service for generating NSFW images via the Novita AI async API.
 /// Uses the z-image-turbo model with task-result polling.
@@ -54,15 +51,11 @@ class NovitaImageService {
   /// Core generation logic: submit → poll → download bytes.
   Future<List<int>> _generateBytes(String promptTemplate,
       {int seed = AppConfig.defaultSeed}) async {
-    try {
       // 0. Get API key from secure storage
       final apiKey = await AppConfig.getNovitaApiKey();
       if (apiKey.isEmpty) {
-        AppSnackBar.showCriticalWithLang(
-          'Novita API key not set. Please add key in API Keys screen.',
-          'Ключ Novita не установлен. Добавьте ключ в настройках API.',
-        );
-        throw Exception('Novita API key not set. Please add key in API Keys screen.');
+        debugPrint('Novita API key is not set. Please add it in settings.');
+        throw NovitaException('api_key_not_set');
       }
 
       // 1. Build final prompt
@@ -82,19 +75,12 @@ class NovitaImageService {
           // 'negative_prompt': _negativePrompt,
         }),
       );
+      if (submitResponse.statusCode == 401 || submitResponse.statusCode == 403) {
 
-      if (submitResponse.statusCode == 401) {
-        AppSnackBar.showCriticalWithLang(
-          'Novita API key is invalid. Please update it in settings.',
-          'Ключ Novita недействителен. Обновите его в настройках.',
-        );
-        throw NovitaException('Submit failed: HTTP ${submitResponse.statusCode}');
+        throw NovitaException('api_key_invalid');
       } else if (submitResponse.statusCode < 200 || submitResponse.statusCode >= 300) {
-        AppSnackBar.showErrorWithLang(
-          'Image generation failed. Please try again.',
-          'Ошибка генерации изображения. Попробуйте снова.',
-        );
-        throw NovitaException('Submit failed: HTTP ${submitResponse.statusCode}');
+
+        throw NovitaException('http_${submitResponse.statusCode}');
       }
 
       // 3. Parse task_id
@@ -102,11 +88,8 @@ class NovitaImageService {
           jsonDecode(submitResponse.body) as Map<String, dynamic>;
       final taskId = submitJson['task_id'] as String?;
       if (taskId == null || taskId.isEmpty) {
-        AppSnackBar.showErrorWithLang(
-          'Image generation failed. Invalid response from server.',
-          'Ошибка генерации изображения. Неверный ответ сервера.',
-        );
-        throw NovitaException('task_id missing in submit response');
+
+        throw NovitaException('task_id_missing');
       }
 
       // 4. Poll for result — every 3 s, max 40 attempts (~2 min total)
@@ -132,71 +115,34 @@ class NovitaImageService {
           resultJson = pollJson;
           break;
         } else if (status == 'TASK_STATUS_FAILED') {
-          AppSnackBar.showErrorWithLang(
-            'Image generation failed. Please try again.',
-            'Ошибка генерации изображения. Попробуйте снова.',
-          );
-          throw NovitaException('Generation failed');
+          throw NovitaException('generation_failed');
         }
       }
 
-      if (resultJson == null) {
-        AppSnackBar.showErrorWithLang(
-          'Image generation timed out. Please try again.',
-          'Таймаут генерации изображения. Попробуйте снова.',
-        );
-        throw NovitaException('Timed out waiting for generation result');
-      }
+      if (resultJson == null) throw NovitaException('timeout');
+
       // debugPrint('Novita generation succeeded: $resultJson');
       // 5. Extract image URL
       final images = resultJson['images'] as List<dynamic>?;
-      if (images == null || images.isEmpty) {
-        AppSnackBar.showErrorWithLang(
-          'Image generation failed. No images in result.',
-          'Ошибка генерации изображения. Нет изображений в результате.',
-        );
-        throw NovitaException('No images in result');
-      }
+      if (images == null || images.isEmpty) throw NovitaException('no_images');
+
       final imageUrl =
           (images[0] as Map<String, dynamic>)['image_url'] as String?;
-      if (imageUrl == null || imageUrl.isEmpty) {
-        AppSnackBar.showErrorWithLang(
-          'Image generation failed. Invalid image URL.',
-          'Ошибка генерации изображения. Неверный URL изображения.',
-        );
-        throw NovitaException('image_url is missing in result');
-      }
+      if (imageUrl == null || imageUrl.isEmpty) throw NovitaException('no_image_url');
+
 
       // 6. Download bytes
       final downloadResponse = await http.get(Uri.parse(imageUrl));
       if (downloadResponse.statusCode < 200 ||
           downloadResponse.statusCode >= 300) {
-        AppSnackBar.showErrorWithLang(
-          'Failed to download generated image.',
-          'Ошибка загрузки сгенерированного изображения.',
-        );
-        throw NovitaException(
-            'Image download failed: HTTP ${downloadResponse.statusCode}');
+        throw NovitaException('download_failed_${downloadResponse.statusCode}');
+
       }
       final bytes = downloadResponse.bodyBytes;
-      if (bytes.isEmpty) {
-        AppSnackBar.showErrorWithLang(
-          'Generated image is empty.',
-          'Сгенерированное изображение пустое.',
-        );
-        throw NovitaException('Downloaded image bytes are empty');
-      }
+      if (bytes.isEmpty) throw NovitaException('empty_image');
 
       return bytes;
-    } catch (e) {
-      if (e is! NovitaException) {
-        // Only show generic error if it's not a NovitaException (which already showed snackbar)
-        AppSnackBar.showErrorWithLang(
-          'Image generation failed. Please try again.',
-          'Ошибка генерации изображения. Попробуйте снова.',
-        );
-      }
-      rethrow;
+
     }
   }
-}
+

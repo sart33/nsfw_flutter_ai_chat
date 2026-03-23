@@ -71,7 +71,14 @@ Return only this JSON, nothing else:
   Future<void> cleanAndSave(String personaId, String description) async {
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) return; // already handled by UI before calling this
+      if (apiKey.isEmpty) {
+        debugPrint('[PromptCleanerService] DeepSeek API key is not set, skipping.');
+        AppSnackBar.showCriticalWithLang(
+          'DeepSeek API key not set. Gallery prompts and chat scene descriptions will not be generated.',
+          'Ключ DeepSeek не установлен. Обновление описаний для галереи и сцен чата пропущено.',
+        );
+        return;
+      }
 
       final response = await http.post(
         Uri.parse(_endpoint),
@@ -136,9 +143,10 @@ Return only this JSON, nothing else:
         office:     office,
       );
     } catch (e) {
+      debugPrint('[PromptCleanerService] Error: $e');
       AppSnackBar.showErrorWithLang(
-        'Description cleaning failed: $e',
-        'Ошибка обработки описания: $e',
+        'Gallery prompts and chat scene update failed. Please try again.',
+        'Ошибка обновления описаний для галереи и сцен чата. Попробуйте снова.',
       );
     }
   }

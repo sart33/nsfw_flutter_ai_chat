@@ -69,6 +69,7 @@ class AppSnackBar {
           lang ? messageRu : messageEn,
           style: const TextStyle(color: Colors.white),
         ),
+
       ),
     );
   }

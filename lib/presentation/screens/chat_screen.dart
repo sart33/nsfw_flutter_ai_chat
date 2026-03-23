@@ -1,24 +1,24 @@
 
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
+import 'package:nsfw_chat/main.dart';
 import 'package:nsfw_chat/presentation/providers/chat_provider.dart';
+import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
-import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
-import 'package:nsfw_chat/core/utils/app_snack_bar.dart';
-import 'package:nsfw_chat/main.dart';
+import 'package:photo_view/photo_view.dart';
 
 import 'api_keys_screen.dart';
 
@@ -126,7 +126,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+
+  void showSnack(String message, {bool critical = false, bool withSettings = false}) {
+    scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
+    scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+      backgroundColor: critical ? const Color(0xFFB71C1C) : const Color(0xFFE65100),
+      duration: const Duration(seconds: 8),
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      action: withSettings ? SnackBarAction(
+        label: context.l10n.settings,
+        textColor: Colors.white,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+        ),
+      ) : null,
+    ));
+  }
   // ── BUILD ─────────────────────────────────────────────────────────────
+
 
   @override
   Widget build(BuildContext context) {
@@ -134,67 +155,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ref.listen<ChatState>(chatProvider(widget.branchId), (prev, next) {
       if (next.error != null && next.error != prev?.error) {
         final error = next.error!;
-        
-        // Handle ApiException (DeepSeek API errors)
+
         if (error is ApiException) {
           final is401 = error.toString().contains('401');
-          final messageEn = is401 
-              ? 'API key is invalid. Please update it in settings.'
-              : 'Connection error. Check your internet.';
-          final messageRu = is401
-              ? 'Ключ API недействителен. Обновите его в настройках.'
-              : 'Ошибка соединения. Проверьте интернет.';
-          
-          final backgroundColor = is401 
-              ? const Color(0xFFB71C1C) // red
-              : const Color(0xFFE65100); // orange
-          
-          final snackBar = SnackBar(
-            backgroundColor: backgroundColor,
-            duration: const Duration(seconds: 6),
-            content: Text(
-              AppSnackBar.isRussian() ? messageRu : messageEn,
-              style: const TextStyle(color: Colors.white),
-            ),
-            action: is401 ? SnackBarAction(
-              label: AppSnackBar.isRussian() ? 'Настройки' : 'Settings',
-              textColor: Colors.white,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-              ),
-            ) : null,
+          final is403 = error.toString().contains('403');
+          final isDeepSeek = error.toString().contains('deepseek');
+          final isNovita = error.toString().contains('novita');
+          showSnack(
+            is401 || is403
+                ? (isDeepSeek ? context.l10n.errorDeepSeekKeyInvalid
+                : isNovita ? context.l10n.errorNovitaKeyInvalid
+                : context.l10n.errorApiKeyInvalid)
+                : context.l10n.errorConnectionFailed,
+            critical: is401 || is403,
+            withSettings: is401 || is403,
           );
-          
-          scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-          scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
-        }
-        // Handle GenerationException (Novita image generation errors)
-        else if (error is GenerationException) {
-          final messageEn = 'Image generation failed. Check your Novita API key.';
-          final messageRu = 'Ошибка генерации изображения. Проверьте ключ Novita.';
-          
-          final snackBar = SnackBar(
-            backgroundColor: const Color(0xFFE65100), // orange
-            duration: const Duration(seconds: 6),
-            content: Text(
-              AppSnackBar.isRussian() ? messageRu : messageEn,
-              style: const TextStyle(color: Colors.white),
-            ),
+        } else if (error is GenerationException) {
+          final isKeyNotSet = error.toString().contains('api_key_not_set');
+          final isKeyInvalid = error.toString().contains('api_key_invalid');
+          showSnack(
+            isKeyNotSet ? context.l10n.errorNovitaKeyNotSet
+                : isKeyInvalid ? context.l10n.errorNovitaKeyInvalid
+                : context.l10n.errorImageGeneration,
+            critical: isKeyNotSet || isKeyInvalid,
+            withSettings: isKeyNotSet || isKeyInvalid,
           );
-          
-          scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-          scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
-        }
-        // Handle other exceptions
-        else {
+        } else {
           final msg = switch (error) {
             HistoryException() => context.l10n.errorHistory,
             _ => context.l10n.errorUnknown,
           };
-          AppSnackBar.showError(msg);
+          showSnack(msg);
         }
-        
+
         ref.read(chatProvider(widget.branchId).notifier).clearError();
       }
     });
@@ -489,36 +482,45 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final apiKey = await AppConfig.getDeepSeekApiKey();
     if (apiKey.isNotEmpty) return true;
     if (!mounted) return false;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFFD74D00),
-        content: Text(
-          context.l10n.noApiKeyMessage,
-          style: const TextStyle(color: Colors.white),
-        ),
-        action: SnackBarAction(
-          label: context.l10n.noApiKeyAction,
-          textColor: Colors.white,
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-          ),
-        ),
-        duration: const Duration(seconds: 8),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: const Color(0xFFB71C1C),
+      content: Text(
+        context.l10n.noApiKeyAction,
+        style: const TextStyle(color: Colors.white),
       ),
-    );
+      action: SnackBarAction(
+        label: context.l10n.settings,
+        textColor: Colors.white,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+        ),
+      ),
+      duration: const Duration(seconds: 8),
+    ));
     return false;
   }
 
-  void _generateSceneImage() {
+  void _generateSceneImage() async {
     if (_singlePersona == null) return;
+    if (!await _ensureApiKey()) return;
+// Block if the last error is an invalid DeepSeek key
+    final error = ref.read(chatProvider(widget.branchId)).error;
+    if (error is ApiException && error.toString().contains('401')) {
+      return;
+    }
     ref
         .read(chatProvider(widget.branchId).notifier)
         .generateSceneImage(persona: _singlePersona!);
   }
 
-  void _regenSceneImage() {
+  void _regenSceneImage() async {
     if (_singlePersona == null) return;
+    if (!await _ensureApiKey()) return;
+    final error = ref.read(chatProvider(widget.branchId)).error;
+    if (error is ApiException && error.toString().contains('401')) {
+      return;
+      }
     ref
         .read(chatProvider(widget.branchId).notifier)
         .generateSceneImage(persona: _singlePersona!, regen: true);

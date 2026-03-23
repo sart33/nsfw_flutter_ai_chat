@@ -527,11 +527,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
       );
     } catch (e) {
       debugPrint('[ChatNotifier] generateSceneImage error: $e');
+      final msg = e.toString().replaceFirst('Exception', '');
       state = state.copyWith(
         isLoading: false,
         error: e is AppException
             ? e
-            : GenerationException(e.toString()),
+            : GenerationException(msg),
       );
     }
   }

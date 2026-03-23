@@ -57,7 +57,11 @@ class PersonaListScreen extends ConsumerWidget {
                     ),
                     // onLongPress: () => _showOptions(context, ref, persona.id),
                     // onTap: () => _showOptions(context, ref, persona),
-                    onLongPress: () => _showOptions(context, ref, persona),
+                    onLongPress: () {
+
+                      Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => PersonaViewScreen(persona: persona)));
+                    },
                   ),
                 );
               },
@@ -89,75 +93,75 @@ class PersonaListScreen extends ConsumerWidget {
     );
   }
 
-  void _showOptions(BuildContext context, WidgetRef ref, dynamic persona) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.visibility, color: AppTheme.textPrimary),
-              title: Text(context.l10n.view,
-                  style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => PersonaViewScreen(persona: persona)));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit, color: AppTheme.textPrimary),
-              title: Text(context.l10n.editCharacter,
-                  style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => CreateEditPersonaScreen(personaId: persona.id)
-                ),
-                ).then((changed) {
-                  if (changed == true) {
-                    // Refresh persona list after editing
-                    ref.invalidate(personaProvider);
-                  }
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.chat_bubble_outline, color: AppTheme.textPrimary),
-              title: Text(context.l10n.chats,
-                  style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => BranchListScreen(
-                      entityId: 'single:${persona.id}',
-                      entityName: persona.name,
-                      isMulti: false,
-                      greeting: persona.greeting,
-                    )));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              title: Text(context.l10n.delete,
-                  style: TextStyle(color: Colors.redAccent)),
-              onTap: () async {
-                Navigator.pop(ctx);
-                final confirmed = await _confirmDelete(context);
-                if (confirmed == true) {
-                  ref.read(personaProvider.notifier).delete(persona.id);
-                  GalleryRepository.instance.deleteAllForPersona(persona.id);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _showOptions(BuildContext context, WidgetRef ref, dynamic persona) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: const Color(0xFF1A1A1A),
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //     ),
+  //     builder: (ctx) => SafeArea(
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           ListTile(
+  //             leading: const Icon(Icons.visibility, color: AppTheme.textPrimary),
+  //             title: Text(context.l10n.view,
+  //                 style: TextStyle(color: AppTheme.textPrimary)),
+  //             onTap: () {
+  //               Navigator.pop(ctx);
+  //               Navigator.push(context, MaterialPageRoute(
+  //                   builder: (_) => PersonaViewScreen(persona: persona)));
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.edit, color: AppTheme.textPrimary),
+  //             title: Text(context.l10n.editCharacter,
+  //                 style: TextStyle(color: AppTheme.textPrimary)),
+  //             onTap: () {
+  //               Navigator.pop(ctx);
+  //               Navigator.push(context, MaterialPageRoute(
+  //                   builder: (_) => CreateEditPersonaScreen(personaId: persona.id)
+  //               ),
+  //               ).then((changed) {
+  //                 if (changed == true) {
+  //                   // Refresh persona list after editing
+  //                   ref.invalidate(personaProvider);
+  //                 }
+  //               });
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.chat_bubble_outline, color: AppTheme.textPrimary),
+  //             title: Text(context.l10n.chats,
+  //                 style: TextStyle(color: AppTheme.textPrimary)),
+  //             onTap: () {
+  //               Navigator.pop(ctx);
+  //               Navigator.push(context, MaterialPageRoute(
+  //                   builder: (_) => BranchListScreen(
+  //                     entityId: 'single:${persona.id}',
+  //                     entityName: persona.name,
+  //                     isMulti: false,
+  //                     greeting: persona.greeting,
+  //                   )));
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+  //             title: Text(context.l10n.delete,
+  //                 style: TextStyle(color: Colors.redAccent)),
+  //             onTap: () async {
+  //               Navigator.pop(ctx);
+  //               final confirmed = await _confirmDelete(context);
+  //               if (confirmed == true) {
+  //                 ref.read(personaProvider.notifier).delete(persona.id);
+  //                 GalleryRepository.instance.deleteAllForPersona(persona.id);
+  //               }
+  //             },
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
