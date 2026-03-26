@@ -69,6 +69,28 @@ class BranchRepository {
     }
   }
 
+  /// Returns up to [limit] most recently updated branches
+  /// whose entity_id starts with 'single:'.
+  Future<List<BranchEntity>> getRecentSingleBranches({int limit = 5}) async {
+    try {
+      final rows = await _db.getRecentSingleBranches(limit: limit);
+      return rows.map(_mapRowToEntity).toList();
+    } catch (e) {
+      print('BranchRepository.getRecentSingleBranches error: $e');
+      rethrow;
+    }
+  }
+
+  /// Touches the updated_at timestamp of a branch to now.
+  Future<void> touchTimestamp(String branchId) async {
+    try {
+      await _db.updateBranchTimestamp(branchId);
+    } catch (e) {
+      print('BranchRepository.touchTimestamp error: $e');
+      rethrow;
+    }
+  }
+
   // ── INTERNAL ────────────────────────────────────────────────────────────
 
   /// Clears the stored summary for a branch.
@@ -85,11 +107,12 @@ class BranchRepository {
   // ── INTERNAL ────────────────────────────────────────────────────────────
 
   BranchEntity _mapRowToEntity(Map<String, dynamic> row) {
+    final updatedAtMs = (row['real_updated_at'] ?? row['updated_at']) as int;
     return BranchEntity(
       id: row['id'] as String,
       entityId: row['entity_id'] as String,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(updatedAtMs),
       preview: row['preview'] as String?,
       contextSummary: row['context_summary'] as String?,
     );

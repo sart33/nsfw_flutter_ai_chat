@@ -3,58 +3,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
+import 'package:nsfw_chat/domain/entities/recent_chat_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:nsfw_chat/presentation/providers/recent_chats_provider.dart';
 import 'package:nsfw_chat/presentation/screens/about_app_screen.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/multi_preset_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
-
-// ─────────────────────────────────────────────
-//  Fake "recent chats" model – replace with
-//  your real provider when ready.
-// ─────────────────────────────────────────────
-class _RecentChat {
-  final String name;
-  final String preview;
-  final String time;
-  final String? avatarUrl;
-
-  const _RecentChat({
-    required this.name,
-    required this.preview,
-    required this.time,
-    this.avatarUrl,
-  });
-}
+import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 
 // ─────────────────────────────────────────────
 //  HomeScreen
 // ─────────────────────────────────────────────
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
-  // TODO: replace with a real Riverpod provider
-  static const _recent = <_RecentChat>[
-    _RecentChat(
-      name: 'Elara Nightshade',
-      preview: '*She leans closer, her eyes glo…',
-      time: '2m ago',
-    ),
-    _RecentChat(
-      name: 'Captain Kael',
-      preview: 'The hyperdrive is offline. We\'re goin…',
-      time: '1h ago',
-    ),
-    _RecentChat(
-      name: 'Cyberpunk Enforcer',
-      preview: '*Rin smirks while loading her blaster…',
-      time: 'Yesterday',
-    ),
-  ];
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: _buildAppBar(context),
@@ -69,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
             title: context.l10n.characters,
             subtitle: 'Browse the gallery or create a new custom persona from scratch.',
             onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const PersonaListScreen())),
+                MaterialPageRoute(builder: (_) => const PersonaListScreen())).then((_) => ref.invalidate(recentChatsProvider)),
           ),
           const SizedBox(height: 12),
           _NavCard(
@@ -77,7 +54,7 @@ class HomeScreen extends ConsumerWidget {
             title: context.l10n.multiChat,
             subtitle: 'Start dynamic group scenarios with multiple AI characters at once.',
             onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const MultiPresetListScreen())),
+                MaterialPageRoute(builder: (_) => const MultiPresetListScreen())).then((_) => ref.invalidate(recentChatsProvider)),
           ),
           const SizedBox(height: 12),
           _NavCard(
@@ -94,7 +71,7 @@ class HomeScreen extends ConsumerWidget {
             onAction: () {/* TODO */},
           ),
           const SizedBox(height: 12),
-          ..._recent.map((c) => _RecentChatTile(chat: c)),
+          const _RecentChatsList(),
           const SizedBox(height: 100),
         ],
       ),
@@ -146,7 +123,7 @@ class HomeScreen extends ConsumerWidget {
               context,
               MaterialPageRoute(
                   builder: (_) => AboutAppScreen()),
-            );},
+            ).then((_) => ref.invalidate(recentChatsProvider));},
             child: const CircleAvatar(
               radius: 18,
               backgroundColor: AppTheme.cardBg,
@@ -212,7 +189,9 @@ class HomeScreen extends ConsumerWidget {
           greeting: persona.greeting,
         ),
       ),
-    );
+    ).then((_) {
+      if (mounted) ref.invalidate(recentChatsProvider);
+    });
   }
 }
 
@@ -347,43 +326,80 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _RecentChatTile extends StatelessWidget {
-  final _RecentChat chat;
-  const _RecentChatTile({required this.chat});
+class _RecentChatsList extends ConsumerWidget {
+  const _RecentChatsList();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncChats = ref.watch(recentChatsProvider);
+    return asyncChats.when(
+      loading: () => const SizedBox(
+        height: 80,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (chats) {
+        if (chats.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              'No recent chats yet. Start a new one!',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            ),
+          );
+        }
+        return Column(
+          children: chats.map((c) => _RecentChatCard(chat: c)).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _RecentChatCard extends ConsumerWidget {
+  final RecentChatEntity chat;
+  const _RecentChatCard({required this.chat});
+
+  String _formatTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays}d ago';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {/* TODO */},
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => BranchListScreen(
+                  entityId: chat.entityId,
+                  entityName: chat.personaName,
+                  isMulti: false,
+                  greeting: '',
+                ),
+            ),
+          ).then((_) => ref.invalidate(recentChatsProvider)),
           borderRadius: BorderRadius.circular(14),
           child: Container(
             decoration: AppTheme.cardDecoration(radius: 14),
-            padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: chat.avatarUrl != null
-                      ? Image.network(chat.avatarUrl!,
-                      width: 52, height: 52, fit: BoxFit.cover)
-                      : Container(
-                    width: 52,
-                    height: 52,
-                    color: AppTheme.iconBg,
-                    child: Center(
-                      child: Text(
-                        chat.name.isNotEmpty ? chat.name[0] : '?',
-                        style: const TextStyle(
-                            color: AppTheme.accentLight,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                  child: AvatarWidget(
+                    imagePath: chat.avatarPath,
+                    assetPath: chat.avatarAssetPath,
+                    name: chat.personaName,
+                    size: 52,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -395,7 +411,7 @@ class _RecentChatTile extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: Text(chat.name,
+                            child: Text(chat.personaName,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     color: AppTheme.textPrimary,
@@ -403,20 +419,22 @@ class _RecentChatTile extends StatelessWidget {
                                     fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 8),
-                          Text(chat.time,
+                          Text(_formatTime(chat.updatedAt),
                               style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 12)),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(chat.preview,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 13,
-                              fontStyle: FontStyle.italic)),
+                      Text(
+                        chat.preview ?? '...',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                            fontStyle: FontStyle.italic),
+                      ),
                     ],
                   ),
                 ),

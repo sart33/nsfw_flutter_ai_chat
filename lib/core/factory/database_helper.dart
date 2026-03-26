@@ -210,6 +210,31 @@ class DatabaseHelper {
     }
   }
 
+  /// Returns up to [limit] most recently updated branches
+  /// whose entity_id starts with 'single:'.
+  Future<List<Map<String, dynamic>>> getRecentSingleBranches({int limit = 5}) async {
+    try {
+      final db = await database;
+      log('SELECT branches with real_updated_at FROM messages JOIN WHERE entity_id LIKE \'single:%\' ORDER BY real_updated_at DESC LIMIT $limit', name: 'DB_READ');
+      final results = await db.rawQuery('''
+    SELECT b.*,
+           COALESCE(MAX(m.timestamp), b.updated_at) AS real_updated_at
+    FROM branches b
+    LEFT JOIN messages m ON m.branch_id = b.id
+    WHERE b.entity_id LIKE 'single:%'
+    GROUP BY b.id
+    ORDER BY real_updated_at DESC
+    LIMIT ?
+  ''', [limit]);
+      log('getRecentSingleBranches result count: ${results.length}', name: 'DB_READ');
+      return results;
+    } catch (e) {
+      log('getRecentSingleBranches error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getRecentSingleBranches error: $e');
+      rethrow;
+    }
+  }
+
   /// Inserts a new branch row.
   Future<void> insertBranch(
       String id, String entityId, String? preview) async {

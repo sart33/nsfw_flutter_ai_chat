@@ -190,6 +190,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
       log(
           'sendMessage: aiMsg saved, message count after=${state.messages.length}',
           name: 'PROVIDER');
+      
+      // Update branch preview and timestamp
+      final previewText = reply.length > 100 ? '${reply.substring(0, 100)}…' : reply;
+      await _branchRepo.updatePreview(_branchId, previewText);
+      await _branchRepo.touchTimestamp(_branchId);
     } catch (e) {
       debugPrint('[ChatNotifier] sendMessage error: $e');
       state = state.copyWith(
@@ -382,6 +387,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
           isLoading: false,
         );
         await repo.saveMessage(aiMsg, _branchId);
+        
+        // Update branch preview and timestamp
+        final previewText = reply.length > 100 ? '${reply.substring(0, 100)}…' : reply;
+        await _branchRepo.updatePreview(_branchId, previewText);
+        await _branchRepo.touchTimestamp(_branchId);
       } catch (e) {
         debugPrint('[ChatNotifier] regenLastAI (single) error: $e');
         state = state.copyWith(
