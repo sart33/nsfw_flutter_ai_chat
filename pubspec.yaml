@@ -41,3 +41,4 @@ flutter:
     - assets/json/image_templates.json
     - assets/characters/
     - assets/avatars/
+    - assets/logos/

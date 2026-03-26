@@ -144,12 +144,13 @@ class SceneExtractorService {
       SceneExtractorService._();
 
   // ── Scene switch detection patterns ────────────────────────────────
-  // Used to find where the current scene starts in message history.
-  // When one of these patterns is found, everything before that
-  // message is considered a different scene and ignored.
+// These patterns are used to detect when a new scene begins in the chat history.
+// Everything before the first matching pattern is considered part of the previous scene
+// and will be ignored for image generation. This helps keep the image prompt relevant
+// to the current location, time and context.
 
   static final List<RegExp> sceneSwitchPatterns = [
-    // RUSSIAN
+    // === RUSSIAN ===
     RegExp(
       r'(?:пошли|пришли|перешли|вышли|зашли|поднялись|спустились|'
       r'переместились|перебрались|отправились|поехали|полетели|'
@@ -170,7 +171,8 @@ class SceneExtractorService {
       r'гуляем\s+по|прогулк|под руку)\b',
       caseSensitive: false,
     ),
-    // ENGLISH
+
+    // === ENGLISH ===
     RegExp(
       r'(?:went to|arrived at|moved to|headed to|got to|'
       r'we are in|now in|we went to|she went to|arrived in|'
@@ -189,6 +191,166 @@ class SceneExtractorService {
       r'\b(?:later|after that|then|now|suddenly|next moment|'
       r'after a while|we are now|she is now|we moved|'
       r'we arrived|walking|strolling|park|street)\b',
+      caseSensitive: false,
+    ),
+
+    // === SPANISH (Latin America / Mexico) ===
+    RegExp(
+      r'(?:fuimos a|llegamos a|nos dirigimos a|nos movimos a|ella fue a|'
+      r'fuimos al|caminamos a|caminando hacia|corriendo a|condujimos a|'
+      r'vamos a|estamos yendo|estamos caminando|paseando|'
+      r'passamos a|entramos a)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:en el (?:café|restaurante|bar|habitación|dormitorio|baño|ducha|cama|'
+      r'cocina|oficina|playa|parque|calle|balcón|terraza|auto|sofá)|'
+      r'en la (?:habitación|cama|ducha|playa|calle|terraza)|'
+      r'caminando en|yendo al parque|en el parque|en la calle)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:más tarde|después|después de eso|entonces|ahora|de repente|'
+      r'en este momento|ahora estamos|ella está ahora|pasado un rato|luego)\b',
+      caseSensitive: false,
+    ),
+
+    // === PORTUGUESE (Brazil) ===
+    RegExp(
+      r'(?:fomos para|chegamos em|nos mudamos para|ela foi para|'
+      r'caminhamos para|andando para|dirigimos para|'
+      r'vamos para|estamos indo|estamos caminhando|passeando|'
+      r'passamos para|entramos em)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:no (?:café|restaurante|bar|quarto|banheiro|chuveiro|cama|cozinha|'
+      r'escritório|praia|parque|rua|varanda|sofá|carro)|'
+      r'na (?:cama|praia|rua|varanda)|'
+      r'caminhando em|indo ao parque|no parque|na rua)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:mais tarde|depois|depois disso|então|agora|de repente|'
+      r'neste momento|agora estamos|ela está agora|depois de um tempo)\b',
+      caseSensitive: false,
+    ),
+
+    // === INDONESIAN ===
+    RegExp(
+      r'(?:pergi ke|tiba di|pindah ke|dia pergi ke|berjalan ke|'
+      r'kami pergi|sedang berjalan|menuju ke|mengarah ke)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:di (?:kafe|restoran|bar|kamar|kamar mandi|kamar tidur|dapur|kantor|'
+      r'pantai|taman|jalan|teras|sofa|mobil)|'
+      r'berjalan di|menuju ke taman|di taman|di jalan)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:nanti|kemudian|setelah itu|lalu|sekarang|tiba-tiba|'
+      r'sekarang kami|dia sekarang|setelah beberapa saat)\b',
+      caseSensitive: false,
+    ),
+
+    // === VIETNAMESE ===
+    RegExp(
+      r'(?:đi đến|đến|chuyển đến|cô ấy đi|cùng đi|đang đi|'
+      r'di bộ đến|lái xe đến|đi dạo|chạy đến)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:ở (?:quán cà phê|nhà hàng|quán bar|phòng|phòng ngủ|phòng tắm|'
+      r'nhà bếp|văn phòng|bãi biển|công viên|đường|ban công|ghế sofa|xe)|'
+      r'đang đi dạo ở|đi đến công viên|ở công viên|ở đường)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:sau đó|sau|thì|bây giờ|đột nhiên|lúc này|'
+      r'bây giờ chúng ta|cô ấy bây giờ|sau một lúc)\b',
+      caseSensitive: false,
+    ),
+
+    // === TAGALOG (Philippines) ===
+    RegExp(
+      r'(?:pumunta sa|dumating sa|lumipat sa|siya ay pumunta|'
+      r'naglalakad patungo|nagmamaneho patungo|naglalakad)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:sa (?:cafe|restawran|bar|kwarto|kwarto ng tulog|paliguan|'
+      r'kusina|opisina|beach|parke|kalye|balkonahe|sofa|kotse)|'
+      r'naglalakad sa|papunta sa parke|sa parke|sa kalye)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:mamaya|pagkatapos|pagkatapos nito|ngayon|bigla|'
+      r'sa ngayon|ngayon kami|siya ngayon|pagkatapos ng ilang sandali)\b',
+      caseSensitive: false,
+    ),
+
+    // === FRENCH ===
+    RegExp(
+      r'(?:allons à|arrivés à|nous sommes allés|elle est allée|'
+      r'nous nous sommes dirigés|marchons vers|conduisons vers|'
+      r'nous allons|nous marchons|se promener)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:dans le (?:café|restaurant|bar|chambre|salle de bain|douche|lit|'
+      r'cuisine|bureau|plage|parc|rue|balcon|terrasse|voiture|canapé)|'
+      r'en marchant dans|allant au parc|dans le parc|dans la rue)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:plus tard|après|ensuite|maintenant|soudain|'
+      r'à ce moment|nous sommes maintenant|elle est maintenant|'
+      r'après un moment)\b',
+      caseSensitive: false,
+    ),
+
+    // === HINDI / URDU / BENGALI (Unicode) — remove this block if not needed ===
+    // Hindi
+    RegExp(
+      r'(?:चलो|गए|पहुँचे|हम गए|वह गई|चल रहे|घूमने गए)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:कैफे में|रेस्तरां में|कमरे में|बेडरूम में|बाथरूम में|'
+      r'बीच पर|पार्क में|सड़क पर|बालकनी पर)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:बाद में|फिर|अब|अचानक|इस समय|अभी हम|वह अब)\b',
+      caseSensitive: false,
+    ),
+    // Urdu
+    RegExp(
+      r'(?:چلو|گئے|پہنچے|ہم گئے|وہ گئی|چل رہے|گھومنے گئے)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:کیفے میں|ریسٹورنٹ میں|کمرے میں|بیڈروم میں|باتھ روم میں|'
+      r'بیچ پر|پارک میں|سڑک پر)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:بعد میں|پھر|اب|اچانک|اس وقت|اب ہم|وہ اب)\b',
+      caseSensitive: false,
+    ),
+    // Bengali
+    RegExp(
+      r'(?:চলো|গেলাম|পৌঁছেছি|আমরা গেলাম|সে গেল|হাঁটছি|ঘুরতে গেলাম)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:ক্যাফেতে|রেস্টুরেন্টে|ঘরে|বেডরুমে|বাথরুমে|'
+      r'বিচে|পার্কে|রাস্তায়|বারান্দায়)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:পরে|তারপর|এখন|হঠাৎ|এই মুহূর্তে|এখন আমরা|সে এখন)\b',
       caseSensitive: false,
     ),
   ];

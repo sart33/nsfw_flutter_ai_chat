@@ -2,7 +2,8 @@
     <application
         android:label="nsfw_chat"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/logo_1"
+        android:roundIcon="@drawable/logo_1">
         <activity
             android:name=".MainActivity"
             android:exported="true"

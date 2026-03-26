@@ -22,51 +22,61 @@ class PersonaCard extends StatelessWidget {
         ? '${persona.description.substring(0, 80)}…'
         : persona.description;
 
-    return Card(
-      color: AppTheme.surface,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              AvatarWidget(
-                imagePath: persona.avatarPath,
-                assetPath: persona.avatarAssetPath,
-                name: persona.name,
-                size: 52,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      persona.name,
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      shortDesc,
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 13,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: AppTheme.cardDecoration(),
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                // Avatar — скруглённые углы чтобы вписывался в карточку
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AvatarWidget(
+                    imagePath: persona.avatarPath,
+                    assetPath: persona.avatarAssetPath,
+                    name: persona.name,
+                    size: 54,
+                  ),
                 ),
-              ),
-              const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
-            ],
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        persona.name,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        shortDesc,
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.chevron_right,
+                    color: AppTheme.textSecondary, size: 20),
+              ],
+            ),
           ),
         ),
       ),

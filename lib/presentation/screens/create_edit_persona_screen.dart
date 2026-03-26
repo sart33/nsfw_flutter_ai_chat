@@ -17,6 +17,7 @@ import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 
 import '../../domain/exceptions/app_exceptions.dart';
+import '../widgets/custom_app_bar_widget.dart';
 import 'api_keys_screen.dart';
 
 /// Create or edit a persona.
@@ -85,9 +86,7 @@ class _CreateEditPersonaScreenState
   void _showSnack(String msg, {bool isKeyError = false}) {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: isKeyError
-          ? const Color(0xFFB71C1C)
-          : const Color(0xFFE65100),
+      backgroundColor: isKeyError ?  AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
       action: isKeyError ? SnackBarAction(
@@ -105,8 +104,7 @@ class _CreateEditPersonaScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? context.l10n.editCharacter : context.l10n.newCharacter),
+      appBar: CustomAppBar(title: (_isEdit ? context.l10n.editCharacter : context.l10n.newCharacter),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -639,7 +637,7 @@ class _CreateEditPersonaScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.descriptionLimitExceeded),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.error,
         ),
       );
       return;
@@ -648,7 +646,7 @@ class _CreateEditPersonaScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.greetingLimitExceeded),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.error,
         ),
       );
       return;

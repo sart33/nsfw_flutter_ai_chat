@@ -32,9 +32,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   void _showSnack(String msg, {bool isKeyError = false}) {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: isKeyError
-          ? const Color(0xFFB71C1C)
-          : const Color(0xFFE65100),
+      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
       action: isKeyError ? SnackBarAction(
@@ -56,7 +54,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     final state = ref.watch(galleryProvider(galleryKey));
     final notifier = ref.read(galleryProvider(galleryKey).notifier);
 
-    // ── Error listener ───────────────────────────────────────────────────
     ref.listen<GalleryState>(galleryProvider(galleryKey), (prev, next) {
       if (next.error != null && next.error != prev?.error) {
         final isKeyError = next.error is GenerationException &&
@@ -74,7 +71,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           _ => context.l10n.errorUnknown,
         };
         _showSnack(msg, isKeyError: isKeyError);
-
         ref.read(galleryProvider(galleryKey).notifier).clearError();
       }
     });
@@ -88,7 +84,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         leading: const BackButton(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
+            icon: const Icon(Icons.edit_outlined, color: Colors.white),
             tooltip: context.l10n.editCharacter,
             onPressed: () => Navigator.push(
               context,
@@ -97,9 +93,10 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                     CreateEditPersonaScreen(personaId: widget.persona.id),
               ),
             ).then((changed) {
-              if (changed == true && context.mounted) ref.invalidate(personaProvider);
+              if (changed == true && context.mounted) {
+                ref.invalidate(personaProvider);
               }
-              ),
+            }),
           ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
@@ -117,7 +114,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            icon: const Icon(Icons.delete_outline, color: AppTheme.warning),
             tooltip: context.l10n.delete,
             onPressed: () => _confirmDelete(context, ref),
           ),
@@ -125,10 +122,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       ),
       body: Column(
         children: [
-          // ── Avatar header ──────────────────────────────────────
           _buildAvatarHeader(currentPersona),
-
-          // ── Content ────────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -136,19 +130,25 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Description card
-                  _buildInfoCard(context.l10n.description, currentPersona.description,
-                      selectable: true),
+                  _buildInfoCard(
+                    context.l10n.description,
+                    currentPersona.description,
+                    selectable: true,
+                  ),
                   const SizedBox(height: 12),
 
                   // Greeting card
                   if (currentPersona.greeting.isNotEmpty) ...[
-                    _buildInfoCard(context.l10n.greeting, currentPersona.greeting,
-                        italic: true,
-                        textColor: const Color(0xFFCCCCCC)),
-                    const SizedBox(height: 12),
+                    _buildInfoCard(
+                      context.l10n.greeting,
+                      currentPersona.greeting,
+                      italic: true,
+                      textColor: const Color(0xFFCCCCCC),
+                    ),
+                    const SizedBox(height: 20),
                   ],
 
-                  // ── Gallery section ────────────────────────────
+                  // Gallery section
                   _buildGalleryHeader(state, notifier, context, currentPersona),
                   const SizedBox(height: 12),
 
@@ -160,10 +160,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                         await notifier.confirmPending(
                             currentPersona.id, currentPersona.description);
                         if (!context.mounted) return;
-                        if (ref.read(galleryProvider(galleryKey)).error ==
-                            null) {
-                          Fluttertoast.showToast(
-                              msg: context.l10n.savedToGallery);
+                        if (ref.read(galleryProvider(galleryKey)).error == null) {
+                          Fluttertoast.showToast(msg: context.l10n.savedToGallery);
                         }
                       },
                       onRegenerate: () =>
@@ -172,9 +170,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                       isLoading: state.isGenerating,
                     ),
 
-                  // Generating indicator (when no pending yet)
-                  if (state.isGenerating &&
-                      state.pendingImagePath == null) ...[
+                  // Generating indicator
+                  if (state.isGenerating && state.pendingImagePath == null) ...[
                     Center(
                       child: Column(
                         children: [
@@ -185,7 +182,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                           const SizedBox(height: 8),
                           Text(
                             context.l10n.generatingWait,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,
                             ),
@@ -218,25 +215,28 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
-                        crossAxisSpacing: 2,
-                        mainAxisSpacing: 2,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
                         childAspectRatio: 2 / 3,
                       ),
                       itemCount: state.images.length,
                       itemBuilder: (context, index) {
-                        return GalleryThumbnailWidget(
-                          image: state.images[index],
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GalleryFullscreenScreen(
-                                images: state.images,
-                                initialIndex: index,
-                                personaDescription: currentPersona.description,
-                                personaId: currentPersona.id,
-                                galleryMode: currentPersona.galleryMode,
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: GalleryThumbnailWidget(
+                            image: state.images[index],
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => GalleryFullscreenScreen(
+                                  images: state.images,
+                                  initialIndex: index,
+                                  personaDescription: currentPersona.description,
+                                  personaId: currentPersona.id,
+                                  galleryMode: currentPersona.galleryMode,
+                                ),
                               ),
                             ),
                           ),
@@ -257,6 +257,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   Widget _buildAvatarHeader(PersonaEntity p) {
     final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
     final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
+
     return SizedBox(
       height: 320,
       width: double.infinity,
@@ -264,20 +265,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         fit: StackFit.expand,
         children: [
           if (hasFile)
-            Image.file(
-              File(p.avatarPath!),
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-            )
+            Image.file(File(p.avatarPath!),
+                fit: BoxFit.cover, alignment: Alignment.topCenter)
           else if (hasAsset)
-            Image.asset(
-              p.avatarAssetPath!,
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-            )
+            Image.asset(p.avatarAssetPath!,
+                fit: BoxFit.cover, alignment: Alignment.topCenter)
           else
             Container(
-              color: const Color(0xFF1A1A1A),
+              color: AppTheme.cardBg,
               child: Center(
                 child: Text(
                   _initials(p.name),
@@ -291,10 +286,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             ),
           // Gradient overlay
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 120,
+            bottom: 0, left: 0, right: 0,
+            height: 140,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -307,9 +300,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           ),
           // Name + behavior
           Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
+            bottom: 16, left: 16, right: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -321,8 +312,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (p.behavior != null &&
-                    p.behavior!.isNotEmpty)
+                if (p.behavior != null && p.behavior!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
@@ -343,107 +333,138 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     );
   }
 
-  // ── Info card ─────────────────────────────────────────────────────────
+  // ── Info card — с border как на других экранах ────────────────────────
 
   Widget _buildInfoCard(
-    String title,
-    String content, {
-    bool selectable = false,
-    bool italic = false,
-    Color textColor = AppTheme.textPrimary,
-  }) {
+      String title,
+      String content, {
+        bool selectable = false,
+        bool italic = false,
+        Color textColor = AppTheme.textPrimary,
+      }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: AppTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
+            title.toUpperCase(),
             style: const TextStyle(
               color: AppTheme.textSecondary,
-              fontSize: 11,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
             ),
           ),
           const SizedBox(height: 8),
           selectable
               ? SelectableText(
-                  content,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 14,
-                    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-                  ),
-                )
+            content,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14,
+              height: 1.5,
+              fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+            ),
+          )
               : Text(
-                  content,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 14,
-                    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-                  ),
-                ),
+            content,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14,
+              height: 1.5,
+              fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // ── Mode selector ─────────────────────────────────────────────────────
+  // ── Mode carousel — горизонтальный скролл с чипами ────────────────────
 
   Widget _buildModeSelector(
       GalleryState state, GalleryNotifier notifier, BuildContext context) {
+    // Список режимов: value, label, icon
+    final modes = [
+      (value: 'romantic', label: context.l10n.romantic, icon: Icons.favorite_border),
+      (value: 'erotic',   label: context.l10n.erotic,   icon: Icons.local_fire_department),
+      (value: 'office',   label: context.l10n.office,   icon: Icons.business_center_outlined),
+      (value: 'nude',     label: '18+',                 icon: Icons.whatshot),
+    ];
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(
-                value: 'romantic',
-                label: Text('Романтика'),
-                icon: Icon(Icons.favorite_border, size: 16),
-              ),
-              ButtonSegment(
-                value: 'erotic',
-                label: Text('Эротика'),
-                icon: Icon(Icons.local_fire_department, size: 16),
-              ),
-              ButtonSegment(
-                value: 'office',
-                label: Text('Офис'),
-                icon: Icon(Icons.business_center_outlined, size: 16),
-              ),
-              ButtonSegment(
-                value: 'nude',
-                label: Text('NSFW'),
-                icon: Icon(Icons.whatshot, size: 16),
-              ),
-            ],
-            selected: {state.galleryMode},
-            onSelectionChanged: (Set<String> selected) {
-              notifier.setGalleryMode(selected.first);
-            },
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppTheme.primaryAccent;
-                }
-                return const Color(0xFF1A1A1A);
-              }),
-              foregroundColor: WidgetStateProperty.all(Colors.white),
-              side: WidgetStateProperty.all(
-                  const BorderSide(color: Color(0xFF333333))),
+          // Горизонтальная карусель чипов
+          SizedBox(
+            height: 42,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.zero,
+              itemCount: modes.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final mode = modes[index];
+                final isSelected = state.galleryMode == mode.value;
+
+                return GestureDetector(
+                  onTap: () => notifier.setGalleryMode(mode.value),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.accentVivid
+                          : AppTheme.cardBg,
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppTheme.accentVivid
+                            : AppTheme.cardBorder,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isSelected) ...[
+                          const Icon(Icons.check,
+                              size: 14, color: Colors.white),
+                          const SizedBox(width: 5),
+                        ] else ...[
+                          Icon(mode.icon,
+                              size: 14, color: AppTheme.textSecondary),
+                          const SizedBox(width: 5),
+                        ],
+                        Text(
+                          mode.label,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : AppTheme.textSecondary,
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Режим по умолчанию задаётся в редактировании персонажа',
-            textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 11,
             ),
@@ -455,7 +476,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
   // ── Gallery header row ────────────────────────────────────────────────
 
-  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier, BuildContext context, PersonaEntity currentPersona) {
+  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier,
+      BuildContext context, PersonaEntity currentPersona) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -463,8 +485,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              context.l10n.gallery,
+            const Text(
+              'Gallery',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -480,14 +502,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                 ),
                 const SizedBox(width: 8),
                 if (state.images.length < 20)
-                  IconButton(
-                    icon: const Icon(Icons.add_photo_alternate,
-                        color: Colors.white),
-                    tooltip: context.l10n.generate,
-                    onPressed: state.isGenerating
+                  GestureDetector(
+                    onTap: state.isGenerating
                         ? null
-                        : () => notifier.generatePreview(currentPersona.description),
-                  ),
+                        : () => notifier
+                        .generatePreview(currentPersona.description),
+                    child:  const Icon(Icons.add_a_photo_outlined,
+                          color: Colors.white, size: 20),
+                    ),
               ],
             ),
           ],
@@ -496,7 +518,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     );
   }
 
-  // ── Delete persona + gallery ──────────────────────────────────────────
+  // ── Delete persona ────────────────────────────────────────────────────
 
   void _confirmDelete(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -504,15 +526,16 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
         title: Text(context.l10n.deleteCharacter,
-            style: TextStyle(color: AppTheme.textPrimary)),
+            style: const TextStyle(color: AppTheme.textPrimary)),
         content: Text(
           context.l10n.characterAndGalleryWillBeDeleted,
-          style: TextStyle(color: AppTheme.textSecondary),
+          style: const TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.cancel),
+            child: Text(context.l10n.cancel,
+                style: const TextStyle(color: AppTheme.textSecondary)),
           ),
           TextButton(
             onPressed: () {
@@ -523,14 +546,12 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               Navigator.pop(context);
             },
             child: Text(context.l10n.delete,
-                style: TextStyle(color: Colors.red)),
+                style: const TextStyle(color: AppTheme.warning)),
           ),
         ],
       ),
     );
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────
 
   String _initials(String name) {
     final parts = name.trim().split(' ');

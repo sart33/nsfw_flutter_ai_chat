@@ -127,10 +127,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
 
-  void showSnack(String message, {bool critical = false, bool withSettings = false}) {
+  void showSnack(String message, {bool isKeyError = false, bool withSettings = false}) {
     scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
     scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
-      backgroundColor: critical ? const Color(0xFFB71C1C) : const Color(0xFFE65100),
+      backgroundColor: isKeyError ?  AppTheme.error : AppTheme.warning,
       duration: const Duration(seconds: 8),
       content: Text(
         message,
@@ -167,7 +167,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 : isNovita ? context.l10n.errorNovitaKeyInvalid
                 : context.l10n.errorApiKeyInvalid)
                 : context.l10n.errorConnectionFailed,
-            critical: is401 || is403,
+            isKeyError: is401 || is403,
             withSettings: is401 || is403,
           );
         } else if (error is GenerationException) {
@@ -177,7 +177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isKeyNotSet ? context.l10n.errorNovitaKeyNotSet
                 : isKeyInvalid ? context.l10n.errorNovitaKeyInvalid
                 : context.l10n.errorImageGeneration,
-            critical: isKeyNotSet || isKeyInvalid,
+            isKeyError: isKeyNotSet || isKeyInvalid,
             withSettings: isKeyNotSet || isKeyInvalid,
           );
         } else {
@@ -330,13 +330,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       child: Row(
                         children: [
                           _QuickActionButton(
-                            label: 'Продолжай',
+                            label: context.l10n.continueAction,
                             icon: Icons.play_arrow,
-                            onTap: () => _sendQuick('Продолжай', settings),
+                            onTap: () => _sendQuick(context.l10n.continueAction, settings),
                           ),
                           const SizedBox(width: 8),
                           _QuickActionButton(
-                            label: 'Подробнее',
+                            label: context.l10n.moreDetails,
                             icon: Icons.auto_stories,
                             onTap: () => _sendQuick(
                               'Продолжи и опиши сцену подробнее — '
@@ -348,7 +348,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           const SizedBox(width: 8),
                           if (!widget.isMulti)
                             _QuickActionButton(
-                            label: 'Фото',
+                            label: context.l10n.photo,
                             icon: Icons.camera_alt_outlined,
                             onTap: () => _generateSceneImage(),
                           ),
@@ -483,9 +483,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (apiKey.isNotEmpty) return true;
     if (!mounted) return false;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: const Color(0xFFB71C1C),
+      backgroundColor: AppTheme.error,
       content: Text(
-        context.l10n.noApiKeyAction,
+        context.l10n.errorDeepSeekNotSet,
         style: const TextStyle(color: Colors.white),
       ),
       action: SnackBarAction(
@@ -560,12 +560,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             // ── Copy ──
             ListTile(
               leading: const Icon(Icons.copy, color: AppTheme.primaryAccent),
-              title: Text('Copy',
+              title: Text(context.l10n.copy,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 Clipboard.setData(ClipboardData(text: currentContent));
-                Fluttertoast.showToast(msg: 'Copied to clipboard');
+                Fluttertoast.showToast(msg: context.l10n.copiedToClipboard);
               },
             ),
             // ── Edit ──

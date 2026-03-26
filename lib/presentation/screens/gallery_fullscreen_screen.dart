@@ -55,9 +55,7 @@ class _GalleryFullscreenScreenState
   void _showSnack(String msg, {bool isKeyError = false}) {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: isKeyError
-          ? const Color(0xFFB71C1C)
-          : const Color(0xFFE65100),
+      backgroundColor: isKeyError ?  AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
       action: isKeyError ? SnackBarAction(

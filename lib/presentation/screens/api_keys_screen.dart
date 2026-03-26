@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 
+import '../widgets/custom_app_bar_widget.dart';
+
 /// Screen for managing API keys stored securely.
 class ApiKeysScreen extends StatefulWidget {
   const ApiKeysScreen({super.key});
@@ -278,10 +280,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text(context.l10n.apiKeys),
-        backgroundColor: Colors.black,
-        elevation: 0,
+      appBar: CustomAppBar(title: context.l10n.apiKeys,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

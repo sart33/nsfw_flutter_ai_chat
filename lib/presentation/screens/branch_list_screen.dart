@@ -11,6 +11,7 @@ import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 
+import '../widgets/custom_app_bar_widget.dart';
 
 /// Displays a list of conversation branches for an entity.
 ///
@@ -40,91 +41,119 @@ class BranchListScreen extends ConsumerWidget {
     final presets = ref.watch(multiPresetProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(entityName)),
+      appBar: CustomAppBar(title: entityName),
       body: branches.isEmpty
           ? Center(
-              child: Text(
-                context.l10n.noBranches,
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-              ),
-            )
+        child: Text(
+          context.l10n.noBranches,
+          style: const TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 15,
+          ),
+        ),
+      )
           : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: branches.length,
-              itemBuilder: (context, index) {
-                final branch = branches[index];
-                return Dismissible(
-                  key: Key(branch.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    color: Colors.red.shade900,
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (_) => _confirmDelete(context),
-                  onDismissed: (_) {
-                    ref.read(branchProvider(entityId).notifier).deleteBranch(branch.id);
-                    ref.invalidate(chatProvider(branch.id));
-                  },
-                  child: Card(
-                    color: AppTheme.surface,
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: InkWell(
-                      onTap: () => _openChat(context, ref, branch.id),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            _buildAvatarArea(personas, presets),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _formatDateTime(branch.updatedAt),
-                                    style: const TextStyle(
-                                      color: AppTheme.textPrimary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    branch.preview ?? context.l10n.emptyBranch,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: branch.preview != null
-                                          ? AppTheme.textSecondary
-                                          : AppTheme.textSecondary.withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
-                          ],
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: branches.length,
+        itemBuilder: (context, index) {
+          final branch = branches[index];
+          return Dismissible(
+            key: Key(branch.id),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              color: Colors.red.shade900,
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            confirmDismiss: (_) => _confirmDelete(context),
+            onDismissed: (_) {
+              ref.read(branchProvider(entityId).notifier).deleteBranch(branch.id);
+              ref.invalidate(chatProvider(branch.id));
+            },
+            // ── Branch card — matches PersonaCard style ──────────────
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 5),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _openChat(context, ref, branch.id),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    decoration: AppTheme.cardDecoration(),
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        // ── Avatar area ────────────────────────────
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _buildAvatarArea(personas, presets),
                         ),
-                      ),
+                        const SizedBox(width: 14),
+                        // ── Text area ──────────────────────────────
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _formatDateTime(branch.updatedAt),
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                branch.preview ?? context.l10n.emptyBranch,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  height: 1.4,
+                                  color: branch.preview != null
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textSecondary
+                                      .withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.chevron_right,
+                            color: AppTheme.textSecondary, size: 20),
+                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
-      floatingActionButton: FloatingActionButton(
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _createAndOpen(context, ref),
-        child: const Icon(Icons.add),
+          backgroundColor: AppTheme.accentVivid,
+          foregroundColor: Colors.white,
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(32)),
+          icon: const Icon(Icons.chat_bubble_outline, size: 20),
+          label: Text(context.l10n.newChat,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2))
       ),
     );
   }
 
   /// Builds the avatar area based on single or multi chat mode.
-  Widget _buildAvatarArea(List<PersonaEntity> personas, List<MultiPresetEntity> presets) {
-    const double avatarSize = 52.0;
+  Widget _buildAvatarArea(
+      List<PersonaEntity> personas, List<MultiPresetEntity> presets) {
+    const double avatarSize = 54.0;
     const double overlap = 44.0;
     const int maxAvatars = 3;
 
@@ -134,20 +163,12 @@ class BranchListScreen extends ConsumerWidget {
           ? entityId.substring(7)
           : entityId;
       final persona = personas.where((p) => p.id == personaId).firstOrNull;
-      if (persona != null) {
-        return AvatarWidget(
-          imagePath: persona.avatarPath,
-          assetPath: persona.avatarAssetPath,
-          name: persona.name,
-          size: avatarSize,
-        );
-      } else {
-        return AvatarWidget(
-          imagePath: null,
-          name: '?',
-          size: avatarSize,
-        );
-      }
+      return AvatarWidget(
+        imagePath: persona?.avatarPath,
+        assetPath: persona?.avatarAssetPath,
+        name: persona?.name ?? '?',
+        size: avatarSize,
+      );
     } else {
       // Multi chat: parse presetId from entityId
       final presetId = entityId.startsWith('multi:')
@@ -158,7 +179,6 @@ class BranchListScreen extends ConsumerWidget {
         return Icon(Icons.group, color: AppTheme.primaryAccent, size: avatarSize);
       }
 
-      // Filter personas that are in the preset, preserving order
       final matchedPersonas = preset.personaIds
           .map((id) => personas.where((p) => p.id == id).firstOrNull)
           .where((p) => p != null)
@@ -178,7 +198,6 @@ class BranchListScreen extends ConsumerWidget {
         height: avatarSize,
         child: Stack(
           children: List.generate(count, (index) {
-            // Add avatars in reverse order so index == 0 is on top
             final reverseIndex = count - 1 - index;
             final persona = matchedPersonas[reverseIndex];
             return Positioned(
@@ -206,7 +225,6 @@ class BranchListScreen extends ConsumerWidget {
 
   /// Navigates to the chat screen for a branch.
   void _openChat(BuildContext context, WidgetRef ref, String branchId) {
-    // Extract the raw id from entityId (strip "single:" or "multi:" prefix).
     final rawId = entityId.contains(':')
         ? entityId.substring(entityId.indexOf(':') + 1)
         : entityId;
@@ -223,7 +241,6 @@ class BranchListScreen extends ConsumerWidget {
         ),
       ),
     ).then((_) {
-      // Refresh branch list when returning from chat (preview may have changed).
       ref.read(branchProvider(entityId).notifier).refresh();
     });
   }
@@ -234,11 +251,13 @@ class BranchListScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: Text(context.l10n.deleteBranch,
-            style: TextStyle(color: AppTheme.textPrimary)),
+        title: Text(
+          context.l10n.deleteBranch,
+          style: const TextStyle(color: AppTheme.textPrimary),
+        ),
         content: Text(
           context.l10n.allMessagesWillBeDeleted,
-          style: TextStyle(color: AppTheme.textSecondary),
+          style: const TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
@@ -247,7 +266,10 @@ class BranchListScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.l10n.delete, style: TextStyle(color: Colors.red)),
+            child: Text(
+              context.l10n.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -260,8 +282,6 @@ class BranchListScreen extends ConsumerWidget {
     final d = dt.day.toString().padLeft(2, '0');
     final m = dt.month.toString().padLeft(2, '0');
     final y = dt.year.toString();
-
     return '$d.$m.$y';
-
   }
 }

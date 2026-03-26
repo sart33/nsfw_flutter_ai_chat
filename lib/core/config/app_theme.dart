@@ -1,18 +1,34 @@
 import 'package:flutter/material.dart';
 
-/// Centralised dark-only theme for the app.
 class AppTheme {
   AppTheme._();
 
   // ── Colour palette ────────────────────────────────────────────────────
-  static const Color background = Color(0xFF000000);
-  static const Color surface = Color(0xFF111111);
-  static const Color userBubble = Color(0xFF333333);
-  static const Color userIcon = Color(0xFF919191);
-  static const Color aiBubble = Color(0xFF111111);
-  static const Color primaryAccent = Color(0xFFBB86FC);
-  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color background    = Color(0xFF000000);
+  static const Color surface       = Color(0xFF111111);
+  static const Color cardBg        = Color(0xFF1A1A1E); // карточки на home/settings
+  static const Color iconBg        = Color(0xFF28183F); // фон иконок в карточках
+  static const Color userBubble    = Color(0xFF333333);
+  static const Color userIcon      = Color(0xFF919191);
+  static const Color aiBubble      = Color(0xFF111111);
+  static const Color primaryAccent = Color(0xFFAA7EF4); // фиолетовый акцент
+  static const Color accentVivid   = Color(0xFF7C3AED); // FAB / иконки AppBar
+  static const Color accentLight   = Color(0xFFAB76FF); // иконки в карточках
+  static const Color cardBorder    = Color(0xFF393948); // бордер карточек
+  static const Color textPrimary   = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B0B0);
+  static const Color textThird     = Color(0xFFD0D0D0);
+  static const Color error         = Color(0xFFB71C1C);
+  static const Color success       = Color(0xFF03DAC6);
+  static const Color warning       = Color(0xFFE65100);
+
+  // ── Shared card decoration ────────────────────────────────────────────
+  /// Используй для всех карточек на Settings / Home
+  static BoxDecoration cardDecoration({double radius = 16}) => BoxDecoration(
+    color: cardBg,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: cardBorder, width: 1),
+  );
 
   // ── ThemeData ─────────────────────────────────────────────────────────
   static final ThemeData darkTheme = ThemeData(
@@ -35,11 +51,12 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(color: textPrimary),
     ),
-    cardTheme: const CardThemeData(
-      color: surface,
+    cardTheme: CardThemeData(
+      color: cardBg,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        side: BorderSide(color: cardBorder, width: 1),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -52,13 +69,24 @@ class AppTheme {
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: primaryAccent,
-      foregroundColor: Colors.black,
+      backgroundColor: accentVivid,
+      foregroundColor: Colors.white,
+    ),
+    sliderTheme: const SliderThemeData(
+      activeTrackColor: primaryAccent,
+      thumbColor: Colors.white,
+      inactiveTrackColor: cardBorder,
+      overlayColor: Color(0x22AA7EF4),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.all(Colors.white),
+      trackColor: WidgetStateProperty.resolveWith((states) =>
+      states.contains(WidgetState.selected) ? primaryAccent : cardBorder),
     ),
     textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: textPrimary),
+      bodyLarge:  TextStyle(color: textPrimary),
       bodyMedium: TextStyle(color: textPrimary),
-      bodySmall: TextStyle(color: textSecondary),
+      bodySmall:  TextStyle(color: textSecondary),
     ),
   );
 }

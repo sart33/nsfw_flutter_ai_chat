@@ -8,6 +8,8 @@ import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 import 'package:uuid/uuid.dart';
 
+import '../widgets/custom_app_bar_widget.dart';
+
 /// Create or edit a multi-persona preset.
 /// Name, persona multi-select, greeting (pre-filled), behavior field.
 class CreateEditMultiPresetScreen extends ConsumerStatefulWidget {
@@ -59,9 +61,7 @@ class _CreateEditMultiPresetScreenState
     final personas = ref.watch(personaProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? context.l10n.editPreset : context.l10n.newMultiPreset),
-      ),
+      appBar: CustomAppBar(title: _isEdit ? context.l10n.editPreset : context.l10n.newMultiPreset),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
