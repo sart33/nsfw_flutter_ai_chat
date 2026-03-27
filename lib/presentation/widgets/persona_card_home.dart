@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:nsfw_chat/core/config/app_theme.dart';
-import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 
-/// A list-tile style card showing avatar thumbnail + name + short description.
-class PersonaCard extends StatelessWidget {
+import '../../core/config/app_theme.dart';
+import '../../domain/entities/persona_entity.dart';
+
+class PersonaCardHome extends StatelessWidget {
   final PersonaEntity persona;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
-  const PersonaCard({
+  const PersonaCardHome({
     super.key,
     required this.persona,
     this.onTap,
@@ -18,31 +18,29 @@ class PersonaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shortDesc = persona.description.length > 80
-        ? '${persona.description.substring(0, 80)}…'
+    final shortDesc = persona.description.length > 40
+        ? '${persona.description.substring(0, 40)}…'
         : persona.description;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: Material(
-        // color: Colors.transparent,
+        color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(16),
+          // borderRadius: BorderRadius.circular(16),
           child: Container(
-            decoration: AppTheme.cardDecoration(),
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.only(left: 14, top: 6, bottom: 6, right: 74),
             child: Row(
               children: [
                 // Avatar — скруглённые углы чтобы вписывался в карточку
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(20),
                   child: AvatarWidget(
                     imagePath: persona.avatarPath,
                     assetPath: persona.avatarAssetPath,
                     name: persona.name,
-                    size: 54,
+                    size: 40,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -54,11 +52,11 @@ class PersonaCard extends StatelessWidget {
                         persona.name,
                         style: const TextStyle(
                           color: AppTheme.textPrimary,
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      // const SizedBox(height: 2),
                       Text(
                         shortDesc,
                         style: const TextStyle(
@@ -66,15 +64,13 @@ class PersonaCard extends StatelessWidget {
                           fontSize: 13,
                           height: 1.4,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.chevron_right,
-                    color: AppTheme.textSecondary, size: 20),
               ],
             ),
           ),

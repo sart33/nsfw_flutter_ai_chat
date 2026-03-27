@@ -75,6 +75,7 @@
   "settings": "Настройки",
   "newChat": "Новый чат",
   "noCharactersCreate": "Нет персонажей. Создайте первого!",
+  "loadingCharacters": "Загрузка персонажей...",
   "noMultiPresets": "Нет пресетов мульти-чата",
   "deletePreset": "Удалить пресет?",
   "cannotBeUndone": "Это действие нельзя отменить.",

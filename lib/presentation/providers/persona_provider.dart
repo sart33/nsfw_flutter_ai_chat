@@ -50,31 +50,6 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
     }
 
 
-
-
-  /// Explicitly load personas from database.
-  Future<void> load() async {
-    state = const AsyncValue.loading();
-    try {
-      final result = await _repo.getAll();
-      result.when(
-        success: (models) async {
-          if (models.isEmpty) {
-            await _seedDefaults();
-          } else {
-            state = AsyncValue.data(PersonaMapper.toEntityList(models));
-          }
-        },
-        failure: (message, error) async {
-          // On failure, try to seed defaults
-          await _seedDefaults();
-        },
-      );
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
-  }
-
   /// Gets the current device locale for seeding.
   Future<Locale> _getDeviceLocale() async {
     // Try to read from SharedPreferences first (if user set locale manually)
@@ -90,18 +65,6 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
     return WidgetsBinding.instance.platformDispatcher.locale;
   }
 
-  /// Seeds two default personas on first launch based on device locale.
-  Future<void> _seedDefaults() async {
-    final locale = await _getDeviceLocale();
-    final personas = _getDefaultPersonas(locale);
-
-    for (final model in personas) {
-      await _repo.create(model);
-    }
-
-    await _seedPrompts(personas);
-    state = AsyncValue.data(PersonaMapper.toEntityList(personas));
-  }
 
   Future<void> _seedPrompts(List<PersonaModel> personas) async {
     final natasha = personas[0];

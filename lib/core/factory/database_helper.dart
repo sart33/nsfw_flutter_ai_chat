@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../../data/models/persona_model.dart';
 
 /// Singleton helper that owns the SQLite database for branches & messages.
 class DatabaseHelper {
@@ -25,7 +29,7 @@ class DatabaseHelper {
 
       _db = await openDatabase(
         path,
-        version: 9,
+        version: 12,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE branches (
@@ -98,6 +102,21 @@ class DatabaseHelper {
               raw_llm_json TEXT,
               final_prompt TEXT NOT NULL,
               image_path   TEXT NOT NULL
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE personas (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              description TEXT NOT NULL,
+              greeting TEXT NOT NULL,
+              avatarPath TEXT,
+              avatarAssetPath TEXT,
+              behavior TEXT,
+              galleryMode TEXT NOT NULL DEFAULT 'nude',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
             )
           ''');
         },
@@ -178,7 +197,58 @@ class DatabaseHelper {
               )
             ''');
           }
-
+          if (oldVersion < 10) {
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS personas (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                greeting TEXT NOT NULL,
+                avatarPath TEXT,
+                avatarAssetPath TEXT,
+                behavior TEXT,
+                galleryMode TEXT NOT NULL DEFAULT 'nude',
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+              )
+            ''');
+            await _migratePersonasFromSharedPreferences(db);
+          }
+          if (oldVersion < 11) {
+            await db.execute('DROP TABLE IF EXISTS personas');
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS personas (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                greeting TEXT NOT NULL,
+                avatar_path TEXT,
+                avatar_asset_path TEXT,
+                behavior TEXT,
+                gallery_mode TEXT NOT NULL DEFAULT 'nude',
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+              )
+            ''');
+            await _migratePersonasFromSharedPreferences(db);
+          }
+          if (oldVersion < 12) {
+            await db.execute('DROP TABLE IF EXISTS personas');
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS personas (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                greeting TEXT NOT NULL,
+                avatar_path TEXT,
+                avatar_asset_path TEXT,
+                behavior TEXT,
+                gallery_mode TEXT NOT NULL DEFAULT 'nude',
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+              )
+            ''');
+            await _migratePersonasFromSharedPreferences(db);          }
         },
       );
     } catch (e) {
@@ -217,13 +287,32 @@ class DatabaseHelper {
       final db = await database;
       log('SELECT branches with real_updated_at FROM messages JOIN WHERE entity_id LIKE \'single:%\' ORDER BY real_updated_at DESC LIMIT $limit', name: 'DB_READ');
       final results = await db.rawQuery('''
-    SELECT b.*,
-           COALESCE(MAX(m.timestamp), b.updated_at) AS real_updated_at
+    SELECT 
+      b.id,
+      b.entity_id,
+      b.preview,
+      b.updated_at,
+    
+    COALESCE(MAX(m.timestamp), b.updated_at) AS real_updated_at,
+    
+      p.name as persona_name,
+      p.avatar_path,
+      p.avatar_asset_path
+    
     FROM branches b
-    LEFT JOIN messages m ON m.branch_id = b.id
+    
+    LEFT JOIN messages m 
+      ON m.branch_id = b.id
+    
+    LEFT JOIN personas p 
+      ON p.id = REPLACE(b.entity_id, 'single:', '')
+    
     WHERE b.entity_id LIKE 'single:%'
+    
     GROUP BY b.id
+    
     ORDER BY real_updated_at DESC
+    
     LIMIT ?
   ''', [limit]);
       log('getRecentSingleBranches result count: ${results.length}', name: 'DB_READ');
@@ -838,5 +927,158 @@ class DatabaseHelper {
       where: 'id IN ($placeholders)',
       whereArgs: ids,
     );
+  }
+
+  // ── PERSONAS ────────────────────────────────────────────────────────────
+
+  /// Migrates personas from SharedPreferences to SQLite table.
+  /// Idempotent: if personas table already has rows, does nothing.
+  Future<void> _migratePersonasFromSharedPreferences(Database db) async {
+    try {
+      // Check if personas table already has data
+      final countResult = await db.rawQuery('SELECT COUNT(*) as count FROM personas');
+      final count = countResult.first['count'] as int;
+      if (count > 0) {
+        log('Personas table already has $count rows, skipping migration', name: 'DB_MIGRATION');
+        return;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('personas');
+      if (raw == null || raw.isEmpty) {
+        log('No personas data in SharedPreferences, skipping migration', name: 'DB_MIGRATION');
+        return;
+      }
+
+      log('Migrating personas from SharedPreferences to SQLite', name: 'DB_MIGRATION');
+      final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      for (final item in decoded) {
+        try {
+          final model = PersonaModel.fromMap(item as Map<String, dynamic>);
+          await db.insert('personas', {
+            'id': model.id,
+            'name': model.name,
+            'description': model.description,
+            'greeting': model.greeting,
+            'avatar_path': model.avatarPath,
+            'avatar_asset_path': model.avatarAssetPath,
+            'behavior': model.behavior,
+            'gallery_mode': model.galleryMode,
+            'created_at': now,
+            'updated_at': now,
+          });
+        } catch (e) {
+          log('Failed to migrate persona: $e', name: 'DB_MIGRATION');
+        }
+      }
+
+      // Remove from SharedPreferences after successful migration
+      await prefs.remove('personas');
+      log('Successfully migrated ${decoded.length} personas and removed from SharedPreferences', name: 'DB_MIGRATION');
+    } catch (e) {
+      log('_migratePersonasFromSharedPreferences error: $e', name: 'DB_ERROR');
+      // Don't rethrow - migration failure shouldn't break the app
+    }
+  }
+
+  /// Returns all personas from the database.
+  Future<List<Map<String, dynamic>>> getAllPersonas() async {
+    try {
+      final db = await database;
+      log('SELECT personas ORDER BY updated_at DESC', name: 'DB_READ');
+      return await db.query('personas', orderBy: 'updated_at DESC');
+    } catch (e) {
+      log('getAllPersonas error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getAllPersonas error: $e');
+      rethrow;
+    }
+  }
+
+  /// Returns a single persona by id, or null if not found.
+  Future<Map<String, dynamic>?> getPersonaById(String id) async {
+    try {
+      final db = await database;
+      log('SELECT personas WHERE id=$id', name: 'DB_READ');
+      final rows = await db.query(
+        'personas',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      return rows.isEmpty ? null : rows.first;
+    } catch (e) {
+      log('getPersonaById error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getPersonaById error: $e');
+      rethrow;
+    }
+  }
+
+  /// Inserts a new persona.
+  Future<void> insertPersona(PersonaModel persona) async {
+    try {
+      final db = await database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final data = {
+        'id': persona.id,
+        'name': persona.name,
+        'description': persona.description,
+        'greeting': persona.greeting,
+        'avatar_path': persona.avatarPath,
+        'avatar_asset_path': persona.avatarAssetPath,
+        'behavior': persona.behavior,
+        'gallery_mode': persona.galleryMode,
+        'created_at': now,
+        'updated_at': now,
+      };
+      log('INSERT INTO personas: $data', name: 'DB_WRITE');
+      await db.insert('personas', data);
+    } catch (e) {
+      log('insertPersona error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.insertPersona error: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates an existing persona.
+  Future<void> updatePersona(PersonaModel persona) async {
+    try {
+      final db = await database;
+      final data = {
+        'name': persona.name,
+        'description': persona.description,
+        'greeting': persona.greeting,
+        'avatar_path': persona.avatarPath,
+        'avatar_asset_path': persona.avatarAssetPath,
+        'behavior': persona.behavior,
+        'gallery_mode': persona.galleryMode,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      };
+      log('UPDATE personas WHERE id=${persona.id}, data: $data', name: 'DB_WRITE');
+      await db.update(
+        'personas',
+        data,
+        where: 'id = ?',
+        whereArgs: [persona.id],
+      );
+    } catch (e) {
+      log('updatePersona error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.updatePersona error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a persona by id.
+  Future<void> deletePersona(String id) async {
+    try {
+      final db = await database;
+      log('DELETE personas WHERE id=$id', name: 'DB_DELETE');
+      await db.delete('personas', where: 'id = ?', whereArgs: [id]);
+    } catch (e) {
+      log('deletePersona error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deletePersona error: $e');
+      rethrow;
+    }
   }
 }

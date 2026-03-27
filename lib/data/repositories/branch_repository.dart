@@ -2,6 +2,8 @@ import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/domain/entities/branch_entity.dart';
 
+import '../../domain/entities/recent_chat_entity.dart';
+
 /// Repository that manages conversation branches via SQLite.
 class BranchRepository {
   final DatabaseHelper _db;
@@ -18,6 +20,25 @@ class BranchRepository {
       print('BranchRepository.getBranchesForEntity error: $e');
       rethrow;
     }
+  }
+
+  Future<List<RecentChatEntity>> getRecentChats({int limit = 5}) async {
+    final rows = await _db.getRecentSingleBranches(limit: limit);
+
+    return rows.map((row) {
+      final updatedAtMs = (row['real_updated_at'] ?? row['updated_at']) as int;
+
+      return RecentChatEntity(
+        branchId: row['id'] as String,
+        entityId: row['entity_id'] as String,
+        personaId: (row['entity_id'] as String).replaceFirst('single:', ''),
+        personaName: row['persona_name'] as String,
+        avatarPath: row['avatar_path'] as String?,
+        avatarAssetPath: row['avatar_asset_path'] as String?,
+        preview: row['preview'] as String?,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(updatedAtMs),
+      );
+    }).toList();
   }
 
   /// Creates a new branch for [entityId], inserts it, and returns the entity.

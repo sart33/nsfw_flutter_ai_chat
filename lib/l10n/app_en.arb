@@ -75,6 +75,7 @@
   "settings": "Settings",
   "newChat": "New chat",
   "noCharactersCreate": "No characters. Create one!",
+  "loadingCharacters": "Loading characters...",
   "noMultiPresets": "No multi-chat presets",
   "deletePreset": "Delete preset?",
   "cannotBeUndone": "This action cannot be undone.",

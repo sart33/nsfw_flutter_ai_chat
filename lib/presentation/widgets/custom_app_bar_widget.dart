@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/screens/about_app_screen.dart';
+import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 
 import '../../core/config/app_theme.dart';
 
@@ -25,7 +26,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: AppTheme.textPrimary,
       actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline, size: 26, color: AppTheme.textSecondary),
+            icon: const Icon(Icons.info_outline, size: 26, color: AppTheme.accentVivid),
             onPressed: () {
               Navigator.push(
                 context,
@@ -33,6 +34,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     builder: (_) => AboutAppScreen()),
               );
             }),
+
+    Padding(
+      padding: const EdgeInsets.only(right: 8, left: 0),
+      child: IconButton(
+      icon: const Icon(Icons.settings, size: 26, color: AppTheme.textPrimary),
+      tooltip: context.l10n.chats,
+      onPressed: () => Navigator.push(
+      context,
+      MaterialPageRoute(
+      builder: (_) => SettingsScreen()
+      ),
+      )
+      ),
+    ),
       ],
     );
   }

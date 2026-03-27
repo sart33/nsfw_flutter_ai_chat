@@ -69,7 +69,7 @@ class ChatBubble extends StatelessWidget {
     return GestureDetector(
       onLongPress: onLongPress,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
           mainAxisAlignment:
               isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -95,7 +95,7 @@ class ChatBubble extends StatelessWidget {
                   // Sender name above AI bubble.
                   if (!isUser)
                   Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
+                      padding: const EdgeInsets.only(bottom: 10,top: 10),
                       child: Text(
                         _resolveSenderName(context, senderName),
                         style: const TextStyle(
@@ -106,17 +106,21 @@ class ChatBubble extends StatelessWidget {
                       ),
                     ),
                   // Bubble body.
+                  if (content.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isUser ? AppTheme.userBubble : AppTheme.aiBubble,
+                      color: isUser ? AppTheme.userBubble : AppTheme.cardBg,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
                         bottomLeft: Radius.circular(isUser ? 16 : 4),
                         bottomRight: Radius.circular(isUser ? 4 : 16),
                       ),
+                      border: !isUser
+                          ? Border.all(color: AppTheme.cardBorder, width: 1)
+                          : null,
                     ),
                     child: Text(
                       content,

@@ -7,11 +7,14 @@ import 'package:nsfw_chat/domain/entities/recent_chat_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/providers/recent_chats_provider.dart';
 import 'package:nsfw_chat/presentation/screens/about_app_screen.dart';
-import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
+import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
 import 'package:nsfw_chat/presentation/screens/multi_preset_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
+import 'package:nsfw_chat/presentation/widgets/persona_card_home.dart';
+
+import '../../data/repositories/branch_repository.dart';
 
 // ─────────────────────────────────────────────
 //  HomeScreen
@@ -76,7 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       floatingActionButton: _NewChatFab(
-        onPressed: () => _showPersonaPicker(context, ref),
+        onPressed: () async => _showPersonaPicker(context, ref),
         label: context.l10n.newChat,
       ),
     );
@@ -135,63 +138,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _showPersonaPicker(BuildContext context, WidgetRef ref) {
-    final personas = ref.read(personaProvider);
+  Future<void> _showPersonaPicker(BuildContext context, WidgetRef ref) async {
+    final personasAsync = ref.read(personaProvider);
+
+    final personas = await personasAsync.when(
+      data: (list) async => list,
+      loading: () =>
+      ref
+          .read(personaProvider.notifier)
+          .future,
+      error: (_, __) async => <PersonaEntity>[],
+    );
+
+    if (!context.mounted) return;
+
     if (personas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.noCharactersCreate)),
       );
       return;
     }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => ListView.builder(
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        itemCount: personas.length,
-        itemBuilder: (_, i) {
-          final p = personas[i];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: AppTheme.accentVivid,
-              child: Text(
-                p.name.isNotEmpty ? p.name[0] : '?',
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-            title: Text(p.name,
-                style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w600)),
-            onTap: () {
-              Navigator.pop(ctx);
-              _openChat(context, p);
-            },
-          );
-        },
-      ),
-    );
-  }
+      builder: (ctx) =>
+          ListView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            itemCount: personas.length,
+            itemBuilder: (_, i) {
+              final p = personas[i];
+              return PersonaCardHome(
+                persona: p,
+                onTap: () async {
+                  Navigator.pop(ctx); // закрыть боттомшит
 
-  void _openChat(BuildContext context, PersonaEntity persona) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BranchListScreen(
-          entityId: 'single:${persona.id}',
-          entityName: persona.name,
-          isMulti: false,
-          greeting: persona.greeting,
-        ),
-      ),
-    ).then((_) {
-      if (mounted) ref.invalidate(recentChatsProvider);
-    });
+                  final branchRepo = BranchRepository();
+                  final branch = await branchRepo.createBranch('single:${p.id}');
+
+                  if (!context.mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(
+                        branchId: branch.id,
+                        entityId: p.id,
+                        isMulti: false,
+                        greeting: p.greeting,
+                        title: p.name,
+                      ),
+                    ),
+                  ).then((_) => ref.invalidate(recentChatsProvider));
+                },
+              );
+
+            },
+          ),
+    );
   }
 }
 
@@ -379,12 +386,13 @@ class _RecentChatCard extends ConsumerWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => BranchListScreen(
-                  entityId: chat.entityId,
-                  entityName: chat.personaName,
-                  isMulti: false,
-                  greeting: '',
-                ),
+              builder: (_) => ChatScreen(
+                branchId: chat.branchId,
+                entityId: chat.personaId,
+                isMulti: false,
+                greeting: '',
+                title: chat.personaName,
+              ),
             ),
           ).then((_) => ref.invalidate(recentChatsProvider)),
           borderRadius: BorderRadius.circular(14),

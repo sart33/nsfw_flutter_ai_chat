@@ -667,7 +667,7 @@ class _CreateEditPersonaScreenState
 
     final notifier = ref.read(personaProvider.notifier);
     if (_isEdit) {
-      notifier.update(entity);
+      notifier.updatePersona(entity);
     } else {
       notifier.create(entity);
     }

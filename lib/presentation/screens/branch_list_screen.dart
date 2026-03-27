@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
-import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/domain/entities/multi_preset_entity.dart';
+import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/branch_provider.dart';
 import 'package:nsfw_chat/presentation/providers/chat_provider.dart';
-import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
+import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
+import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
-
-import '../widgets/custom_app_bar_widget.dart';
 
 /// Displays a list of conversation branches for an entity.
 ///
@@ -37,99 +36,131 @@ class BranchListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final branches = ref.watch(branchProvider(entityId));
-    final personas = ref.watch(personaProvider);
+    final personasAsync = ref.watch(personaProvider);
     final presets = ref.watch(multiPresetProvider);
-
+    const whiteStyle = TextStyle(color: AppTheme.textPrimary,fontSize: 20,
+        fontWeight: FontWeight.w400);
     return Scaffold(
-      appBar: CustomAppBar(title: entityName),
-      body: branches.isEmpty
-          ? Center(
-        child: Text(
-          context.l10n.noBranches,
-          style: const TextStyle(
-            color: AppTheme.textSecondary,
-            fontSize: 15,
+      appBar: AppBar(title: GestureDetector(
+        onTap: !isMulti ? () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) {
+              final personaId = entityId.substring(7); // убрать 'single:'
+              final personas = personasAsync.value ?? [];
+
+              final persona = personas.firstWhere((p) => p.id == personaId);
+              return PersonaViewScreen(persona: persona);
+            },
+          ),
+        ) : null,
+        child: Text(entityName, style: whiteStyle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis),),
+      ),
+      body: personasAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.accentVivid),
+        ),
+        error: (error, stackTrace) => Center(
+          child: Text(
+            'Error loading characters: $error',
+            style: const TextStyle(color: AppTheme.warning),
           ),
         ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: branches.length,
-        itemBuilder: (context, index) {
-          final branch = branches[index];
-          return Dismissible(
-            key: Key(branch.id),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              color: Colors.red.shade900,
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            confirmDismiss: (_) => _confirmDelete(context),
-            onDismissed: (_) {
-              ref.read(branchProvider(entityId).notifier).deleteBranch(branch.id);
-              ref.invalidate(chatProvider(branch.id));
-            },
-            // ── Branch card — matches PersonaCard style ──────────────
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 5),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _openChat(context, ref, branch.id),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    decoration: AppTheme.cardDecoration(),
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        // ── Avatar area ────────────────────────────
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: _buildAvatarArea(personas, presets),
-                        ),
-                        const SizedBox(width: 14),
-                        // ── Text area ──────────────────────────────
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _formatDateTime(branch.updatedAt),
-                                style: const TextStyle(
-                                  color: AppTheme.textPrimary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+        data: (personas) {
+          if (branches.isEmpty) {
+            return Center(
+              child: Text(
+                context.l10n.noBranches,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 15,
+                ),
+              ),
+            );
+          }
+          
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: branches.length,
+            itemBuilder: (context, index) {
+              final branch = branches[index];
+              return Dismissible(
+                key: Key(branch.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Colors.red.shade900,
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                confirmDismiss: (_) => _confirmDelete(context),
+                onDismissed: (_) {
+                  ref.read(branchProvider(entityId).notifier).deleteBranch(branch.id);
+                  ref.invalidate(chatProvider(branch.id));
+                },
+                // ── Branch card — matches PersonaCard style ──────────────
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 5),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _openChat(context, ref, branch.id),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        decoration: AppTheme.cardDecoration(),
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            // ── Avatar area ────────────────────────────
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: _buildAvatarArea(personas, presets),
+                            ),
+                            const SizedBox(width: 14),
+                            // ── Text area ──────────────────────────────
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _formatDateTime(branch.updatedAt),
+                                    style: const TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    branch.preview ?? context.l10n.emptyBranch,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      height: 1.4,
+                                      color: branch.preview != null
+                                          ? AppTheme.textSecondary
+                                          : AppTheme.textSecondary
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                branch.preview ?? context.l10n.emptyBranch,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  height: 1.4,
-                                  color: branch.preview != null
-                                      ? AppTheme.textSecondary
-                                      : AppTheme.textSecondary
-                                      .withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.chevron_right,
+                                color: AppTheme.textSecondary, size: 20),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.chevron_right,
-                            color: AppTheme.textSecondary, size: 20),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),

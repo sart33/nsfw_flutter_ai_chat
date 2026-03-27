@@ -17,9 +17,13 @@ import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
+import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
+import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../widgets/avatar_widget.dart';
+import 'about_app_screen.dart';
 import 'api_keys_screen.dart';
 
 /// Chat screen — works for both single-persona and multi-preset chats.
@@ -72,7 +76,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Resolves persona(s) from providers. Called inside build().
   void _resolveEntities(WidgetRef ref) {
-    final personas = ref.watch(personaProvider);
+    final personasAsync = ref.watch(personaProvider);
+    
+    // Handle loading/error states by returning early
+    if (personasAsync.isLoading || personasAsync.hasError) {
+      _singlePersona = null;
+      _multiPersonas = [];
+      return;
+    }
+    
+    final personas = personasAsync.value ?? [];
 
     if (!widget.isMulti) {
       _singlePersona =
@@ -215,10 +228,52 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      backgroundColor: AppTheme.background,
+      elevation: 0,
+      iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+      centerTitle: true,
+      title: !widget.isMulti && _singlePersona != null
+          ? GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PersonaViewScreen(persona: _singlePersona!),
+          ),
+        ),
+        child: Text(
+          widget.title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      )
+          : Text(widget.title,
+          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 18)),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.info_outline, size: 26, color: AppTheme.accentVivid),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AboutAppScreen()),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: IconButton(
+            icon: const Icon(Icons.settings, size: 26, color: AppTheme.textPrimary),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+        ),
+      ],
+    ),
       body: Column(
         children: [
+
           // ── Messages list ──────────────────────────────────────
           Expanded(
             child: ListView.builder(
@@ -226,8 +281,113 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               controller: _scrollCtrl,
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: chatState.messages.length +
-                  (chatState.isLoading ? 1 : 0),
+                  (chatState.isLoading ? 1 : 0) + 1,
               itemBuilder: (context, index) {
+                if (index == chatState.messages.length + (chatState.isLoading ? 1 : 0)) {
+                  return !widget.isMulti && _singlePersona != null
+                      ? GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => PersonaViewScreen(persona: _singlePersona!),
+                    )),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: AvatarWidget(
+                              imagePath: _singlePersona!.avatarPath,
+                              assetPath: _singlePersona!.avatarAssetPath,
+                              name: _singlePersona!.name,
+                              size: 150,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(_singlePersona!.name,
+                              style: const TextStyle(color: AppTheme.textPrimary,
+                                  fontSize: 18, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Text(
+                              _singlePersona!.description.length > 100
+                                  ? '${_singlePersona!.description.substring(0, 100)}…'
+                                  : _singlePersona!.description,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                      : widget.isMulti && _multiPersonas.isNotEmpty
+                      ? GestureDetector(
+                    onTap: () {
+                      // TODO: navigate to preset view if needed
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        children: [
+                          // Аватарки рядом
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: _multiPersonas.take(3).map((p) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PersonaViewScreen(persona: p),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(30),
+                                  child: AvatarWidget(
+                                    imagePath: p.avatarPath,
+                                    assetPath: p.avatarAssetPath,
+                                    name: p.name,
+                                    size: 80,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  p.name,
+                                  style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            widget.title,
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                      : const SizedBox.shrink();
+                }
+
                 // With reverse: true, index 0 = bottom of screen.
                 // Loading indicator at the very bottom (index 0).
                 if (chatState.isLoading && index == 0) {
