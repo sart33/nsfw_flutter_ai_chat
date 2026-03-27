@@ -18,105 +18,120 @@ class MultiPresetListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final presets = ref.watch(multiPresetProvider);
-    final personas = ref.watch(personaProvider);
+    final personasAsync = ref.watch(personaProvider);
 
     return Scaffold(
       appBar: CustomAppBar(title: context.l10n.multiChat),
-      body: presets.isEmpty
-          ? Center(
-        child: Text(
-          context.l10n.noMultiPresets,
-          style: const TextStyle(color: AppTheme.textSecondary),
+      body: personasAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.accentVivid),
         ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: presets.length,
-        itemBuilder: (context, index) {
-          final preset = presets[index];
-          return Dismissible(
-            key: Key(preset.id),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 28),
-              decoration: BoxDecoration(
-                color: AppTheme.warning.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+        error: (error, stackTrace) => Center(
+          child: Text(
+            'Error loading characters: $error',
+            style: const TextStyle(color: AppTheme.warning),
+          ),
+        ),
+        data: (personas) {
+          if (presets.isEmpty) {
+            return Center(
+              child: Text(
+                context.l10n.noMultiPresets,
+                style: const TextStyle(color: AppTheme.textSecondary),
               ),
-              margin: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 5),
-              child: const Icon(Icons.delete_outline,
-                  color: AppTheme.warning, size: 24),
-            ),
-            confirmDismiss: (_) => _confirmDelete(context),
-            onDismissed: (_) =>
-                ref.read(multiPresetProvider.notifier).delete(preset.id),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 5),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BranchListScreen(
-                        entityId: 'multi:${preset.id}',
-                        entityName: preset.name,
-                        isMulti: true,
-                        greeting: preset.greeting,
+            );
+          }
+          
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: presets.length,
+            itemBuilder: (context, index) {
+              final preset = presets[index];
+              return Dismissible(
+                key: Key(preset.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 28),
+                  decoration: BoxDecoration(
+                    color: AppTheme.warning.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 5),
+                  child: const Icon(Icons.delete_outline,
+                      color: AppTheme.warning, size: 24),
+                ),
+                confirmDismiss: (_) => _confirmDelete(context),
+                onDismissed: (_) =>
+                    ref.read(multiPresetProvider.notifier).delete(preset.id),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 5),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BranchListScreen(
+                            entityId: 'multi:${preset.id}',
+                            entityName: preset.name,
+                            isMulti: true,
+                            greeting: preset.greeting,
+                          ),
+                        ),
+                      ),
+                      onLongPress: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CreateEditMultiPresetScreen(
+                              presetId: preset.id),
+                        ),
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        decoration: AppTheme.cardDecoration(),
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            _buildAvatarGroup(preset, personas),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    preset.name,
+                                    style: const TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${preset.personaIds.length} персонажей',
+                                    style: const TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.chevron_right,
+                                color: AppTheme.textSecondary, size: 20),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  onLongPress: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CreateEditMultiPresetScreen(
-                          presetId: preset.id),
-                    ),
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    decoration: AppTheme.cardDecoration(),
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        _buildAvatarGroup(preset, personas),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                preset.name,
-                                style: const TextStyle(
-                                  color: AppTheme.textPrimary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${preset.personaIds.length} персонажей',
-                                style: const TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.chevron_right,
-                            color: AppTheme.textSecondary, size: 20),
-                      ],
-                    ),
-                  ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),

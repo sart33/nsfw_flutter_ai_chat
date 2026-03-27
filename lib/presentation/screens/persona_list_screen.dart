@@ -16,64 +16,79 @@ class PersonaListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final personas = ref.watch(personaProvider);
+    final personasAsync = ref.watch(personaProvider);
 
     return Scaffold(
       appBar: CustomAppBar(title: context.l10n.characters),
-      body: personas.isEmpty
-          ? Center(
-        child: Text(
-          context.l10n.noCharacters,
-          style: const TextStyle(color: AppTheme.textSecondary),
+      body: personasAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.accentVivid),
         ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: personas.length,
-        itemBuilder: (context, index) {
-          final persona = personas[index];
-          return Dismissible(
-            key: Key(persona.id),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 28),
-              decoration: BoxDecoration(
-                color: AppTheme.warning.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+        error: (error, stackTrace) => Center(
+          child: Text(
+            'Error loading characters: $error',
+            style: const TextStyle(color: AppTheme.warning),
+          ),
+        ),
+        data: (personas) {
+          if (personas.isEmpty) {
+            return Center(
+              child: Text(
+                context.l10n.noCharacters,
+                style: const TextStyle(color: AppTheme.textSecondary),
               ),
-              margin: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 5),
-              child: const Icon(Icons.delete_outline,
-                  color: AppTheme.warning, size: 24),
-            ),
-            confirmDismiss: (_) => _confirmDelete(context),
-            onDismissed: (_) {
-              ref.read(personaProvider.notifier).delete(persona.id);
-              GalleryRepository.instance
-                  .deleteAllForPersona(persona.id);
-            },
-            child: PersonaCard(
-              persona: persona,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BranchListScreen(
-                    entityId: 'single:${persona.id}',
-                    entityName: persona.name,
-                    isMulti: false,
-                    greeting: persona.greeting,
+            );
+          }
+          
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: personas.length,
+            itemBuilder: (context, index) {
+              final persona = personas[index];
+              return Dismissible(
+                key: Key(persona.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 28),
+                  decoration: BoxDecoration(
+                    color: AppTheme.warning.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 5),
+                  child: const Icon(Icons.delete_outline,
+                      color: AppTheme.warning, size: 24),
+                ),
+                confirmDismiss: (_) => _confirmDelete(context),
+                onDismissed: (_) {
+                  ref.read(personaProvider.notifier).delete(persona.id);
+                  GalleryRepository.instance
+                      .deleteAllForPersona(persona.id);
+                },
+                child: PersonaCard(
+                  persona: persona,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BranchListScreen(
+                        entityId: 'single:${persona.id}',
+                        entityName: persona.name,
+                        isMulti: false,
+                        greeting: persona.greeting,
+                      ),
+                    ),
+                  ),
+                  onLongPress: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          PersonaViewScreen(persona: persona),
+                    ),
                   ),
                 ),
-              ),
-              onLongPress: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      PersonaViewScreen(persona: persona),
-                ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),

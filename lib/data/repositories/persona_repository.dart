@@ -1,23 +1,18 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/data/models/persona_model.dart';
 import 'package:nsfw_chat/domain/result/result.dart';
 
-/// Persists [PersonaModel] objects as a JSON list inside SharedPreferences.
+/// Persists [PersonaModel] objects in SQLite database.
 class PersonaRepository {
-  static const String _storageKey = 'personas';
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   // ── CREATE ──────────────────────────────────────────────────────────────
 
   Future<Result<PersonaModel>> create(PersonaModel persona) async {
     try {
-      final personas = await _readAll();
-      personas.add(persona);
-      await _writeAll(personas);
+      await _dbHelper.insertPersona(persona);
       return Result.success(persona);
     } on Exception catch (e) {
       return Result.failure('Failed to create persona', e);
@@ -28,7 +23,8 @@ class PersonaRepository {
 
   Future<Result<List<PersonaModel>>> getAll() async {
     try {
-      final personas = await _readAll();
+      final rows = await _dbHelper.getAllPersonas();
+      final personas = rows.map((row) => PersonaModel.fromMap(row)).toList();
       return Result.success(personas);
     } on Exception catch (e) {
       return Result.failure('Failed to load personas', e);
@@ -37,11 +33,11 @@ class PersonaRepository {
 
   Future<Result<PersonaModel>> getById(String id) async {
     try {
-      final personas = await _readAll();
-      final persona = personas.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('Persona not found: $id'),
-      );
+      final row = await _dbHelper.getPersonaById(id);
+      if (row == null) {
+        return Result.failure('Persona not found: $id');
+      }
+      final persona = PersonaModel.fromMap(row);
       return Result.success(persona);
     } on Exception catch (e) {
       return Result.failure('Failed to find persona', e);
@@ -52,13 +48,13 @@ class PersonaRepository {
 
   Future<Result<PersonaModel>> update(PersonaModel updated) async {
     try {
-      final personas = await _readAll();
-      final index = personas.indexWhere((p) => p.id == updated.id);
-      if (index == -1) {
+      // Check if persona exists
+      final existing = await _dbHelper.getPersonaById(updated.id);
+      if (existing == null) {
         return Result.failure('Persona not found: ${updated.id}');
       }
-      personas[index] = updated;
-      await _writeAll(personas);
+      
+      await _dbHelper.updatePersona(updated);
       return Result.success(updated);
     } on Exception catch (e) {
       return Result.failure('Failed to update persona', e);
@@ -69,46 +65,26 @@ class PersonaRepository {
 
   Future<Result<bool>> delete(String id) async {
     try {
-      final personas = await _readAll();
-      // Достаём путь к аватару ДО удаления из списка
-      final matches = personas.where((p) => p.id == id).toList();  // если не найден — null
-
-      if (matches.isNotEmpty && matches.first.avatarPath != null) {
-        try {
-          final f = File(matches.first.avatarPath!);
-          if (f.existsSync()) f.deleteSync();
-        } catch (_) {}
+      // Get persona to check for avatar file
+      final row = await _dbHelper.getPersonaById(id);
+      if (row != null) {
+        final persona = PersonaModel.fromMap(row);
+        // Delete avatar file if exists
+        if (persona.avatarPath != null) {
+          try {
+            final f = File(persona.avatarPath!);
+            if (f.existsSync()) f.deleteSync();
+          } catch (_) {}
+        }
       }
 
-      personas.removeWhere((p) => p.id == id);
-
-      await _writeAll(personas);
+      // Delete from database
+      await _dbHelper.deletePersona(id);
       // Clean up all SQLite branches & messages for this persona.
-      await DatabaseHelper.instance.deleteAllForEntity('single:$id');
+      await _dbHelper.deleteAllForEntity('single:$id');
       return Result.success(true);
     } on Exception catch (e) {
       return Result.failure('Failed to delete persona', e);
     }
-  }
-
-  // ── INTERNAL HELPERS ────────────────────────────────────────────────────
-
-  Future<List<PersonaModel>> _readAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    log('PREFS_READ key=$_storageKey, value length=${raw?.length ?? 0}', name: 'PREFS_READ');
-    if (raw == null || raw.isEmpty) return [];
-    final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
-    return decoded
-        .map((e) => PersonaModel.fromMap(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<void> _writeAll(List<PersonaModel> personas) async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = jsonEncode(personas.map((p) => p.toMap()).toList());
-    final preview = encoded.length > 100 ? encoded.substring(0, 100) : encoded;
-    log('PREFS_WRITE key=$_storageKey, value preview: $preview', name: 'PREFS_WRITE');
-    await prefs.setString(_storageKey, encoded);
   }
 }

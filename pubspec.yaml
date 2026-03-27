@@ -3,6 +3,16 @@ description: "NSFW AI Roleplay Chat App"
 publish_to: 'none'
 version: 1.0.0+1
 
+flutter_native_splash:
+  color: "#000000"
+  image: assets/logos/logo_1.jpg
+  android_12:
+    color: "#000000"
+    image: assets/logos/logo_1.jpg
+    icon_background_color: "#000000"
+    image_percent: 35
+  web: false
+
 environment:
   sdk: ^3.7.2
 
@@ -28,11 +38,13 @@ dependencies:
   sqflite_common_ffi: ^2.3.3
   path: any
   collection: ^1.19.0
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
 
 flutter:
   generate: true

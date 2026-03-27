@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,25 +12,67 @@ import '../../core/factory/database_helper.dart';
 /// Two default personas are seeded on first launch:
 ///   • Наташа / Natasha — flirty, playful girl (adult, explicit content allowed)
 ///   • Аня / Anna — shy, romantic girl (adult, explicit content allowed)
-class PersonaNotifier extends StateNotifier<List<PersonaEntity>> {
-  final PersonaRepository _repo;
+class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
+  PersonaRepository get _repo => ref.read(personaRepositoryProvider);
 
-  PersonaNotifier(this._repo) : super([]) {
-    _init();
-  }
+    @override
+    Future<List<PersonaEntity>> build() async {
+      final result = await _repo.getAll();
 
-  Future<void> _init() async {
-    final result = await _repo.getAll();
-    result.when(
-      success: (models) {
-        if (models.isEmpty) {
-          _seedDefaults();
-        } else {
-          state = PersonaMapper.toEntityList(models);
-        }
-      },
-      failure: (_, __) => _seedDefaults(),
-    );
+      return await result.when(
+        success: (models) async {
+          if (models.isEmpty) {
+            final locale = await _getDeviceLocale();
+            final personas = _getDefaultPersonas(locale);
+
+            for (final model in personas) {
+              await _repo.create(model);
+            }
+
+            await _seedPrompts(personas);
+            return PersonaMapper.toEntityList(personas);
+          } else {
+            return PersonaMapper.toEntityList(models);
+          }
+        },
+        failure: (_, __) async {
+          final locale = await _getDeviceLocale();
+          final personas = _getDefaultPersonas(locale);
+
+          for (final model in personas) {
+            await _repo.create(model);
+          }
+
+          await _seedPrompts(personas);
+          return PersonaMapper.toEntityList(personas);
+        },
+      );
+    }
+
+
+
+
+  /// Explicitly load personas from database.
+  Future<void> load() async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repo.getAll();
+      result.when(
+        success: (models) async {
+          if (models.isEmpty) {
+            await _seedDefaults();
+          } else {
+            state = AsyncValue.data(PersonaMapper.toEntityList(models));
+          }
+        },
+        failure: (message, error) async {
+          // On failure, try to seed defaults
+          await _seedDefaults();
+        },
+      );
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
   }
 
   /// Gets the current device locale for seeding.
@@ -51,16 +92,15 @@ class PersonaNotifier extends StateNotifier<List<PersonaEntity>> {
 
   /// Seeds two default personas on first launch based on device locale.
   Future<void> _seedDefaults() async {
-    final locale = await _getDeviceLocale(); // вот здесь получаем локаль
-    final personas = _getDefaultPersonas(locale); // ID уже есть внутри каждой модели
+    final locale = await _getDeviceLocale();
+    final personas = _getDefaultPersonas(locale);
 
     for (final model in personas) {
       await _repo.create(model);
     }
 
-    await _seedPrompts(personas); // передаём список — ID берём из personas[0].id и personas[1].id
-
-    state = PersonaMapper.toEntityList(personas);
+    await _seedPrompts(personas);
+    state = AsyncValue.data(PersonaMapper.toEntityList(personas));
   }
 
   Future<void> _seedPrompts(List<PersonaModel> personas) async {
@@ -128,22 +168,25 @@ class PersonaNotifier extends StateNotifier<List<PersonaEntity>> {
     final model = PersonaMapper.toModel(entity);
     final result = await _repo.create(model);
     result.when(
-      success: (_) => state = [...state, entity],
+      success: (_) {
+        final current = state.valueOrNull ?? [];
+        state = AsyncValue.data([...current, entity]);
+      },
       failure: (_, __) {},
     );
   }
 
   /// Update an existing persona.
-  Future<void> update(PersonaEntity entity) async {
+  Future<void> updatePersona(PersonaEntity entity) async {
     final model = PersonaMapper.toModel(entity);
     final result = await _repo.update(model);
     result.when(
       success: (_) {
-        if (!mounted) return; // добавить эту строку
-        state = [
-          for (final p in state)
+        final current = state.valueOrNull ?? [];
+        state = AsyncValue.data([
+          for (final p in current)
             if (p.id == entity.id) entity else p,
-        ];
+        ]);
       },
       failure: (_, __) {},
     );
@@ -153,23 +196,32 @@ class PersonaNotifier extends StateNotifier<List<PersonaEntity>> {
   Future<void> delete(String id) async {
     final result = await _repo.delete(id);
     result.when(
-      success: (_) => state = state.where((p) => p.id != id).toList(),
+      success: (_) {
+        final current = state.valueOrNull ?? [];
+        state = AsyncValue.data(current.where((p) => p.id != id).toList());
+      },
       failure: (_, __) {},
     );
   }
 
-  /// Get a single persona by id.
+  /// Get a single persona by id from current state.
   PersonaEntity? getById(String id) {
+    final current = state.valueOrNull;
+    if (current == null) return null;
     try {
-      return state.firstWhere((p) => p.id == id);
+      return current.firstWhere((p) => p.id == id);
     } catch (_) {
       return null;
     }
   }
 }
 
+/// Provider for PersonaRepository
+final personaRepositoryProvider = Provider<PersonaRepository>((ref) {
+  return PersonaRepository();
+});
+
 /// Riverpod provider for personas.
-final personaProvider =
-    StateNotifierProvider<PersonaNotifier, List<PersonaEntity>>(
-  (ref) => PersonaNotifier(PersonaRepository()),
+final personaProvider = AsyncNotifierProvider<PersonaNotifier, List<PersonaEntity>>(
+  PersonaNotifier.new,
 );

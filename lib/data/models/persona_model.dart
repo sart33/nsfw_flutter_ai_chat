@@ -30,10 +30,10 @@ class PersonaModel {
         'name': name,
         'description': description,
         'greeting': greeting,
-        'avatarPath': avatarPath,
-        'avatarAssetPath': avatarAssetPath,
+        'avatar_path': avatarPath,
+        'avatar_asset_path': avatarAssetPath,
         'behavior': behavior,
-        'galleryMode': galleryMode,
+        'gallery_mode': galleryMode,
       };
 
   factory PersonaModel.fromMap(Map<String, dynamic> map) => PersonaModel(
@@ -41,10 +41,10 @@ class PersonaModel {
         name: map['name'] as String,
         description: map['description'] as String,
         greeting: map['greeting'] as String,
-        avatarPath: map['avatarPath'] as String?,
-        avatarAssetPath: map['avatarAssetPath'] as String?,
+        avatarPath: map['avatar_path'] as String?,
+        avatarAssetPath: map['avatar_asset_path'] as String?,
         behavior: map['behavior'] as String?,
-        galleryMode: (map['galleryMode'] as String?) ?? 'nude',
+        galleryMode: (map['gallery_mode'] as String?) ?? 'nude',
       );
 
   String toJson() => jsonEncode(toMap());
