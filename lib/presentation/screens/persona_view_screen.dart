@@ -66,7 +66,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         ),
         body: Center(
           child: Text(
-            'Error loading character: $error',
+            '${context.l10n.errorLoadingCharacters}$error',
             style: const TextStyle(color: AppTheme.warning),
           ),
         ),
@@ -417,7 +417,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     final modes = [
       (value: 'romantic', label: context.l10n.romantic, icon: Icons.favorite_border),
       (value: 'erotic',   label: context.l10n.erotic,   icon: Icons.local_fire_department),
-      (value: 'office',   label: context.l10n.office,   icon: Icons.business_center_outlined),
+      // (value: 'office',   label: context.l10n.office,   icon: Icons.business_center_outlined),
       (value: 'nude',     label: '18+',                 icon: Icons.whatshot),
     ];
 
@@ -488,8 +488,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            'Режим по умолчанию задаётся в редактировании персонажа',
+          Text(context.l10n.defaultModeHint,
             style: const TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 11,
@@ -511,8 +510,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Gallery',
+            Text(context.l10n.gallery,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,

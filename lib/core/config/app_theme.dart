@@ -12,14 +12,16 @@ class AppTheme {
   static const Color userIcon      = Color(0xFF919191);
   static const Color aiBubble      = Color(0xFF111111);
   static const Color primaryAccent = Color(0xFFAA7EF4); // фиолетовый акцент
-  static const Color accentVivid   = Color(0xFF7C3AED); // FAB / иконки AppBar
+  static const Color accentVivid   = Color(0xBE7C3AED);
+  // FAB / иконки AppBar
+  static const Color accentVividInputBorder   = Color(0x7C3AEDBE); // FAB / иконки AppBar
   static const Color accentLight   = Color(0xFFAB76FF); // иконки в карточках
   static const Color cardBorder    = Color(0xFF393948); // бордер карточек
   static const Color textPrimary   = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B0B0);
   static const Color textThird     = Color(0xFFD0D0D0);
   static const Color error         = Color(0xFFB71C1C);
-  static const Color success       = Color(0xFF03DAC6);
+  static const Color success       = Color(0xFF068733);
   static const Color warning       = Color(0xFFE65100);
 
   // ── Shared card decoration ────────────────────────────────────────────

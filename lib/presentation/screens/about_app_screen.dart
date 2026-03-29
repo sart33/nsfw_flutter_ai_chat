@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import '../../core/config/app_theme.dart';
@@ -187,19 +188,14 @@ class AboutAppContent extends StatelessWidget {
     return _buildSection(
       context.l10n.aboutTitle, // '🧠 About the App'
       children: [
-        _buildParagraph(context.l10n.aboutAppName),
+        _buildParagraph('Uncensored Souls v:${AppConfig.appVersion}'),
+        _buildParagraph(context.l10n.aboutNoCensorshipTitle),
         // 'Uncensored AI Roleplay Chat'
         _buildBulletList([
-          context.l10n.aboutLocal, // '✓ Fully local'
-          context.l10n.aboutNoSub, // '✓ No subscription'
-          context.l10n.aboutNoServer, // '✓ No data on developer servers'
+          context.l10n.aboutNoCensorshipText,
+          context.l10n.aboutNoCensorshipImages, // '✓ Fully local'
         ]),
-        _buildParagraph(context.l10n.aboutPlatforms),
-        _buildBulletList([
-          "Android", // '✓ Fully local'
-          "Windows (Beta)",
-          "macOS (Alpha)",
-        ]),
+
         _buildParagraph(context.l10n.aboutStorage),
         // 'All chats, characters, images and API keys stored only on your device.'
         _buildParagraph(context.l10n.imagesWarningLabel),
@@ -209,6 +205,12 @@ class AboutAppContent extends StatelessWidget {
           // 'Not visible in Android gallery'
           context.l10n.imagesVisibleInApp,
           // 'Accessible only inside the app'
+        ]),
+        _buildParagraph(context.l10n.aboutPlatforms),
+        _buildBulletList([
+          "Android", // '✓ Fully local'
+          "Windows (Beta)",
+          "macOS (Alpha)",
         ]),
       ],
     );
@@ -279,7 +281,7 @@ class AboutAppContent extends StatelessWidget {
           onPressed: () {
 
           },
-          child: const Text("Project Page"),
+          child:  Text(context.l10n.projectPage), // "Project page"
         ),
 
         const SizedBox(height: 16),
@@ -294,7 +296,7 @@ class AboutAppContent extends StatelessWidget {
           onPressed: () {
 
           } ,
-          child: const Text("Instruction"),
+          child: Text(context.l10n.instruction),
         ),
         const SizedBox(height: 24),
       ],

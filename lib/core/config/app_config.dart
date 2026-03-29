@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AppConfig {
   AppConfig._();
 
+  static const String appVersion = '1.0.0';
+
   // ── DeepSeek API ──────────────────────────────────────────────────────
   /// Base URL for the DeepSeek chat completions endpoint.
   static const String deepSeekBaseUrl = 'https://api.deepseek.com';

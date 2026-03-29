@@ -143,12 +143,7 @@
   "savingError": "Saving error",
   "system": "System",
   "historyLoadingError": "History loading error",
-  "charactersCount": "{count} characters",
-  "@charactersCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
+  "charactersCount": "characters",
   "editCharacter": "Edit",
   "senderYou": "You",
   "senderSystem": "System",
@@ -200,9 +195,6 @@
   "aboutAppTitle": "About the App",
   "aboutTitle": "🧠 About the App",
   "aboutAppName": "Uncensored AI Roleplay Chat",
-  "aboutLocal": "Fully local",
-  "aboutNoSub": "No subscription",
-  "aboutNoServer": "No data stored on developer servers",
   "aboutStorage": "All chats, characters, images and API keys are stored only on your device.",
   "imagesWarningLabel": "⚠️ Images:",
   "imagesHiddenFromGallery": "Not visible in the Android gallery",
@@ -279,8 +271,7 @@
   "enterNameTwo": "Enter name",
 
 
-  "defaultModeHint": "Default mode is set in character editing",
-  "costPrivacySupport": "Cost, privacy, project support",
+  "defaultModeHint": "The gallery mode chosen in the character card (18+, Erotica, or Romance) decides which images will be shown when you tap the character's avatar in the chat",  "costPrivacySupport": "Cost, privacy, project support",
   "autoDeleteOldChatImages": "Auto-delete old chat images",
   "autoDeleteOldChatImagesDescription": "Automatically delete chat images older than specified days",
   "autoDeleteAfterDays": "days",
@@ -294,4 +285,35 @@
   "contacts": "\uD83D\uDCAC Contacts",
   "support" : "\uD83D\uDCAC Support",
   "aboutPlatforms": "Available on:",
-  "supportFeedback": "If you supported the project and have ideas or wishes — feel free to write me.\nI read every message."}
+  "supportFeedback": "If you supported the project and have ideas or wishes — feel free to write me.\nI read every message.",
+
+  "browseGalleryOrCreatePersona": "Browse the gallery or create a new custom persona from scratch.",
+  "startGroupScenarios": "Start dynamic group scenarios with multiple AI characters at once.",
+  "configureAppPreferences": "Adjust character creativity, personality drift, and long chat summarization",
+  "continueRoleplay": "Continue Roleplay",
+  "viewAll": "View all",
+  "noRecentChats": "No recent chats yet. Start a new one!",
+  "minutesAgo": "m ago",
+  "hoursAgo": "h ago",
+  "yesterday": "Yesterday",
+  "daysAgo": "d ago",
+  "errorLoadingCharacters": "Error loading characters: ",
+  "newMultiChat": "New multi chat",
+  "newPersona": "New persona",
+  "enterTitle": "Enter title",
+  "defaultModeDescription": "The default mode is set in the character edit screen",
+  "autoDeleteImages": "Auto-delete old chat images",
+  "autoDeleteImagesDescription": "Automatically delete chat images older than specified days",
+  "days": "days",
+  "projectSupport": "Project support",
+  "appSettingsDescription": "Pricing, privacy, and app settings",
+  "mainTitle": "Uncensored AI Roleplay",
+  "mainSubtitle": "Create characters and any scenarios. Generate scenes directly in chat.",
+  "mainText": "• Fully local\n• No subscription\n• Very low cost",
+  "aboutNoCensorshipTitle": "\uD83D\uDD13 No Censorship",
+  "aboutNoCensorshipText": "You can discuss any topics, in any form and style — with no restrictions or limits.",
+  "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them."
+
+}
+
+

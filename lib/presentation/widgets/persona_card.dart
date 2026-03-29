@@ -8,12 +8,15 @@ class PersonaCard extends StatelessWidget {
   final PersonaEntity persona;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final VoidCallback? onMoreTap;
+
 
   const PersonaCard({
     super.key,
     required this.persona,
     this.onTap,
     this.onLongPress,
+    this.onMoreTap,
   });
 
   @override
@@ -73,8 +76,11 @@ class PersonaCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.chevron_right,
-                    color: AppTheme.textSecondary, size: 20),
+                GestureDetector(
+                  onTap: onMoreTap,
+                  child: const Icon(Icons.more_vert,
+                      color: AppTheme.textSecondary, size: 20),
+                ),
               ],
             ),
           ),

@@ -41,13 +41,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          const SizedBox(height: 28),
+          const SizedBox(height: 18),
           const _Headline(),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
           _NavCard(
             icon: Icons.people_alt_outlined,
             title: context.l10n.characters,
-            subtitle: 'Browse the gallery or create a new custom persona from scratch.',
+            subtitle: context.l10n.browseGalleryOrCreatePersona,
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const PersonaListScreen())).then((_) => ref.invalidate(recentChatsProvider)),
           ),
@@ -55,7 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _NavCard(
             icon: Icons.chat_bubble_outline,
             title: context.l10n.multiChat,
-            subtitle: 'Start dynamic group scenarios with multiple AI characters at once.',
+            subtitle: context.l10n.startGroupScenarios,
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const MultiPresetListScreen())).then((_) => ref.invalidate(recentChatsProvider)),
           ),
@@ -63,14 +63,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _NavCard(
             icon: Icons.tune_outlined,
             title: context.l10n.settings,
-            subtitle: 'Configure your app preferences, safety filters, and API models.',
+            subtitle: context.l10n.configureAppPreferences,
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
           const SizedBox(height: 36),
           _SectionHeader(
-            title: 'Continue Roleplay',
-            actionLabel: 'View all',
+            title: context.l10n.continueRoleplay,
+            actionLabel: context.l10n.viewAll,
             onAction: () {/* TODO */},
           ),
           const SizedBox(height: 12),
@@ -108,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(width: 10),
           const Text(
-            'Aura RP',
+            'Uncensored Souls',
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 18,
@@ -141,14 +141,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _showPersonaPicker(BuildContext context, WidgetRef ref) async {
     final personasAsync = ref.read(personaProvider);
 
-    final personas = await personasAsync.when(
-      data: (list) async => list,
-      loading: () =>
-      ref
-          .read(personaProvider.notifier)
-          .future,
-      error: (_, __) async => <PersonaEntity>[],
-    );
+    final personas = switch (personasAsync) {
+      AsyncData(:final value) => value,
+      AsyncLoading() => await ref.read(personaProvider.future),
+      AsyncError() => <PersonaEntity>[],
+      _ => <PersonaEntity>[],
+    };
 
     if (!context.mounted) return;
 
@@ -210,11 +208,10 @@ class _Headline extends StatelessWidget {
   const _Headline();
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Where imagination\ntakes over.',
+        Text(context.l10n.mainTitle,
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: 30,
@@ -224,14 +221,27 @@ class _Headline extends StatelessWidget {
           ),
         ),
         SizedBox(height: 10),
-        Text(
-          'Step into new worlds, create unforgettable personas, and explore '
-              'limitless scenarios with advanced AI roleplay.',
+        Text(context.l10n.mainSubtitle,
           style: TextStyle(
             color: AppTheme.textSecondary,
             fontSize: 14,
             height: 1.5,
           ),
+        ),
+        SizedBox(height: 10),
+        Row(
+          children: [
+            SizedBox(width: MediaQuery.of(context).size.width * 0.5 - 20), // отступ для выравнивания с правой частью
+            Text(context.l10n.mainText,
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 14,
+                height: 1.5,
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w400
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -260,7 +270,7 @@ class _NavCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: AppTheme.cardDecoration(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
             children: [
               Container(
@@ -287,7 +297,7 @@ class _NavCard extends StatelessWidget {
                         style: const TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: 13,
-                            height: 1.4)),
+                            height: 1.4,)),
                   ],
                 ),
               ),
@@ -312,22 +322,21 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const whiteStyle = TextStyle(color: AppTheme.textPrimary,fontSize: 18,
+        fontWeight: FontWeight.w400);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title,
-            style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w700)),
-        GestureDetector(
-          onTap: onAction,
-          child: const Text('View all',
-              style: TextStyle(
-                  color: AppTheme.accentLight,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500)),
-        ),
+            style: whiteStyle),
+        // GestureDetector(
+        //   onTap: onAction,
+        //   child: Text(context.l10n.viewAll,
+        //       style: TextStyle(
+        //           color: AppTheme.accentLight,
+        //           fontSize: 14,
+        //           fontWeight: FontWeight.w500)),
+        // ),
       ],
     );
   }
@@ -347,10 +356,9 @@ class _RecentChatsList extends ConsumerWidget {
       error: (_, __) => const SizedBox.shrink(),
       data: (chats) {
         if (chats.isEmpty) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              'No recent chats yet. Start a new one!',
+            child: Text(context.l10n.noRecentChats,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
             ),
           );
@@ -367,13 +375,13 @@ class _RecentChatCard extends ConsumerWidget {
   final RecentChatEntity chat;
   const _RecentChatCard({required this.chat});
 
-  String _formatTime(DateTime dt) {
+  String _formatTime(BuildContext context, DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays == 1) return 'Yesterday';
-    return '${diff.inDays}d ago';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}${context.l10n.minutesAgo}';
+    if (diff.inHours < 24) return '${diff.inHours}${context.l10n.hoursAgo}';
+    if (diff.inDays == 1) return context.l10n.yesterday;
+    return '${diff.inDays}${context.l10n.daysAgo}';
   }
 
   @override
@@ -427,7 +435,7 @@ class _RecentChatCard extends ConsumerWidget {
                                     fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 8),
-                          Text(_formatTime(chat.updatedAt),
+                          Text(_formatTime(context, chat.updatedAt),
                               style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 12)),

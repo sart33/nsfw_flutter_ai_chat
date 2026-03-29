@@ -314,7 +314,7 @@ class _TemplateNameLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
-      future: _loadName(),
+      future: _loadName(context),
       builder: (_, snap) {
         final name = snap.data ?? '...';
         return Text(name,
@@ -324,13 +324,13 @@ class _TemplateNameLabel extends StatelessWidget {
     );
   }
 
-  Future<String> _loadName() async {
+  Future<String> _loadName(BuildContext context) async {
     final json =
         await rootBundle.loadString('assets/json/image_templates.json');
     final list = jsonDecode(json) as List;
     final t = list.firstWhere(
       (e) => (e as Map<String, dynamic>)['id'] == templateId,
-      orElse: () => {'name': 'Шаблон #$templateId'},
+      orElse: () => {'name': '${context.l10n.templateNumber} #$templateId'},
     ) as Map<String, dynamic>;
     return t['name'] as String;
   }

@@ -52,9 +52,7 @@ class PendingImageWidget extends StatelessWidget {
                           top: Radius.circular(12)),
                     ),
                     child: const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF7C4DFF),
-                      ),
+                      child: CircularProgressIndicator(color: AppTheme.accentVivid)
                     ),
                   ),
                 ),
@@ -87,7 +85,7 @@ class PendingImageWidget extends StatelessWidget {
                   icon: const Icon(Icons.save_alt, size: 18),
                   label: Text(context.l10n.save),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
+                    backgroundColor: AppTheme.accentVivid,
                     foregroundColor: Colors.white,
                   ),
                 ),

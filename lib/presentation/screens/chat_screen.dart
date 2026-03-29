@@ -225,7 +225,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // Find index of last AI message (for regen button).
     final lastAiIdx =
         chatState.messages.lastIndexWhere((m) => !m.isUser);
-
+    const whiteStyle = TextStyle(color: AppTheme.textPrimary,fontSize: 20,
+        fontWeight: FontWeight.w400);
     return Scaffold(
       appBar: AppBar(
       backgroundColor: AppTheme.background,
@@ -242,18 +243,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         child: Text(
           widget.title,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: whiteStyle
         ),
       )
           : Text(widget.title,
-          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 18)),
+          style: whiteStyle),
       actions: [
         IconButton(
-          icon: const Icon(Icons.info_outline, size: 26, color: AppTheme.accentVivid),
+          icon: const Icon(Icons.info_outline, size: 26, color: AppTheme.textSecondary),
           onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => AboutAppScreen()),
@@ -286,7 +283,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 if (index == chatState.messages.length + (chatState.isLoading ? 1 : 0)) {
                   return !widget.isMulti && _singlePersona != null
                       ? GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(
+                    onTap: () => _openGalleryFromAvatar(context),
+                    onLongPress: () => Navigator.push(context, MaterialPageRoute(
                       builder: (_) => PersonaViewScreen(persona: _singlePersona!),
                     )),
                     child: Container(
@@ -341,7 +339,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: GestureDetector(
-                            onTap: () => Navigator.push(
+                            onTap: () => _openGalleryFromMultiAvatar(context, p.name),
+                            onLongPress: () => Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => PersonaViewScreen(persona: p),

@@ -104,7 +104,7 @@ class SettingsScreen extends ConsumerWidget {
             _NavTile(
               icon: Icons.info_outline,
               title: context.l10n.aboutAppTitle,
-              subtitle: 'Стоимость, приватность, поддержка проекта',
+              subtitle: context.l10n.appSettingsDescription,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(
                       builder: (_) => const AboutAppScreen())),
@@ -118,7 +118,7 @@ class SettingsScreen extends ConsumerWidget {
             _NavTile(
               icon: Icons.money,
               title: context.l10n.supportProjectTitle,
-              subtitle: 'Стоимость, приватность, поддержка проекта',
+              subtitle: context.l10n.projectSupport,
               onTap: () =>
                   Navigator.push(context,
                       MaterialPageRoute(
@@ -226,17 +226,16 @@ class SettingsScreen extends ConsumerWidget {
           // ── Auto-delete chat images ────────────────────────────
           _SettingsCard(children: [
             _SwitchTile(
-              title: 'Auto-delete old chat images',
-              subtitle:
-              'Automatically delete chat images older than specified days',
+              title: context.l10n.autoDeleteImages,
+              subtitle:context.l10n.autoDeleteImagesDescription,
               value: settings.autoDeleteChatImagesEnabled,
               onChanged: (v) => notifier.setAutoDeleteEnabled(v),
             ),
             if (settings.autoDeleteChatImagesEnabled) ...[
               _Divider(),
               _SliderTile(
-                title: 'Auto-delete after',
-                valueLabel: '${settings.autoDeleteChatImagesDays} days',
+                title: context.l10n.autoDeleteAfter,
+                valueLabel: '${settings.autoDeleteChatImagesDays} ${context.l10n.days}',
                 value: settings.autoDeleteChatImagesDays.toDouble(),
                 min: 7,
                 max: 60,

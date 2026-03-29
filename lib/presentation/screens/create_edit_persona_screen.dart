@@ -58,7 +58,7 @@ class _CreateEditPersonaScreenState
     if (_isEdit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final persona =
-            ref.read(personaProvider.notifier).getById(widget.personaId!);
+        ref.read(personaProvider.notifier).getById(widget.personaId!);
         if (persona != null) {
           _nameCtrl.text = persona.name;
           _descCtrl.text = persona.description;
@@ -79,6 +79,7 @@ class _CreateEditPersonaScreenState
     _descCtrl.dispose();
     _greetCtrl.dispose();
     _behaviorCtrl.dispose();
+
     super.dispose();
   }
 
@@ -99,6 +100,35 @@ class _CreateEditPersonaScreenState
       ) : null,
     ));
   }
+
+  // ── Shared InputDecoration theme ─────────────────────────────────────────
+
+  InputDecoration _fieldDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: AppTheme.textSecondary),
+      filled: true,
+      fillColor: AppTheme.background,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppTheme.cardBorder, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppTheme.accentVivid, width: 1),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -121,16 +151,12 @@ class _CreateEditPersonaScreenState
               TextFormField(
                 controller: _nameCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: InputDecoration(
-                  labelText: context.l10n.nameLabel,
-                  labelStyle: TextStyle(color: AppTheme.textSecondary),
-                ),
-                onChanged: (_) => setState(() {}), // rebuild to update button state
+                decoration: _fieldDecoration(context.l10n.nameLabel),
+                onChanged: (_) => setState(() {}),
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? context.l10n.enterName : null,
+                (v == null || v.trim().isEmpty) ? context.l10n.enterName : null,
               ),
-              const SizedBox(height: 16),
-
+                            const SizedBox(height: 24),
               // ── Description ────────────────────────────────────
               _buildCountedField(
                 controller: _descCtrl,
@@ -154,67 +180,34 @@ class _CreateEditPersonaScreenState
                 controller: _behaviorCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
                 maxLines: 6,
-                decoration: InputDecoration(
-                  labelText: context.l10n.behaviorOptional,
-                  labelStyle: TextStyle(color: AppTheme.textSecondary),
+                decoration: _fieldDecoration(context.l10n.behaviorOptional).copyWith(
                   hintText: context.l10n.aiInstructions,
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // ── Gallery mode selector ──────────────────────────
-              // Text(
-              //   'Режим галереи',
-              //   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-              // ),
-              // const SizedBox(height: 8),
-              // SegmentedButton<String>(
-              //   segments: const [
-              //     ButtonSegment(
-              //       value: 'romantic',
-              //       label: Text('Романтика'),
-              //       icon: Icon(Icons.favorite_border, size: 16),
-              //     ),
-              //     ButtonSegment(
-              //       value: 'erotic',
-              //       label: Text('Эротика'),
-              //       icon: Icon(Icons.local_fire_department, size: 16),
-              //     ),
-              //     ButtonSegment(
-              //       value: 'office',
-              //       label: Text('Офис'),
-              //       icon: Icon(Icons.business_center_outlined, size: 16),
-              //     ),
-              //     ButtonSegment(
-              //       value: 'nude',
-              //       label: Text('NSFW'),
-              //       icon: Icon(Icons.whatshot, size: 16),
-              //     ),
-              //   ],
-              //   selected: {_galleryMode},
-              //   onSelectionChanged: (Set<String> selected) {
-              //     setState(() => _galleryMode = selected.first);
-              //   },
-              //   style: ButtonStyle(
-              //     backgroundColor: WidgetStateProperty.resolveWith((states) {
-              //       if (states.contains(WidgetState.selected)) {
-              //         return AppTheme.primaryAccent;
-              //       }
-              //       return const Color(0xFF1A1A1A);
-              //     }),
-              //     foregroundColor: WidgetStateProperty.all(Colors.white),
-              //     side: WidgetStateProperty.all(
-              //         const BorderSide(color: Color(0xFF333333))),
-              //   ),
-              // ),
-              // const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // ── Save button ────────────────────────────────────
               SizedBox(
-                height: 48,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: _isGeneratingAvatar ? null : _save,
-                  child: Text(_isEdit ? context.l10n.save : context.l10n.create),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentVivid,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppTheme.cardBg,
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                  ),
+                  child: Text(
+                    _isEdit ? context.l10n.save : context.l10n.create,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -247,8 +240,8 @@ class _CreateEditPersonaScreenState
               icon: Icons.auto_awesome,
               label: context.l10n.generate,
               onPressed: (_isGeneratingAvatar ||
-                      _nameCtrl.text.trim().isEmpty ||
-                      _descCtrl.text.trim().isEmpty)
+                  _nameCtrl.text.trim().isEmpty ||
+                  _descCtrl.text.trim().isEmpty)
                   ? null
                   : _generateAvatar,
             ),
@@ -362,7 +355,7 @@ class _CreateEditPersonaScreenState
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add_a_photo, color: AppTheme.textSecondary),
+                Icon(Icons.add_a_photo_outlined, color: AppTheme.textSecondary),
                 SizedBox(height: 4),
                 Text(
                   context.l10n.avatar,
@@ -374,6 +367,10 @@ class _CreateEditPersonaScreenState
     );
   }
 
+  // ── Action buttons (Из галереи / Сгенерировать) ──────────────────────────
+  // Active state: violet fill (accentVivid), white text — matches View screen chips.
+  // Disabled state: cardBg fill, cardBorder border, secondary text.
+
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -384,13 +381,14 @@ class _CreateEditPersonaScreenState
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: OutlinedButton.styleFrom(
+        backgroundColor: AppTheme.cardBg,
         foregroundColor: onPressed == null
             ? AppTheme.textSecondary
             : AppTheme.textPrimary,
         side: BorderSide(
           color: onPressed == null
               ? AppTheme.textSecondary.withAlpha(80)
-              : AppTheme.userBubble,
+              : AppTheme.cardBorder,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       ),
@@ -435,7 +433,7 @@ class _CreateEditPersonaScreenState
             ),
             ListTile(
               leading:
-                  const Icon(Icons.camera_alt, color: AppTheme.textPrimary),
+                  const Icon(Icons.camera_alt_outlined, color: AppTheme.textPrimary),
               title: Text(context.l10n.camera,
                   style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
@@ -591,21 +589,25 @@ class _CreateEditPersonaScreenState
               maxLines: maxLines,
               decoration: InputDecoration(
                 labelText: label,
-                labelStyle:
-                    const TextStyle(color: AppTheme.textSecondary),
-                enabledBorder: over
-                    ? OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red),
-                      )
-                    : null,
-                focusedBorder: over
-                    ? OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: Colors.red, width: 2),
-                      )
-                    : null,
+                labelStyle: const TextStyle(color: AppTheme.textSecondary),
+                filled: true,
+                fillColor: AppTheme.background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: over ? Colors.red : AppTheme.cardBorder,
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: over ? Colors.red : AppTheme.accentVivid,
+                    width: 1,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
               ),
               onChanged: (_) => setInner(() {}),
             ),

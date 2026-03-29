@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 
 import '../widgets/custom_app_bar_widget.dart';
@@ -39,9 +40,9 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
         _deepSeekSaved = deepSeekKey.isNotEmpty;
         _novitaSaved = novitaKey.isNotEmpty;
         _deepSeekController.text =
-            deepSeekKey.isNotEmpty ? _maskKey(deepSeekKey) : '';
+        deepSeekKey.isNotEmpty ? _maskKey(deepSeekKey) : '';
         _novitaController.text =
-            novitaKey.isNotEmpty ? _maskKey(novitaKey) : '';
+        novitaKey.isNotEmpty ? _maskKey(novitaKey) : '';
       });
     } finally {
       setState(() {
@@ -74,26 +75,27 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     final confirmed =
         await showDialog<bool>(
           context: context,
-          builder:
-              (context) => AlertDialog(
-                title: Text(context.l10n.deleteDeepSeekKey),
-                content: Text(context.l10n.chatWillStopWorking),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(context.l10n.cancel),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(
-                      context.l10n.delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
+          builder: (context) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(context.l10n.deleteDeepSeekKey,
+                style: const TextStyle(color: AppTheme.textPrimary)),
+            content: Text(context.l10n.chatWillStopWorking,
+                style: const TextStyle(color: AppTheme.textSecondary)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(context.l10n.cancel,
+                    style: const TextStyle(color: AppTheme.textSecondary)),
               ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(context.l10n.delete,
+                    style: const TextStyle(color: AppTheme.warning)),
+              ),
+            ],
+          ),
         ) ??
-        false;
+            false;
 
     if (!confirmed) return;
 
@@ -124,26 +126,27 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     final confirmed =
         await showDialog<bool>(
           context: context,
-          builder:
-              (context) => AlertDialog(
-                title: Text(context.l10n.deleteNovitaKey),
-                content: Text(context.l10n.imageGenerationWillStop),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(context.l10n.cancel),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(
-                      context.l10n.delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
+          builder: (context) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(context.l10n.deleteNovitaKey,
+                style: const TextStyle(color: AppTheme.textPrimary)),
+            content: Text(context.l10n.imageGenerationWillStop,
+                style: const TextStyle(color: AppTheme.textSecondary)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(context.l10n.cancel,
+                    style: const TextStyle(color: AppTheme.textSecondary)),
               ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(context.l10n.delete,
+                    style: const TextStyle(color: AppTheme.warning)),
+              ),
+            ],
+          ),
         ) ??
-        false;
+            false;
 
     if (!confirmed) return;
 
@@ -157,10 +160,50 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: AppTheme.success,
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+     duration: const Duration(seconds: 3)),
     );
   }
+
+  // ── Shared field decoration ───────────────────────────────────────────────
+
+  InputDecoration _fieldDecoration({
+    required String hint,
+    required bool obscure,
+    required VoidCallback toggleObscure,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: AppTheme.textSecondary),
+      filled: true,
+      fillColor: AppTheme.background,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppTheme.cardBorder, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppTheme.accentVivid, width: 1),
+      ),
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      suffixIcon: IconButton(
+        onPressed: toggleObscure,
+        icon: Icon(
+          obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          color: AppTheme.primaryAccent,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  // ── Key card ──────────────────────────────────────────────────────────────
 
   Widget _buildKeyCard({
     required String title,
@@ -176,94 +219,108 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     required String emptyHint,
     required ValueChanged<String> onChanged,
   }) {
-    return Card(
-      color: const Color(0xFF111111),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Subtitle
+          Text(
+            subtitle,
+            style: const TextStyle(
+                color: AppTheme.textSecondary, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+
+          // Status badge
+          Row(
+            children: [
+              Icon(
+                isSaved ? Icons.check_circle : Icons.cancel,
+                color: isSaved ? Colors.green : AppTheme.warning,
+                size: 16,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  isSaved ? Icons.check_circle : Icons.cancel,
-                  color: isSaved ? Colors.green : Colors.redAccent,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  isSaved ? context.l10n.keySaved : context.l10n.keyNotSet,
-                  style: TextStyle(
-                    color: isSaved ? Colors.green : Colors.redAccent,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              obscureText: obscure,
-              onChanged: onChanged,
-              // добавить это
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: emptyHint,
-                hintStyle: const TextStyle(color: Color(0xFFB0B0B0)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: const Color(0xFF222222),
-                suffixIcon: IconButton(
-                  onPressed: toggleObscure,
-                  icon: Icon(
-                    obscure ? Icons.visibility : Icons.visibility_off,
-                    color: const Color(0xFFB0B0B0),
-                  ),
+              const SizedBox(width: 6),
+              Text(
+                isSaved ? context.l10n.keySaved : context.l10n.keyNotSet,
+                style: TextStyle(
+                  color: isSaved ? Colors.green : AppTheme.warning,
+                  fontSize: 12,
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Input field
+          TextField(
+            controller: controller,
+            obscureText: obscure,
+            onChanged: onChanged,
+            style: const TextStyle(color: AppTheme.textPrimary),
+            decoration: _fieldDecoration(
+              hint: emptyHint,
+              obscure: obscure,
+              toggleObscure: toggleObscure,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: canSave ? onSave : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBB86FC),
-                    foregroundColor: Colors.black,
+          ),
+          const SizedBox(height: 14),
+
+          // Action buttons
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: canSave ? onSave : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: canSave ? AppTheme.accentVivid : Colors.transparent,
+                  foregroundColor: canSave ? Colors.white : AppTheme.textSecondary,
+                  disabledBackgroundColor: Colors.transparent,
+                  disabledForegroundColor: AppTheme.textSecondary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                    side: BorderSide(
+                      color: canSave ? Colors.transparent : AppTheme.cardBorder,
+                      width: 1,
+                    ),
                   ),
-                  child: Text(context.l10n.save),
                 ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: canDelete ? onDelete : null,
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red),
-                    foregroundColor: Colors.red,
+                child: Text(context.l10n.save),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: canDelete ? onDelete : null,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: canDelete
+                        ? AppTheme.warning
+                        : AppTheme.warning.withAlpha(80),
                   ),
-                  child: Text(context.l10n.delete),
+                  foregroundColor: canDelete
+                      ? AppTheme.warning
+                      : AppTheme.warning.withAlpha(80),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                  ),
                 ),
-              ],
-            ),
-          ],
-        ),
+                child: Text(context.l10n.delete),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -272,18 +329,19 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: Text(context.l10n.apiKeys)),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: AppTheme.background,
+        appBar: CustomAppBar(title: context.l10n.apiKeys),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppTheme.accentVivid),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: CustomAppBar(title: context.l10n.apiKeys,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: CustomAppBar(title: context.l10n.apiKeys),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -293,40 +351,40 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
               isSaved: _deepSeekSaved,
               controller: _deepSeekController,
               obscure: _deepSeekObscure,
-              toggleObscure:
-                  () => setState(() => _deepSeekObscure = !_deepSeekObscure),
+              toggleObscure: () =>
+                  setState(() => _deepSeekObscure = !_deepSeekObscure),
               onSave: _saveDeepSeekKey,
               onChanged: (_) => setState(() => _deepSeekChanged = true),
-              canSave:
-                  _deepSeekChanged &&
+              canSave: _deepSeekChanged &&
                   _deepSeekController.text.trim().isNotEmpty,
               onDelete: _deleteDeepSeekKey,
               canDelete: _deepSeekSaved,
               emptyHint: context.l10n.pasteDeepSeekKey,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _buildKeyCard(
               title: context.l10n.novitaAi,
               subtitle: context.l10n.requiredForImageGeneration,
               isSaved: _novitaSaved,
               controller: _novitaController,
               obscure: _novitaObscure,
-              toggleObscure:
-                  () => setState(() => _novitaObscure = !_novitaObscure),
+              toggleObscure: () =>
+                  setState(() => _novitaObscure = !_novitaObscure),
               onSave: _saveNovitaKey,
               onChanged: (_) => setState(() => _novitaChanged = true),
               canSave:
-                  _novitaChanged && _novitaController.text.trim().isNotEmpty,
+              _novitaChanged && _novitaController.text.trim().isNotEmpty,
               onDelete: _deleteNovitaKey,
               canDelete: _novitaSaved,
               emptyHint: context.l10n.pasteNovitaKey,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 context.l10n.keysStoredSecurely,
-                style: TextStyle(color: Color(0xFFB0B0B0), fontSize: 12),
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 12),
               ),
             ),
           ],

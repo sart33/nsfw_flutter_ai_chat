@@ -10,7 +10,10 @@ import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
+import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
+
+import 'about_app_screen.dart';
 
 /// Displays a list of conversation branches for an entity.
 ///
@@ -56,15 +59,41 @@ class BranchListScreen extends ConsumerWidget {
         ) : null,
         child: Text(entityName, style: whiteStyle,
             maxLines: 2,
-            overflow: TextOverflow.ellipsis),),
-      ),
+            overflow: TextOverflow.ellipsis)),
+          centerTitle: true,
+          foregroundColor: AppTheme.textPrimary,
+          actions: [
+            IconButton(
+                icon: const Icon(Icons.info_outline, size: 26, color: AppTheme.textSecondary),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => AboutAppScreen()),
+                  );
+                }),
+
+            Padding(
+              padding: const EdgeInsets.only(right: 8, left: 0),
+              child: IconButton(
+                  icon: const Icon(Icons.settings, size: 26, color: AppTheme.textPrimary),
+                  tooltip: context.l10n.chats,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => SettingsScreen()
+                    ),
+                  )
+              ),
+            ),
+          ]),
+
       body: personasAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppTheme.accentVivid),
         ),
         error: (error, stackTrace) => Center(
-          child: Text(
-            'Error loading characters: $error',
+          child: Text('${context.l10n.errorLoadingCharacters} $error',
             style: const TextStyle(color: AppTheme.warning),
           ),
         ),
