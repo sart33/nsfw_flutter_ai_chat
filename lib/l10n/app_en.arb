@@ -312,7 +312,14 @@
   "mainText": "• Fully local\n• No subscription\n• Very low cost",
   "aboutNoCensorshipTitle": "\uD83D\uDD13 No Censorship",
   "aboutNoCensorshipText": "You can discuss any topics, in any form and style — with no restrictions or limits.",
-  "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them."
+  "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them.",
+
+  "ageGateTitle": "Adult Content",
+  "ageGateCardTitle": "You must be 18 or older",
+  "ageGateCardBody": "This app contains explicit content intended for adults only. By continuing, you confirm that you are at least 18 years of age and that viewing such content is permitted in your country.",
+  "ageGateConfirm": "I'm 18 or older",
+  "ageGateDecline": "I'm under 18",
+  "ageGateDeclineMessage": "This app is intended for users aged 18 and over. Please come back when you're of age."
 
 }
 

@@ -9,7 +9,9 @@ import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/services/chat_image_cleanup_service.dart';
 import 'package:nsfw_chat/l10n/app_localizations.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
+import 'package:nsfw_chat/presentation/screens/age_gate_screen.dart';
 import 'package:nsfw_chat/presentation/screens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -33,7 +35,7 @@ class NsfwChatApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
-      title: 'Uncensored Souls',
+      title: 'Uncensored Souls AI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       localizationsDelegates: const [
@@ -64,18 +66,25 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkApiKeyAndNavigate() async {
-    await Future.delayed(const Duration(milliseconds: 500)); // brief splash
-      // Run chat image cleanup in background if enabled
-      if (!mounted) return;
-      final container = ProviderScope.containerOf(context);
-      final settings = container.read(settingsProvider);
-      unawaited(ChatImageCleanupService.instance.runIfEnabled(settings));
-      
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    // }
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+    final container = ProviderScope.containerOf(context);
+    final settings = container.read(settingsProvider);
+    unawaited(ChatImageCleanupService.instance.runIfEnabled(settings));
+
+    // Проверяем возрастной флаг
+    final prefs = await SharedPreferences.getInstance();
+    final ageConfirmed = prefs.getBool('age_confirmed') ?? false;
+
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ageConfirmed
+            ? const HomeScreen()
+            : const AgeGateScreen(),
+      ),
+    );
   }
 
   @override
@@ -89,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const CircularProgressIndicator(),
             const SizedBox(height: 20),
             Text(
-              'Uncensored Souls',
+              'Uncensored Souls AI',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 24,

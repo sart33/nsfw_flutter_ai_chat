@@ -108,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(width: 10),
           const Text(
-            'Uncensored Souls',
+            'Uncensored Souls AI',
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 18,
