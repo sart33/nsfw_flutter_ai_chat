@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,7 +9,6 @@ import 'package:nsfw_chat/presentation/screens/home_screen.dart';
 
 /// Ключ в SharedPreferences — был ли подтверждён возраст.
 const _kAgeConfirmed = 'age_confirmed';
-
 
 // ─────────────────────────────────────────────
 //  AgeGateScreen
@@ -20,9 +21,9 @@ class AgeGateScreen extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kAgeConfirmed, true);
     if (!context.mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
   }
 
   void _onDecline(BuildContext context) {
@@ -30,16 +31,20 @@ class AgeGateScreen extends StatelessWidget {
     // При следующем запуске флаг не сохранён — экран покажется снова.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: AppTheme.cardBg,
-        duration: const Duration(seconds: 3),
+        backgroundColor: AppTheme.warning,
+        duration: Duration(seconds: 3),
         content: Text(
           context.l10n.ageGateDeclineMessage,
-          style: const TextStyle(color: AppTheme.textSecondary),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
     );
     Future.delayed(const Duration(seconds: 3), () {
-      SystemNavigator.pop(); // корректно закрывает приложение на Android
+      if (Platform.isAndroid) {
+        SystemNavigator.pop(); // сначала пробуем штатно
+      } else  {
+        exit(0); // на iOS SystemNavigator не работает вообще
+      }
     });
   }
 

@@ -35,7 +35,7 @@ class NsfwChatApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
-      title: 'Uncensored Souls AI',
+      title: 'Uncensored Soul',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       localizationsDelegates: const [
@@ -98,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const CircularProgressIndicator(),
             const SizedBox(height: 20),
             Text(
-              'Uncensored Souls AI',
+              'Uncensored Soul',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 24,
