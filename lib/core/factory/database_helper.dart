@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:path/path.dart' as p;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../data/models/persona_model.dart';
@@ -31,230 +29,105 @@ class DatabaseHelper {
         path,
         version: 12,
         onCreate: (db, version) async {
-          await db.execute('''
-            CREATE TABLE branches (
-              id              TEXT PRIMARY KEY,
-              entity_id       TEXT    NOT NULL,
-              created_at      INTEGER NOT NULL,
-              updated_at      INTEGER NOT NULL,
-              preview         TEXT,
-              context_summary TEXT
-            )
-          ''');
-
-          await db.execute('''
-            CREATE TABLE messages (
-              id          TEXT PRIMARY KEY,
-              branch_id   TEXT    NOT NULL,
-              persona_id  TEXT,
-              sender_name TEXT    NOT NULL,
-              content     TEXT    NOT NULL,
-              is_user     INTEGER NOT NULL,
-              timestamp   INTEGER NOT NULL,
-              is_quick_action INTEGER NOT NULL DEFAULT 0,
-              imageLocalPath TEXT,
-              FOREIGN KEY (branch_id) REFERENCES branches(id)
-            )
-          ''');
-
-          await db.execute('''
-            CREATE TABLE gallery_images (
-              id           TEXT    PRIMARY KEY,
-              persona_id   TEXT    NOT NULL,
-              template_id  INTEGER NOT NULL,
-              local_path   TEXT    NOT NULL,
-              generated_at INTEGER NOT NULL
-            )
-          ''');
-
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS summaries (
-              id               TEXT PRIMARY KEY,
-              branch_id        TEXT NOT NULL,
-              block_number     INTEGER NOT NULL,
-              summary_text     TEXT NOT NULL,
-              created_at       INTEGER NOT NULL,
-              messages_covered INTEGER NOT NULL DEFAULT 0,
-              FOREIGN KEY (branch_id) REFERENCES branches(id)
-            )
-          ''');
-
-          await db.execute('''
-            CREATE TABLE persona_prompts (
-              persona_id  TEXT PRIMARY KEY,
-              nsfw        TEXT,
-              erotic      TEXT,
-              beach       TEXT,
-              romantic    TEXT,
-              romantic2   TEXT,
-              office      TEXT,
-              updated_at  INTEGER NOT NULL
-            )
-          ''');
-
-          await db.execute('''
-            CREATE TABLE scene_generation_log (
-              id           TEXT PRIMARY KEY,
-              branch_id    TEXT NOT NULL,
-              persona_name TEXT NOT NULL,
-              extracted_at INTEGER NOT NULL,
-              scene_window TEXT NOT NULL,
-              raw_llm_json TEXT,
-              final_prompt TEXT NOT NULL,
-              image_path   TEXT NOT NULL
-            )
-          ''');
-
-          await db.execute('''
-            CREATE TABLE personas (
-              id TEXT PRIMARY KEY,
-              name TEXT NOT NULL,
-              description TEXT NOT NULL,
-              greeting TEXT NOT NULL,
-              avatarPath TEXT,
-              avatarAssetPath TEXT,
-              behavior TEXT,
-              galleryMode TEXT NOT NULL DEFAULT 'nude',
-              created_at INTEGER NOT NULL,
-              updated_at INTEGER NOT NULL
-            )
-          ''');
-        },
-        onUpgrade: (db, oldVersion, newVersion) async {
-          if (oldVersion < 2) {
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS gallery_images (
-                id           TEXT    PRIMARY KEY,
-                persona_id   TEXT    NOT NULL,
-                template_id  INTEGER NOT NULL,
-                local_path   TEXT    NOT NULL,
-                generated_at INTEGER NOT NULL
-              )
-            ''');
-          }
-          if (oldVersion < 3) {
-            await db.execute(
-              'ALTER TABLE branches ADD COLUMN context_summary TEXT',
-            );
-          }
-          if (oldVersion < 4) {
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS summaries (
-                id           TEXT PRIMARY KEY,
-                branch_id    TEXT NOT NULL,
-                block_number INTEGER NOT NULL,
-                summary_text TEXT NOT NULL,
-                created_at   INTEGER NOT NULL,
-                FOREIGN KEY (branch_id) REFERENCES branches(id)
-              )
-            ''');
-          }
-          if (oldVersion < 5) {
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS persona_prompts (
-                persona_id  TEXT PRIMARY KEY,
-                nsfw        TEXT,
-                erotic      TEXT,
-                beach       TEXT,
-                romantic    TEXT,
-                romantic2   TEXT,
-                office      TEXT,
-                updated_at  INTEGER NOT NULL
-              )
-            ''');
-          }
-          if (oldVersion < 6) {
-            await db.execute(
-              'ALTER TABLE messages ADD COLUMN is_quick_action INTEGER NOT NULL DEFAULT 0',
-            );
-          }
-          if (oldVersion < 7) {
-            await db.execute(
-              'ALTER TABLE messages ADD COLUMN imageLocalPath TEXT',
-            );
-          }
-          if (oldVersion < 8) {
-            await db.execute(
-              'ALTER TABLE summaries ADD COLUMN messages_covered INTEGER NOT NULL DEFAULT 0',
-            );
-            // Fix existing rows — estimate covered count based on block_number
-            // Uses 50 as default threshold since that was the only value used before
-            await db.execute(
-                'UPDATE summaries SET messages_covered = block_number * 50 WHERE messages_covered = 0',
-            );
-          }
-            if (oldVersion < 9) {
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS scene_generation_log (
-                id           TEXT PRIMARY KEY,
-                branch_id    TEXT NOT NULL,
-                persona_name TEXT NOT NULL,
-                extracted_at INTEGER NOT NULL,
-                scene_window TEXT NOT NULL,
-                raw_llm_json TEXT,
-                final_prompt TEXT NOT NULL,
-                image_path   TEXT NOT NULL
-              )
-            ''');
-          }
-          if (oldVersion < 10) {
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS personas (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                description TEXT NOT NULL,
-                greeting TEXT NOT NULL,
-                avatarPath TEXT,
-                avatarAssetPath TEXT,
-                behavior TEXT,
-                galleryMode TEXT NOT NULL DEFAULT 'nude',
-                created_at INTEGER NOT NULL,
-                updated_at INTEGER NOT NULL
-              )
-            ''');
-            await _migratePersonasFromSharedPreferences(db);
-          }
-          if (oldVersion < 11) {
-            await db.execute('DROP TABLE IF EXISTS personas');
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS personas (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                description TEXT NOT NULL,
-                greeting TEXT NOT NULL,
-                avatar_path TEXT,
-                avatar_asset_path TEXT,
-                behavior TEXT,
-                gallery_mode TEXT NOT NULL DEFAULT 'nude',
-                created_at INTEGER NOT NULL,
-                updated_at INTEGER NOT NULL
-              )
-            ''');
-            await _migratePersonasFromSharedPreferences(db);
-          }
-          if (oldVersion < 12) {
-            await db.execute('DROP TABLE IF EXISTS personas');
-            await db.execute('''
-              CREATE TABLE IF NOT EXISTS personas (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                description TEXT NOT NULL,
-                greeting TEXT NOT NULL,
-                avatar_path TEXT,
-                avatar_asset_path TEXT,
-                behavior TEXT,
-                gallery_mode TEXT NOT NULL DEFAULT 'nude',
-                created_at INTEGER NOT NULL,
-                updated_at INTEGER NOT NULL
-              )
-            ''');
-            await _migratePersonasFromSharedPreferences(db);          }
-        },
+          await _createAllTables(db);
+          },
       );
     } catch (e) {
       print('DatabaseHelper.initDB error: $e');
       rethrow;
     }
+  }
+  // -- Migration helper to move persona data from SharedPreferences to the new 'personas' table.
+
+  Future<void> _createAllTables(Database db) async {
+    await db.execute('''
+    CREATE TABLE branches (
+      id              TEXT PRIMARY KEY,
+      entity_id       TEXT    NOT NULL,
+      created_at      INTEGER NOT NULL,
+      updated_at      INTEGER NOT NULL,
+      preview         TEXT,
+      context_summary TEXT
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE messages (
+      id              TEXT PRIMARY KEY,
+      branch_id       TEXT    NOT NULL,
+      persona_id      TEXT,
+      sender_name     TEXT    NOT NULL,
+      content         TEXT    NOT NULL,
+      is_user         INTEGER NOT NULL,
+      timestamp       INTEGER NOT NULL,
+      is_quick_action INTEGER NOT NULL DEFAULT 0,
+      imageLocalPath  TEXT,
+      FOREIGN KEY (branch_id) REFERENCES branches(id)
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE gallery_images (
+      id           TEXT    PRIMARY KEY,
+      persona_id   TEXT    NOT NULL,
+      template_id  INTEGER NOT NULL,
+      local_path   TEXT    NOT NULL,
+      generated_at INTEGER NOT NULL
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE summaries (
+      id               TEXT PRIMARY KEY,
+      branch_id        TEXT NOT NULL,
+      block_number     INTEGER NOT NULL,
+      summary_text     TEXT NOT NULL,
+      created_at       INTEGER NOT NULL,
+      messages_covered INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (branch_id) REFERENCES branches(id)
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE persona_prompts (
+      persona_id TEXT PRIMARY KEY,
+      nsfw       TEXT,
+      erotic     TEXT,
+      beach      TEXT,
+      romantic   TEXT,
+      romantic2  TEXT,
+      office     TEXT,
+      updated_at INTEGER NOT NULL
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE scene_generation_log (
+      id           TEXT PRIMARY KEY,
+      branch_id    TEXT NOT NULL,
+      persona_name TEXT NOT NULL,
+      extracted_at INTEGER NOT NULL,
+      scene_window TEXT NOT NULL,
+      raw_llm_json TEXT,
+      final_prompt TEXT NOT NULL,
+      image_path   TEXT NOT NULL
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE personas (
+      id               TEXT PRIMARY KEY,
+      name             TEXT NOT NULL,
+      description      TEXT NOT NULL,
+      greeting         TEXT NOT NULL,
+      avatar_path      TEXT,
+      avatar_asset_path TEXT,
+      behavior         TEXT,
+      gallery_mode     TEXT NOT NULL DEFAULT 'nude',
+      created_at       INTEGER NOT NULL,
+      updated_at       INTEGER NOT NULL
+    )
+  ''');
   }
 
   // ── BRANCHES ────────────────────────────────────────────────────────────
@@ -931,57 +804,6 @@ class DatabaseHelper {
 
   // ── PERSONAS ────────────────────────────────────────────────────────────
 
-  /// Migrates personas from SharedPreferences to SQLite table.
-  /// Idempotent: if personas table already has rows, does nothing.
-  Future<void> _migratePersonasFromSharedPreferences(Database db) async {
-    try {
-      // Check if personas table already has data
-      final countResult = await db.rawQuery('SELECT COUNT(*) as count FROM personas');
-      final count = countResult.first['count'] as int;
-      if (count > 0) {
-        log('Personas table already has $count rows, skipping migration', name: 'DB_MIGRATION');
-        return;
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString('personas');
-      if (raw == null || raw.isEmpty) {
-        log('No personas data in SharedPreferences, skipping migration', name: 'DB_MIGRATION');
-        return;
-      }
-
-      log('Migrating personas from SharedPreferences to SQLite', name: 'DB_MIGRATION');
-      final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      for (final item in decoded) {
-        try {
-          final model = PersonaModel.fromMap(item as Map<String, dynamic>);
-          await db.insert('personas', {
-            'id': model.id,
-            'name': model.name,
-            'description': model.description,
-            'greeting': model.greeting,
-            'avatar_path': model.avatarPath,
-            'avatar_asset_path': model.avatarAssetPath,
-            'behavior': model.behavior,
-            'gallery_mode': model.galleryMode,
-            'created_at': now,
-            'updated_at': now,
-          });
-        } catch (e) {
-          log('Failed to migrate persona: $e', name: 'DB_MIGRATION');
-        }
-      }
-
-      // Remove from SharedPreferences after successful migration
-      await prefs.remove('personas');
-      log('Successfully migrated ${decoded.length} personas and removed from SharedPreferences', name: 'DB_MIGRATION');
-    } catch (e) {
-      log('_migratePersonasFromSharedPreferences error: $e', name: 'DB_ERROR');
-      // Don't rethrow - migration failure shouldn't break the app
-    }
-  }
 
   /// Returns all personas from the database.
   Future<List<Map<String, dynamic>>> getAllPersonas() async {
