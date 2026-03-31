@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "solutions.mobiledev" "\0"
-            VALUE "FileDescription", "nsfw_chat" "\0"
+            VALUE "FileDescription", "Uncensored Soul" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "nsfw_chat" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 solutions.mobiledev. All rights reserved." "\0"
-            VALUE "OriginalFilename", "nsfw_chat.exe" "\0"
-            VALUE "ProductName", "nsfw_chat" "\0"
+            VALUE "InternalName", "Uncensored Souls AI" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Uncensored Soul. All rights reserved." "\0"
+            VALUE "OriginalFilename", "uncensored-soul-1.0.0.exe" "\0"
+            VALUE "ProductName", "Uncensored Soul" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
