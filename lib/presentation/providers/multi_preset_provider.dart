@@ -1,21 +1,21 @@
-import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nsfw_chat/data/repositories/multi_preset_repository.dart';
-import 'package:nsfw_chat/data/repositories/persona_repository.dart';
 import 'package:nsfw_chat/data/models/multi_preset_model.dart';
 import 'package:nsfw_chat/data/models/persona_model.dart';
+import 'package:nsfw_chat/data/repositories/multi_preset_repository.dart';
 import 'package:nsfw_chat/domain/entities/multi_preset_entity.dart';
 import 'package:nsfw_chat/domain/mappers/multi_preset_mapper.dart';
+import 'package:nsfw_chat/domain/mappers/persona_mapper.dart';
+import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Manages the list of multi-persona presets with CRUD operations.
 class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
   final MultiPresetRepository _repo;
-  final PersonaRepository _personaRepo;
+  final Ref _ref;
 
-  MultiPresetNotifier(this._repo, this._personaRepo) : super([]) {
+  MultiPresetNotifier(this._repo, this._ref) : super([]) {
     _init();
   }
 
@@ -51,17 +51,17 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
 
   /// Seeds default multi-preset if personas are already seeded.
   Future<void> _seedDefaultPresetIfNeeded() async {
-    final personaResult = await _personaRepo.getAll();
-    personaResult.when(
-      success: (personas) async {
+    final personas = await _ref.read(personaProvider.future);
+        debugPrint('=== personas count: ${personas.length}'); // <-- добавь
+        debugPrint('=== personas names: ${personas.map((p) => p.name).toList()}');
         if (personas.isNotEmpty) {
           final locale = await _getDeviceLocale();
-          await _seedDefaultPreset(personas, locale);
+          await _seedDefaultPreset(PersonaMapper.toModelList(personas),
+              locale
+          );
         }
-      },
-      failure: (_, __) {},
-    );
-  }
+      }
+
 
   /// Seeds one default multi-preset linking the two default personas.
   Future<void> _seedDefaultPreset(List<PersonaModel> personas, Locale locale) async {
@@ -140,5 +140,5 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
 /// Riverpod provider for multi-presets.
 final multiPresetProvider =
     StateNotifierProvider<MultiPresetNotifier, List<MultiPresetEntity>>(
-  (ref) => MultiPresetNotifier(MultiPresetRepository(), PersonaRepository()),
+  (ref) => MultiPresetNotifier(MultiPresetRepository(), ref),
 );
