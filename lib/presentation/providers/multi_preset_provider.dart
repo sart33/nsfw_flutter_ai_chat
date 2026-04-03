@@ -35,6 +35,9 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
   }
 
   Future<void> _init() async {
+    // One-time cleanup: delete SharedPreferences key if it exists
+    await _cleanupSharedPreferences();
+    
     final result = await _repo.getAll();
     result.when(
       success: (models) async {
@@ -42,11 +45,56 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
           // Check if personas are seeded and seed default preset
           await _seedDefaultPresetIfNeeded();
         } else {
-          state = MultiPresetMapper.toEntityList(models);
+          // Validate that all personaIds in each preset actually exist
+          final personas = await _ref.read(personaProvider.future);
+          final validModels = <MultiPresetModel>[];
+          final invalidPresetIds = <String>[];
+          
+          for (final preset in models) {
+            // Filter personaIds to only those that exist in current personas
+            final validPersonaIds = preset.personaIds
+                .where((id) => personas.any((p) => p.id == id))
+                .toList();
+            
+            if (validPersonaIds.isEmpty) {
+              // Preset has zero valid personaIds - mark for deletion
+              invalidPresetIds.add(preset.id);
+            } else if (validPersonaIds.length != preset.personaIds.length) {
+              // Some personaIds are invalid, update the preset with filtered list
+              final updatedPreset = preset.copyWith(personaIds: validPersonaIds);
+              await _repo.update(updatedPreset);
+              validModels.add(updatedPreset);
+            } else {
+              // All personaIds are valid
+              validModels.add(preset);
+            }
+          }
+          
+          // Delete invalid presets from database
+          for (final id in invalidPresetIds) {
+            await _repo.delete(id);
+          }
+          
+          // If after cleanup we have no presets, seed default
+          if (validModels.isEmpty) {
+            await _seedDefaultPresetIfNeeded();
+          } else {
+            state = MultiPresetMapper.toEntityList(validModels);
+          }
         }
       },
       failure: (_, __) {},
     );
+  }
+
+  /// One-time cleanup: delete SharedPreferences key if it exists.
+  Future<void> _cleanupSharedPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('multi_presets');
+    } catch (_) {
+      // Ignore errors
+    }
   }
 
   /// Seeds default multi-preset if personas are already seeded.

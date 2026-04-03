@@ -1,22 +1,23 @@
 import 'dart:convert';
-import 'dart:developer';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/data/models/multi_preset_model.dart';
 import 'package:nsfw_chat/domain/result/result.dart';
 
-/// Persists [MultiPresetModel] objects as a JSON list inside SharedPreferences.
+/// Persists [MultiPresetModel] objects in SQLite database.
 class MultiPresetRepository {
-  static const String _storageKey = 'multi_presets';
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   // ── CREATE ──────────────────────────────────────────────────────────────
 
   Future<Result<MultiPresetModel>> create(MultiPresetModel preset) async {
     try {
-      final presets = await _readAll();
-      presets.add(preset);
-      await _writeAll(presets);
+      final presetMap = preset.toMap();
+      // Convert personaIds list to JSON string
+      presetMap['persona_ids'] = jsonEncode(preset.personaIds);
+      // Ensure behavior is not null for NOT NULL column
+      presetMap['behavior'] = preset.behavior ?? '';
+      await _dbHelper.insertMultiPreset(presetMap);
       return Result.success(preset);
     } on Exception catch (e) {
       return Result.failure('Failed to create multi-preset', e);
@@ -27,7 +28,8 @@ class MultiPresetRepository {
 
   Future<Result<List<MultiPresetModel>>> getAll() async {
     try {
-      final presets = await _readAll();
+      final rows = await _dbHelper.getAllMultiPresets();
+      final presets = rows.map((row) => _rowToModel(row)).toList();
       return Result.success(presets);
     } on Exception catch (e) {
       return Result.failure('Failed to load multi-presets', e);
@@ -36,11 +38,11 @@ class MultiPresetRepository {
 
   Future<Result<MultiPresetModel>> getById(String id) async {
     try {
-      final presets = await _readAll();
-      final preset = presets.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('Multi-preset not found: $id'),
-      );
+      final row = await _dbHelper.getMultiPresetById(id);
+      if (row == null) {
+        return Result.failure('Multi-preset not found: $id');
+      }
+      final preset = _rowToModel(row);
       return Result.success(preset);
     } on Exception catch (e) {
       return Result.failure('Failed to find multi-preset', e);
@@ -51,13 +53,18 @@ class MultiPresetRepository {
 
   Future<Result<MultiPresetModel>> update(MultiPresetModel updated) async {
     try {
-      final presets = await _readAll();
-      final index = presets.indexWhere((p) => p.id == updated.id);
-      if (index == -1) {
+      // Check if preset exists
+      final existing = await _dbHelper.getMultiPresetById(updated.id);
+      if (existing == null) {
         return Result.failure('Multi-preset not found: ${updated.id}');
       }
-      presets[index] = updated;
-      await _writeAll(presets);
+      
+      final presetMap = updated.toMap();
+      // Convert personaIds list to JSON string
+      presetMap['persona_ids'] = jsonEncode(updated.personaIds);
+      // Ensure behavior is not null for NOT NULL column
+      presetMap['behavior'] = updated.behavior ?? '';
+      await _dbHelper.updateMultiPreset(presetMap);
       return Result.success(updated);
     } on Exception catch (e) {
       return Result.failure('Failed to update multi-preset', e);
@@ -68,11 +75,9 @@ class MultiPresetRepository {
 
   Future<Result<bool>> delete(String id) async {
     try {
-      final presets = await _readAll();
-      presets.removeWhere((p) => p.id == id);
-      await _writeAll(presets);
+      await _dbHelper.deleteMultiPreset(id);
       // Clean up all SQLite branches & messages for this multi-preset.
-      await DatabaseHelper.instance.deleteAllForEntity('multi:$id');
+      await _dbHelper.deleteAllForEntity('multi:$id');
       return Result.success(true);
     } on Exception catch (e) {
       return Result.failure('Failed to delete multi-preset', e);
@@ -81,22 +86,17 @@ class MultiPresetRepository {
 
   // ── INTERNAL HELPERS ────────────────────────────────────────────────────
 
-  Future<List<MultiPresetModel>> _readAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    log('PREFS_READ key=$_storageKey, value length=${raw?.length ?? 0}', name: 'PREFS_READ');
-    if (raw == null || raw.isEmpty) return [];
-    final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
-    return decoded
-        .map((e) => MultiPresetModel.fromMap(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<void> _writeAll(List<MultiPresetModel> presets) async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = jsonEncode(presets.map((p) => p.toMap()).toList());
-    final preview = encoded.length > 100 ? encoded.substring(0, 100) : encoded;
-    log('PREFS_WRITE key=$_storageKey, value preview: $preview', name: 'PREFS_WRITE');
-    await prefs.setString(_storageKey, encoded);
+  MultiPresetModel _rowToModel(Map<String, dynamic> row) {
+    // Parse JSON string back to List<String>
+    final personaIdsJson = row['persona_ids'] as String;
+    final personaIds = List<String>.from(jsonDecode(personaIdsJson) as List);
+    
+    return MultiPresetModel(
+      id: row['id'] as String,
+      name: row['name'] as String,
+      personaIds: personaIds,
+      greeting: row['greeting'] as String,
+      behavior: row['behavior'] as String?,
+    );
   }
 }

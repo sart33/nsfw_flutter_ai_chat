@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:path/path.dart' as p;
@@ -10,6 +11,7 @@ class DatabaseHelper {
   DatabaseHelper._();
   static final DatabaseHelper instance = DatabaseHelper._();
 
+
   Database? _db;
 
   /// Returns the open database, creating it on first access.
@@ -20,20 +22,36 @@ class DatabaseHelper {
   }
 
   /// Opens (or creates) the 'chat_history.db' file and runs table creation.
+  Completer<void>? _initCompleter;
+
   Future<void> initDB() async {
+    if (_db != null) return;
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+    _initCompleter = Completer<void>();
     try {
       final dbPath = await getDatabasesPath();
       final path = p.join(dbPath, 'chat_history.db');
-
       _db = await openDatabase(
         path,
-        version: 12,
+        version: 13,
         onCreate: (db, version) async {
           await _createAllTables(db);
-          },
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 13) {
+            await _createMultiPresetsTable(db);
+          }
+        },
       );
+      await _db!.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
+      await _db!.execute('CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)');
+      await _db!.execute('CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)');
+      _initCompleter!.complete();
     } catch (e) {
-      print('DatabaseHelper.initDB error: $e');
+      _initCompleter!.completeError(e);
+      _initCompleter = null;
       rethrow;
     }
   }
@@ -128,6 +146,12 @@ class DatabaseHelper {
       updated_at       INTEGER NOT NULL
     )
   ''');
+
+    await _createMultiPresetsTable(db);
+
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)');
   }
 
   // ── BRANCHES ────────────────────────────────────────────────────────────
@@ -900,6 +924,115 @@ class DatabaseHelper {
     } catch (e) {
       log('deletePersona error: $e', name: 'DB_ERROR');
       print('DatabaseHelper.deletePersona error: $e');
+      rethrow;
+    }
+  }
+
+  // ── MULTI PRESETS ───────────────────────────────────────────────────────
+
+  Future<void> _createMultiPresetsTable(Database db) async {
+    await db.execute('''
+    CREATE TABLE multi_presets (
+      id           TEXT PRIMARY KEY,
+      name         TEXT NOT NULL,
+      persona_ids  TEXT NOT NULL,
+      greeting     TEXT NOT NULL,
+      behavior     TEXT NOT NULL,
+      created_at   INTEGER NOT NULL,
+      updated_at   INTEGER NOT NULL
+    )
+  ''');
+  }
+
+  /// Returns all multi-presets from the database.
+  Future<List<Map<String, dynamic>>> getAllMultiPresets() async {
+    try {
+      final db = await database;
+      log('SELECT multi_presets ORDER BY updated_at DESC', name: 'DB_READ');
+      return await db.query('multi_presets', orderBy: 'updated_at DESC');
+    } catch (e) {
+      log('getAllMultiPresets error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getAllMultiPresets error: $e');
+      rethrow;
+    }
+  }
+
+  /// Returns a single multi-preset by id, or null if not found.
+  Future<Map<String, dynamic>?> getMultiPresetById(String id) async {
+    try {
+      final db = await database;
+      log('SELECT multi_presets WHERE id=$id', name: 'DB_READ');
+      final rows = await db.query(
+        'multi_presets',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      return rows.isEmpty ? null : rows.first;
+    } catch (e) {
+      log('getMultiPresetById error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.getMultiPresetById error: $e');
+      rethrow;
+    }
+  }
+
+  /// Inserts a new multi-preset.
+  Future<void> insertMultiPreset(Map<String, dynamic> preset) async {
+    try {
+      final db = await database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final data = {
+        'id': preset['id'],
+        'name': preset['name'],
+        'persona_ids': preset['persona_ids'],
+        'greeting': preset['greeting'],
+        'behavior': preset['behavior'],
+        'created_at': now,
+        'updated_at': now,
+      };
+      log('INSERT INTO multi_presets: $data', name: 'DB_WRITE');
+      await db.insert('multi_presets', data);
+    } catch (e) {
+      log('insertMultiPreset error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.insertMultiPreset error: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates an existing multi-preset.
+  Future<void> updateMultiPreset(Map<String, dynamic> preset) async {
+    try {
+      final db = await database;
+      final data = {
+        'name': preset['name'],
+        'persona_ids': preset['persona_ids'],
+        'greeting': preset['greeting'],
+        'behavior': preset['behavior'],
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      };
+      log('UPDATE multi_presets WHERE id=${preset['id']}, data: $data', name: 'DB_WRITE');
+      await db.update(
+        'multi_presets',
+        data,
+        where: 'id = ?',
+        whereArgs: [preset['id']],
+      );
+    } catch (e) {
+      log('updateMultiPreset error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.updateMultiPreset error: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a multi-preset by id.
+  Future<void> deleteMultiPreset(String id) async {
+    try {
+      final db = await database;
+      log('DELETE multi_presets WHERE id=$id', name: 'DB_DELETE');
+      await db.delete('multi_presets', where: 'id = ?', whereArgs: [id]);
+    } catch (e) {
+      log('deleteMultiPreset error: $e', name: 'DB_ERROR');
+      print('DatabaseHelper.deleteMultiPreset error: $e');
       rethrow;
     }
   }
