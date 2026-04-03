@@ -113,9 +113,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     await prefs.setInt(_keyUserInput, clamped);
   }
 
-  /// Set AI response limit (2000–8000).
+  /// Set AI response limit (100–2500).
   Future<void> setAiResponseLimit(int value) async {
-    final clamped = value.clamp(2000, 8000);
+    final clamped = value.clamp(100, 2000);
     state = state.copyWith(aiResponseLimit: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyAiResponse, clamped);

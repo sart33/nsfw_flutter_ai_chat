@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/data/models/multi_preset_model.dart';
 import 'package:nsfw_chat/domain/result/result.dart';
