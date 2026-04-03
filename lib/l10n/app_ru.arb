@@ -322,6 +322,17 @@
   "ageGateCardBody": "Это приложение содержит материалы для взрослых. Продолжая, вы подтверждаете, что вам исполнилось 18 лет и просмотр такого контента разрешён в вашей стране.",
   "ageGateConfirm": "Мне есть 18 лет",
   "ageGateDecline": "Мне нет 18",
-  "ageGateDeclineMessage": "Это приложение предназначено только для пользователей старше 18 лет."
+  "ageGateDeclineMessage": "Это приложение предназначено только для пользователей старше 18 лет.",
+
+  "errorDeepSeekInsufficientBalance": "Недостаточно средств на счёте DeepSeek. Пополните баланс.",
+  "moreDetailsPrompt": "Продолжи сцену подробнее — опиши действия, эмоции и ощущения персонажей. 12-16 предложения.",
+  "shorterAction": "Короче",
+  "shorterPrompt": "Продолжи кратко, 3-5 предложения.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
+
+  "collapsePanel": "Свернуть",
+  "expandPanel": "Развернуть"
 }
+
 

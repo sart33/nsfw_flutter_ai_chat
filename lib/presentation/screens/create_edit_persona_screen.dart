@@ -20,10 +20,10 @@ import '../../domain/exceptions/app_exceptions.dart';
 import '../widgets/custom_app_bar_widget.dart';
 import 'api_keys_screen.dart';
 
+bool get _isDesktopPlatform =>
+    Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
 /// Create or edit a persona.
-/// Form: name (required), description (max 4000, char count, red if over),
-/// greeting (max 200), behavior (optional), avatar picker with crop.
-/// Avatar can be picked from gallery/camera OR generated via Novita AI.
 class CreateEditPersonaScreen extends ConsumerStatefulWidget {
   final String? personaId;
 
@@ -36,20 +36,20 @@ class CreateEditPersonaScreen extends ConsumerStatefulWidget {
 
 class _CreateEditPersonaScreenState
     extends ConsumerState<CreateEditPersonaScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
-  final _greetCtrl = TextEditingController();
+  final _formKey    = GlobalKey<FormState>();
+  final _nameCtrl   = TextEditingController();
+  final _descCtrl   = TextEditingController();
+  final _greetCtrl  = TextEditingController();
   final _behaviorCtrl = TextEditingController();
 
   String? _avatarPath;
-  bool _isGeneratingAvatar = false;
+  bool    _isGeneratingAvatar = false;
   String? _generatedAvatarPreviewPath;
-  String _galleryMode = 'nude';
+  String  _galleryMode = 'nude';
 
   bool get _isEdit => widget.personaId != null;
 
-  static const int _descMax = 4000;
+  static const int _descMax  = 4000;
   static const int _greetMax = 200;
 
   @override
@@ -60,12 +60,12 @@ class _CreateEditPersonaScreenState
         final persona =
         ref.read(personaProvider.notifier).getById(widget.personaId!);
         if (persona != null) {
-          _nameCtrl.text = persona.name;
-          _descCtrl.text = persona.description;
-          _greetCtrl.text = persona.greeting;
+          _nameCtrl.text    = persona.name;
+          _descCtrl.text    = persona.description;
+          _greetCtrl.text   = persona.greeting;
           _behaviorCtrl.text = persona.behavior ?? '';
           setState(() {
-            _avatarPath = persona.avatarPath;
+            _avatarPath  = persona.avatarPath;
             _galleryMode = persona.galleryMode;
           });
         }
@@ -79,29 +79,29 @@ class _CreateEditPersonaScreenState
     _descCtrl.dispose();
     _greetCtrl.dispose();
     _behaviorCtrl.dispose();
-
     super.dispose();
   }
-
 
   void _showSnack(String msg, {bool isKeyError = false}) {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: isKeyError ?  AppTheme.error : AppTheme.warning,
+      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
-      action: isKeyError ? SnackBarAction(
+      action: isKeyError
+          ? SnackBarAction(
         label: context.l10n.settings,
         textColor: Colors.white,
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
         ),
-      ) : null,
+      )
+          : null,
     ));
   }
 
-  // ── Shared InputDecoration theme ─────────────────────────────────────────
+  // ── Shared InputDecoration ───────────────────────────────────────────────
 
   InputDecoration _fieldDecoration(String label) {
     return InputDecoration(
@@ -125,7 +125,8 @@ class _CreateEditPersonaScreenState
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.red, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
@@ -133,100 +134,293 @@ class _CreateEditPersonaScreenState
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDesktop  = _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+
     return Scaffold(
-      appBar: CustomAppBar(title: (_isEdit ? context.l10n.editCharacter : context.l10n.newCharacter),
+      appBar: CustomAppBar(
+        title: _isEdit
+            ? context.l10n.editCharacter
+            : context.l10n.newCharacter,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ── Avatar section ─────────────────────────────────
-              _buildAvatarSection(),
-              const SizedBox(height: 20),
+      body: useDesktop
+          ? _buildDesktopBody()
+          : _buildMobileBody(),
+    );
+  }
 
-              // ── Name ───────────────────────────────────────────
-              TextFormField(
-                controller: _nameCtrl,
-                style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: _fieldDecoration(context.l10n.nameLabel),
-                onChanged: (_) => setState(() {}),
-                validator: (v) =>
-                (v == null || v.trim().isEmpty) ? context.l10n.enterName : null,
-              ),
-                            const SizedBox(height: 24),
-              // ── Description ────────────────────────────────────
-              _buildCountedField(
-                controller: _descCtrl,
-                label: context.l10n.description,
-                maxChars: _descMax,
-                maxLines: 4,
-              ),
-              const SizedBox(height: 16),
+  // ══════════════════════════════════════════════════════════════════════════
+  // MOBILE LAYOUT
+  // ══════════════════════════════════════════════════════════════════════════
 
-              // ── Greeting ───────────────────────────────────────
-              _buildCountedField(
-                controller: _greetCtrl,
-                label: context.l10n.greeting,
-                maxChars: _greetMax,
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
+  Widget _buildMobileBody() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildAvatarSection(),
+            const SizedBox(height: 20),
 
-              // ── Behavior ───────────────────────────────────────
-              TextFormField(
-                controller: _behaviorCtrl,
-                style: const TextStyle(color: AppTheme.textPrimary),
-                maxLines: 6,
-                decoration: _fieldDecoration(context.l10n.behaviorOptional).copyWith(
-                  hintText: context.l10n.aiInstructions,
-                ),
-              ),
-              const SizedBox(height: 24),
+            TextFormField(
+              controller: _nameCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              decoration: _fieldDecoration(context.l10n.nameLabel),
+              onChanged: (_) => setState(() {}),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? context.l10n.enterName
+                  : null,
+            ),
+            const SizedBox(height: 24),
 
-              // ── Save button ────────────────────────────────────
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isGeneratingAvatar ? null : _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accentVivid,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppTheme.cardBg,
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                  ),
-                  child: Text(
-                    _isEdit ? context.l10n.save : context.l10n.create,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
-                    ),
+            _buildCountedField(
+              controller: _descCtrl,
+              label: context.l10n.description,
+              maxChars: _descMax,
+              maxLines: 4,
+            ),
+            const SizedBox(height: 16),
+
+            _buildCountedField(
+              controller: _greetCtrl,
+              label: context.l10n.greeting,
+              maxChars: _greetMax,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _behaviorCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              maxLines: 6,
+              decoration: _fieldDecoration(context.l10n.behaviorOptional)
+                  .copyWith(hintText: context.l10n.aiInstructions),
+            ),
+            const SizedBox(height: 24),
+
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isGeneratingAvatar ? null : _save,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentVivid,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppTheme.cardBg,
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
                   ),
                 ),
+                child: Text(
+                  _isEdit ? context.l10n.save : context.l10n.create,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // DESKTOP LAYOUT
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildDesktopBody() {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppTheme.kContentMaxWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Form(
+            key: _formKey,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Левая колонка: аватар ──────────────────────────────────
+                SizedBox(
+                  width: 280,
+                  child: _buildDesktopAvatarPanel(),
+                ),
+                const SizedBox(width: 20),
+
+                // ── Правая колонка: поля + кнопка ─────────────────────────
+                Expanded(
+                  child: _buildDesktopFormPanel(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // ── Avatar section ────────────────────────────────────────────────────────
+  /// Левая панель: аватар + кнопки выбора/генерации, обёрнутые в карточку
+  Widget _buildDesktopAvatarPanel() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Аватар-превью
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: AspectRatio(
+              aspectRatio: 3 / 4,
+              child: _buildAvatarPreviewWidget(),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Из галереи
+          _buildActionButton(
+            icon: Icons.photo_library,
+            label: context.l10n.fromGallery,
+            onPressed: _isGeneratingAvatar ? null : _pickFromGallery,
+            fullWidth: true,
+          ),
+          const SizedBox(height: 10),
+
+          // Сгенерировать
+          _buildActionButton(
+            icon: Icons.auto_awesome,
+            label: context.l10n.generate,
+            onPressed: (_isGeneratingAvatar ||
+                _nameCtrl.text.trim().isEmpty ||
+                _descCtrl.text.trim().isEmpty)
+                ? null
+                : _generateAvatar,
+            fullWidth: true,
+          ),
+
+          // Regenerate / Crop (только если есть сгенерированный превью)
+          if (_generatedAvatarPreviewPath != null &&
+              !_isGeneratingAvatar) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildIconLabelButton(
+                    icon: Icons.refresh,
+                    label: context.l10n.regenerate,
+                    onPressed: _regenerateAvatar,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildIconLabelButton(
+                    icon: Icons.crop,
+                    label: context.l10n.cropAndSave,
+                    onPressed: _cropGeneratedAvatar,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Правая панель: все текстовые поля + кнопка Save, обёрнутые в карточку
+  Widget _buildDesktopFormPanel() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Имя
+          TextFormField(
+            controller: _nameCtrl,
+            style: const TextStyle(color: AppTheme.textPrimary),
+            decoration: _fieldDecoration(context.l10n.nameLabel),
+            onChanged: (_) => setState(() {}),
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? context.l10n.enterName
+                : null,
+          ),
+          const SizedBox(height: 20),
+
+          // Описание
+          _buildCountedField(
+            controller: _descCtrl,
+            label: context.l10n.description,
+            maxChars: _descMax,
+            maxLines: 5,
+          ),
+          const SizedBox(height: 16),
+
+          // Приветствие
+          _buildCountedField(
+            controller: _greetCtrl,
+            label: context.l10n.greeting,
+            maxChars: _greetMax,
+            maxLines: 3,
+          ),
+          const SizedBox(height: 16),
+
+          // Поведение
+          TextFormField(
+            controller: _behaviorCtrl,
+            style: const TextStyle(color: AppTheme.textPrimary),
+            maxLines: 5,
+            decoration: _fieldDecoration(context.l10n.behaviorOptional)
+                .copyWith(hintText: context.l10n.aiInstructions),
+          ),
+          const SizedBox(height: 28),
+
+          // Кнопка Save — фиксированная ширина, центр
+          Center(
+            child: SizedBox(
+              width: 260,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _isGeneratingAvatar ? null : _save,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentVivid,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppTheme.cardBg,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                ),
+                child: Text(
+                  _isEdit ? context.l10n.save : context.l10n.create,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // AVATAR SECTION (мобайл)
+  // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildAvatarSection() {
     return Column(
       children: [
-        // Preview area
         _buildAvatarPreview(),
         const SizedBox(height: 12),
-
-        // Action buttons row: gallery | generate
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -247,9 +441,8 @@ class _CreateEditPersonaScreenState
             ),
           ],
         ),
-
-        // Preview action buttons (shown only when a generated preview exists)
-        if (_generatedAvatarPreviewPath != null && !_isGeneratingAvatar) ...[
+        if (_generatedAvatarPreviewPath != null &&
+            !_isGeneratingAvatar) ...[
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -276,67 +469,69 @@ class _CreateEditPersonaScreenState
     );
   }
 
+  // ── Avatar preview (мобайл — старый метод без AspectRatio) ───────────────
+
   Widget _buildAvatarPreview() {
+    return SizedBox(
+      width: 120,
+      height: 160,
+      child: _buildAvatarPreviewWidget(radius: 16),
+    );
+  }
+
+  /// Общий виджет превью аватара — используется и мобайлом, и десктопом.
+  Widget _buildAvatarPreviewWidget({double radius = 0}) {
     // Generation in progress
     if (_isGeneratingAvatar) {
       return Container(
-        width: 120,
-        height: 160,
         decoration: BoxDecoration(
           color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radius),
           border: Border.all(color: AppTheme.userBubble),
         ),
-        child:  Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 10),
-            Text(context.l10n.generatingAvatar,
+            const CircularProgressIndicator(),
+            const SizedBox(height: 10),
+            Text(
+              context.l10n.generatingAvatar,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 12,
-              ),
+              style: const TextStyle(
+                  color: AppTheme.textSecondary, fontSize: 12),
             ),
           ],
         ),
       );
     }
 
-    // Show generated preview (not yet cropped/confirmed)
+    // Generated preview (not yet confirmed)
     final previewPath = _generatedAvatarPreviewPath;
     if (previewPath != null && File(previewPath).existsSync()) {
       return Container(
-        width: 120,
-        height: 160,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radius),
           border: Border.all(color: AppTheme.userBubble, width: 2),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: Image.file(
-            File(previewPath),
-            fit: BoxFit.cover,
-          ),
+          borderRadius: BorderRadius.circular(radius > 0 ? radius - 1 : 0),
+          child: Image.file(File(previewPath), fit: BoxFit.cover),
         ),
       );
     }
 
-    // Show confirmed avatar
+    // Confirmed avatar
     final hasFile = _avatarPath != null && File(_avatarPath!).existsSync();
     final persona = _isEdit
         ? ref.read(personaProvider.notifier).getById(widget.personaId!)
         : null;
     final assetPath = persona?.avatarAssetPath;
-    final hasAsset = !hasFile && assetPath != null && assetPath.isNotEmpty;
+    final hasAsset  = !hasFile && assetPath != null && assetPath.isNotEmpty;
+
     return Container(
-      width: 120,
-      height: 160,
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: AppTheme.userBubble),
         image: hasFile
             ? DecorationImage(
@@ -353,30 +548,30 @@ class _CreateEditPersonaScreenState
       child: (hasFile || hasAsset)
           ? null
           : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_a_photo_outlined, color: AppTheme.textSecondary),
-                SizedBox(height: 4),
-                Text(
-                  context.l10n.avatar,
-                  style: TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 12),
-                ),
-              ],
-            ),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.add_a_photo_outlined,
+              color: AppTheme.textSecondary),
+          const SizedBox(height: 4),
+          Text(
+            context.l10n.avatar,
+            style: const TextStyle(
+                color: AppTheme.textSecondary, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 
-  // ── Action buttons (Из галереи / Сгенерировать) ──────────────────────────
-  // Active state: violet fill (accentVivid), white text — matches View screen chips.
-  // Disabled state: cardBg fill, cardBorder border, secondary text.
+  // ── Action buttons ────────────────────────────────────────────────────────
 
   Widget _buildActionButton({
     required IconData icon,
     required String label,
     required VoidCallback? onPressed,
+    bool fullWidth = false,
   }) {
-    return OutlinedButton.icon(
+    final btn = OutlinedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 18),
       label: Text(label),
@@ -393,6 +588,10 @@ class _CreateEditPersonaScreenState
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       ),
     );
+
+    return fullWidth
+        ? SizedBox(width: double.infinity, child: btn)
+        : btn;
   }
 
   Widget _buildIconLabelButton({
@@ -412,7 +611,6 @@ class _CreateEditPersonaScreenState
 
   // ── Avatar actions ────────────────────────────────────────────────────────
 
-  /// Original gallery/camera picker (kept intact).
   Future<void> _pickFromGallery() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -428,14 +626,14 @@ class _CreateEditPersonaScreenState
               leading: const Icon(Icons.photo_library,
                   color: AppTheme.textPrimary),
               title: Text(context.l10n.gallery,
-                  style: TextStyle(color: AppTheme.textPrimary)),
+                  style: const TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
-              leading:
-                  const Icon(Icons.camera_alt_outlined, color: AppTheme.textPrimary),
+              leading: const Icon(Icons.camera_alt_outlined,
+                  color: AppTheme.textPrimary),
               title: Text(context.l10n.camera,
-                  style: TextStyle(color: AppTheme.textPrimary)),
+                  style: const TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
           ],
@@ -445,7 +643,8 @@ class _CreateEditPersonaScreenState
     if (source == null) return;
 
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, imageQuality: 85);
+    final picked =
+    await picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
 
     final cropped = await ImageCropper().cropImage(
@@ -462,7 +661,6 @@ class _CreateEditPersonaScreenState
       ],
     );
     if (cropped != null) {
-      // Discard any pending generated preview
       _deleteTempPreview();
       setState(() {
         _avatarPath = cropped.path;
@@ -471,7 +669,6 @@ class _CreateEditPersonaScreenState
     }
   }
 
-  /// Generate avatar via Novita AI.
   Future<void> _generateAvatar({int? seed}) async {
     if (_descCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -483,7 +680,7 @@ class _CreateEditPersonaScreenState
     setState(() => _isGeneratingAvatar = true);
 
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      final dir  = await getApplicationDocumentsDirectory();
       final path = await NovitaAvatarService.generateAvatar(
         _descCtrl.text.trim(),
         dir.path,
@@ -495,36 +692,33 @@ class _CreateEditPersonaScreenState
     } on NovitaException catch (e) {
       debugPrint('[Avatar] generation error: $e');
       if (!mounted) return;
-      final isKeyError = e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
+      final isKeyError =
+          e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
       final msg = switch (e.message) {
         'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
         'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
-        'timeout' => context.l10n.errorImageGeneration,
-        _ => context.l10n.errorImageGeneration,
+        'timeout'         => context.l10n.errorImageGeneration,
+        _                 => context.l10n.errorImageGeneration,
       };
       _showSnack(msg, isKeyError: isKeyError);
     } catch (e) {
       debugPrint('[Avatar] generation error: $e');
-      if (mounted)  _showSnack(context.l10n.errorImageGeneration);
-
+      if (mounted) _showSnack(context.l10n.errorImageGeneration);
     } finally {
       if (mounted) setState(() => _isGeneratingAvatar = false);
     }
   }
 
-  /// Delete old temp file and regenerate.
   Future<void> _regenerateAvatar() async {
     _deleteTempPreview();
     setState(() => _generatedAvatarPreviewPath = null);
     await _generateAvatar(seed: regenSeed());
   }
 
-  /// Crop the generated preview and promote it to the confirmed avatar.
   Future<void> _cropGeneratedAvatar() async {
     final previewPath = _generatedAvatarPreviewPath;
     if (previewPath == null) return;
 
-    // image_cropper not supported on desktop — use image as-is
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       setState(() {
         _avatarPath = previewPath;
@@ -548,7 +742,6 @@ class _CreateEditPersonaScreenState
     );
 
     if (cropped != null) {
-      // Remove temp file only after a successful crop
       _deleteTempPreview();
       setState(() {
         _avatarPath = cropped.path;
@@ -557,7 +750,6 @@ class _CreateEditPersonaScreenState
     }
   }
 
-  /// Silently deletes the temporary generated preview file if it exists.
   void _deleteTempPreview() {
     final p = _generatedAvatarPreviewPath;
     if (p != null) {
@@ -568,7 +760,7 @@ class _CreateEditPersonaScreenState
     }
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Counted field ─────────────────────────────────────────────────────────
 
   Widget _buildCountedField({
     required TextEditingController controller,
@@ -578,7 +770,7 @@ class _CreateEditPersonaScreenState
   }) {
     return StatefulBuilder(
       builder: (context, setInner) {
-        final len = controller.text.length;
+        final len  = controller.text.length;
         final over = len > maxChars;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,7 +781,8 @@ class _CreateEditPersonaScreenState
               maxLines: maxLines,
               decoration: InputDecoration(
                 labelText: label,
-                labelStyle: const TextStyle(color: AppTheme.textSecondary),
+                labelStyle:
+                const TextStyle(color: AppTheme.textSecondary),
                 filled: true,
                 fillColor: AppTheme.background,
                 enabledBorder: OutlineInputBorder(
@@ -628,7 +821,8 @@ class _CreateEditPersonaScreenState
     );
   }
 
-  // ── Save ─────────────────
+  // ── Save ──────────────────────────────────────────────────────────────────
+
   void _save() {
     final persona = _isEdit
         ? ref.read(personaProvider.notifier).getById(widget.personaId!)
@@ -636,35 +830,31 @@ class _CreateEditPersonaScreenState
     if (!_formKey.currentState!.validate()) return;
 
     if (_descCtrl.text.length > _descMax) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.descriptionLimitExceeded),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.descriptionLimitExceeded),
+        backgroundColor: AppTheme.error,
+      ));
       return;
     }
     if (_greetCtrl.text.length > _greetMax) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.greetingLimitExceeded),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.greetingLimitExceeded),
+        backgroundColor: AppTheme.error,
+      ));
       return;
     }
 
     final entity = PersonaEntity(
-      id: widget.personaId ?? const Uuid().v4(),
-      name: _nameCtrl.text.trim(),
-      description: _descCtrl.text.trim(),
-      greeting: _greetCtrl.text.trim(),
-      avatarPath: _avatarPath,
+      id:             widget.personaId ?? const Uuid().v4(),
+      name:           _nameCtrl.text.trim(),
+      description:    _descCtrl.text.trim(),
+      greeting:       _greetCtrl.text.trim(),
+      avatarPath:     _avatarPath,
       avatarAssetPath: persona?.avatarAssetPath,
-      behavior: _behaviorCtrl.text.trim().isEmpty
+      behavior:       _behaviorCtrl.text.trim().isEmpty
           ? null
           : _behaviorCtrl.text.trim(),
-      galleryMode: _galleryMode,
+      galleryMode:    _galleryMode,
     );
 
     final notifier = ref.read(personaProvider.notifier);
@@ -674,7 +864,6 @@ class _CreateEditPersonaScreenState
       notifier.create(entity);
     }
 
-    // Fire and forget: clean description for image generation
     unawaited(
       PromptCleanerService.instance.cleanAndSave(
         entity.id,

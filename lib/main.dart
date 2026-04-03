@@ -8,21 +8,43 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/services/chat_image_cleanup_service.dart';
 import 'package:nsfw_chat/l10n/app_localizations.dart';
+import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:nsfw_chat/presentation/providers/recent_chats_provider.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/age_gate_screen.dart';
 import 'package:nsfw_chat/presentation/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-void main() {
+import 'core/factory/database_helper.dart';
+
+void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+
   if (Platform.isWindows) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-  runApp(const ProviderScope(child: NsfwChatApp()));
+
+  // DB открывается первой — как и было
+  await DatabaseHelper.instance.initDB();
+
+  // Прогреваем провайдеры ДО runApp, чтобы первый кадр
+  // не блокировался их инициализацией
+  final container = ProviderContainer();
+  await Future.wait([
+    container.read(personaProvider.future),
+    container.read(recentChatsProvider.future),
+  ]);
+
+  runApp(
+    // Передаём уже прогретый контейнер — данные закешированы
+    UncontrolledProviderScope(
+      container: container,
+      child: const NsfwChatApp(),
+    ),
+  );
 }
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -35,7 +57,7 @@ class NsfwChatApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
-      title: 'Uncensored Soul',
+      title: 'Uncensored Souls',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       localizationsDelegates: const [
@@ -61,30 +83,30 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    FlutterNativeSplash.remove();
+    // FlutterNativeSplash.remove();
     _checkApiKeyAndNavigate();
   }
 
   Future<void> _checkApiKeyAndNavigate() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    if (!mounted) return;
-    final container = ProviderScope.containerOf(context);
-    final settings = container.read(settingsProvider);
-    unawaited(ChatImageCleanupService.instance.runIfEnabled(settings));
-
-    // Проверяем возрастной флаг
+    // Сначала все быстрые операции
     final prefs = await SharedPreferences.getInstance();
     final ageConfirmed = prefs.getBool('age_confirmed') ?? false;
 
     if (!mounted) return;
+
+    // Снимаем splash только перед самой навигацией
+    FlutterNativeSplash.remove();
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => ageConfirmed
-            ? const HomeScreen()
-            : const AgeGateScreen(),
+        builder: (_) => ageConfirmed ? const HomeScreen() : const AgeGateScreen(),
       ),
     );
+
+    // Cleanup запускаем ПОСЛЕ навигации, в фоне
+    final container = ProviderScope.containerOf(context);
+    final settings = container.read(settingsProvider);
+    unawaited(ChatImageCleanupService.instance.runIfEnabled(settings));
   }
 
   @override
@@ -98,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const CircularProgressIndicator(),
             const SizedBox(height: 20),
             Text(
-              'Uncensored Soul',
+              'Uncensored Souls',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 24,

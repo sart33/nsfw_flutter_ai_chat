@@ -20,8 +20,15 @@ class PendingImageWidget extends StatelessWidget {
     this.isLoading = false,
   });
 
+  bool get _isDesktopPlatform =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth   = MediaQuery.of(context).size.width;
+    final useDesktop    =
+        _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -38,7 +45,7 @@ class PendingImageWidget extends StatelessWidget {
                     top: Radius.circular(12)),
                 child: Image.file(
                   File(path),
-                  height: 480,
+                  height: useDesktop ? 960 : 480,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),

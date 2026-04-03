@@ -1,0 +1,365 @@
+{
+  "appTitle": "Uncensored Souls",
+  "apiKeys": "API keys",
+  "deepSeekApi": "DeepSeek API",
+  "requiredForChat": "Chat के लिए required",
+  "novitaAi": "Novita AI",
+  "requiredForImageGeneration": "Image generation के लिए required (optional)",
+
+  "keySaved": "Key save हो गई",
+  "keyNotSet": "Key set नहीं है",
+  "save": "Save",
+  "delete": "Delete",
+  "cancel": "Cancel",
+
+  "deepSeekKeySaved": "DeepSeek key save हो गई",
+  "deleteDeepSeekKey": "DeepSeek key delete करें",
+  "chatWillStopWorking": "Chat काम करना बंद कर देगा। क्या आप key delete करना चाहते हैं?",
+  "keyDeleted": "Key delete हो गई",
+
+  "novitaKeySaved": "Novita key save हो गई",
+  "deleteNovitaKey": "Novita key delete करें",
+  "imageGenerationWillStop": "Image generation काम करना बंद कर देगा। क्या आप sure हैं?",
+
+  "goToApp": "App खोलें",
+  "keysStoredSecurely": "Keys secure device storage में store होती हैं।",
+
+  "pasteDeepSeekKey": "DeepSeek API key paste करें",
+  "pasteNovitaKey": "Novita API key paste करें",
+
+  "noBranches": "कोई branch नहीं है। शुरू करने के लिए + दबाएं।",
+  "emptyBranch": "खाली branch",
+  "deleteBranch": "Branch delete करें?",
+  "allMessagesWillBeDeleted": "इस branch के सभी messages delete हो जाएंगे।",
+
+  "apiError": "API error",
+  "waitingForResponse": "Response का इंतज़ार हो रहा है...",
+  "message": "Message...",
+  "edit": "Edit",
+  "editMessage": "Message edit करें",
+  "deleteMessage": "Message delete करें",
+  "messageAndFollowingWillBeDeleted": "यह message और उसके बाद के सभी messages delete हो जाएंगे। Continue करें?",
+
+  "galleryEmpty": "Gallery खाली है",
+  "galleryNameEmpty": "{personaName} की gallery खाली है",
+
+  "editPreset": "Preset edit करें",
+  "newMultiPreset": "नया multi preset",
+  "presetNameLabel": "Preset name *",
+  "enterName": "Name दर्ज करें",
+  "selectCharacters": "Characters चुनें:",
+  "greeting": "Greeting",
+  "behavior": "Behavior",
+  "describeBehavior": "Character interaction describe करें...",
+
+  "create": "Create",
+  "selectAtLeast2": "कम से कम 2 characters चुनें!",
+  "you": "You",
+
+  "newCharacter": "नया character",
+  "nameLabel": "Name *",
+  "description": "Description",
+  "behaviorOptional": "Behavior (optional)",
+  "aiInstructions": "AI के लिए instructions...",
+
+  "fromGallery": "Gallery से",
+  "generate": "Generate",
+  "regenerate": "Regenerate",
+  "cropAndSave": "Crop करके save करें",
+  "generatingAvatar": "Avatar generate हो रहा है...",
+
+  "avatar": "Avatar",
+  "gallery": "Gallery",
+  "camera": "Camera",
+  "cropAvatar": "Avatar crop करें",
+
+  "fillCharacterDescription": "Character description भरें",
+  "avatarGenerationError": "Avatar generation error: ",
+  "descriptionLimitExceeded": "Description limit exceed हो गया!",
+  "greetingLimitExceeded": "Greeting limit exceed हो गया!",
+
+  "deleteImage": "Image delete करें?",
+  "templateNumber": "Template",
+  "characters": "Characters",
+  "multiChat": "Multi-chat",
+  "settings": "Settings",
+  "newChat": "New chat",
+
+  "noCharactersCreate": "कोई characters नहीं हैं। एक बनाएं!",
+  "loadingCharacters": "Characters load हो रहे हैं...",
+  "noMultiPresets": "कोई multi-chat presets नहीं हैं",
+
+  "deletePreset": "Preset delete करें?",
+  "cannotBeUndone": "यह action वापस नहीं लिया जा सकता",
+
+  "noCharacters": "कोई characters नहीं हैं",
+  "deleteCharacter": "Character delete करें?",
+
+  "view": "View",
+  "chats": "Chats",
+
+  "noImagesClickPlus": "कोई images नहीं हैं.\nGenerate करने के लिए + दबाएं",
+
+  "characterAndGalleryWillBeDeleted": "Character और उसकी पूरी gallery delete हो जाएगी। यह action वापस नहीं लिया जा सकता।",
+
+  "generatingWait": "Generate हो रहा है... (~4-12 sec)",
+
+  "userInputLimit": "User input limit",
+  "aiResponseLimit": "AI response limit",
+
+  "whatAreTokens": "Tokens क्या हैं?",
+  "tokensAndText": "Tokens और text",
+  "tokenExplanation": "Response limit tokens में set होती है.\nToken ≠ character और ≠ word.\n",
+
+  "tokens": "Tokens",
+  "approximateVolume": "Approximate volume",
+  "words750": "~750 words EN / ~500 words RU",
+  "words1500": "~1,500 words EN / ~1,000 words RU",
+  "words3000": "~3,000 words EN / ~2,000 words RU",
+
+  "maxDeepSeek": "Maximum DeepSeek",
+  "usuallyEnough": "आमतौर पर 2000–4000 tokens एक normal response के लिए काफी होते हैं",
+
+  "understood": "समझ गया",
+
+  "reminderFrequency": "Reminder frequency",
+  "everyNMessages": "हर {count} messages",
+
+  "chatFontSize": "Chat text size",
+
+  "personalityReminder": "Character personality reminder",
+  "reminderNote": "हर N messages पर prompt में reminder add होता है (history में save नहीं होता)",
+
+  "yamlProfile": "YAML character profile",
+  "yamlProfileNote": "अगर enabled है और assets/characters/character_id.yaml file मौजूद है — इसे system prompt के रूप में use किया जाएगा",
+
+  "creativity": "Response creativity",
+  "manageApiKeys": "DeepSeek और Novita AI keys manage करें",
+
+  "allTemplatesGenerated": "सभी 20 templates पहले से generate हो चुके हैं",
+  "generationError": "Generation error",
+  "savedToGallery": "Gallery में save हो गया",
+  "savingError": "Save error",
+
+  "system": "System",
+  "historyLoadingError": "History load करने में error",
+
+  "charactersCount": "characters",
+
+  "editCharacter": "Edit",
+
+  "senderYou": "You",
+  "senderSystem": "System",
+
+  "errorApi": "API error",
+  "errorHistory": "Chat history load करने में error",
+  "errorGeneration": "Generation error",
+  "errorSave": "Save error",
+  "errorDelete": "Delete error",
+  "errorUnknown": "Unknown error",
+
+  "galleryFull": "सभी 20 templates पहले से generate हो चुके हैं",
+
+  "summarizationEnabled": "Long chats summarize करें",
+  "summarizationEnabledDesc": "पुराने messages compress करता है ताकि tokens बचें",
+
+  "summarizationThreshold": "{count} messages के बाद summarize करें",
+  "branchSummarized": "Branch summarize हो गई",
+
+  "previousHistorySummary": "Previous conversation summary: ",
+  "messages": "messages",
+
+  "clearAllSummarizations": "सभी summaries हटाएं",
+  "clearAllSummarizationsSubtitle": "Database से सभी summary blocks हट जाएंगे",
+  "confirmClearAllSummarizations": "सभी summaries हटाएं?",
+  "clearAllSummarizationsWarning": "इस action से database से सभी summary blocks हट जाएंगे। यह irreversible है और लंबे chats की performance पर असर डाल सकता है।",
+  "clear": "हटाएं",
+  "allSummarizationsCleared": "सभी summaries हटा दी गई हैं",
+  "errorClearingSummaries": "Error: {error}",
+
+  "persona_1_name": "Natasha",
+  "persona_1_description": "कोलंबिया की 32 साल की stylish Latina। कंधे तक काले बाल, भूरे आंखें, slim body (flat stomach, firm C-cup breasts with nipple piercings, पतली कमर, हाथों पर और panty line के नीचे intricate tattoos, tongue और navel piercings)। एक छोटा ruby anal plug और body straps पहनना उसका signature style है।",
+  "persona_1_greeting": "Hey... मुझे miss किया? 😈",
+  "persona_1_behavior": "तुम Natasha हो — playful, confident, थोड़ी vulnerable लेकिन पूरी firecracker। कपड़े उतारना, body show करना (especially ass), tattoos, piercings और plug से tease करना पसंद है। anal और oral sex, toys, initiative लेना और experiments पसंद हैं। Flirt में aggressive, pushy और rough। Dirty jokes और sensations/actions का detailed description। थोड़ा bisexual vibe, filth से turn on होती हो।",
+
+  "persona_2_name": "Anna",
+  "persona_2_description": "20 साल की sweet, shy लड़की। लंबे blonde बाल, नीली आंखें, हल्के freckles। Slim body (पतली कमर, perky B-cup breasts with pink nipples, soft skin)।",
+  "persona_2_greeting": "Hi... तुम्हें देखकर अच्छा लगा। *shy होकर blush करती है*",
+  "persona_2_behavior": "तुम Anna हो — shy, romantic और gentle लड़की। अक्सर light dresses, sweaters और cozy outfits पहनती हो — romance और tenderness पसंद है। Naughty topics पर जल्दी शर्माती हो, blush करती हो, धीरे बोलती हो (pauses और ellipses के साथ)। Long talks, compliments, hugs और kisses पसंद हैं। Trust होने पर धीरे-धीरे खुलती हो। Emotions, heartbeat और soft touches को detail में describe करती हो। Intimacy में — tender, submissive लेकिन curious। कोई aggression नहीं, user की initiative का इंतज़ार करती हो।",
+
+  "multi_1_name": "Natasha + Anna",
+  "multi_1_greeting": "Natasha: Hey... हमें miss किया? 😈\nAnna: Hi... *blush करती है* तुम्हें देखकर अच्छा लगा।",
+  "multi_1_behavior": "तुम दो लड़कियों का रोल निभाते हो: bold Natasha और shy Anna। उनके lines alternate करो — वे आपस में और user से बात करती हैं, कभी-कभी flirt भी करती हैं। Natasha lead करती है और tease करती है, Anna blush करती है और follow करती है। सब कुछ detail में English में describe करो।",
+
+  "noApiKeyMessage": "Chat शुरू करने के लिए DeepSeek API key चाहिए। 1–2 मिनट लगते हैं।",
+  "noApiKeyAction": "Key जोड़ें",
+
+  "errorDeepSeekKeyInvalid": "DeepSeek key invalid है। कृपया settings में अपडेट करें।",
+  "errorDeepSeekNotSet": "DeepSeek key सेट नहीं है। कृपया settings में जोड़ें।",
+  "errorNovitaKeyInvalid": "Novita key invalid है। कृपया settings में अपडेट करें।",
+  "errorNovitaKeyNotSet": "Novita key सेट नहीं है। कृपया settings में जोड़ें।",
+  "errorApiKeyInvalid": "API key invalid है। कृपया settings में अपडेट करें।",
+  "errorConnectionFailed": "Connection error। अपनी internet चेक करें।",
+  "errorImageGeneration": "Image generate करने में error आया। फिर से try करें।",
+
+  "aboutAppTitle": "App के बारे में",
+  "aboutTitle": "🧠 App के बारे में",
+  "aboutAppName": "Uncensored AI Roleplay Chat",
+  "aboutStorage": "सभी chats, characters, images और API keys सिर्फ आपके device पर ही store होते हैं।",
+
+  "imagesWarningLabel": "⚠️ Images:",
+  "imagesHiddenFromGallery": "Android gallery में दिखाई नहीं देते",
+  "imagesVisibleInApp": "सिर्फ app के अंदर access किए जा सकते हैं",
+
+  "costTitle": "💰 Cost",
+  "costDescription": "इस app में कोई subscription नहीं है। आप सिर्फ API usage के लिए pay करते हैं:",
+  "costChat": "Chat: ~0.2–0.5 cents / घंटा",
+  "costImage": "Images: ~0.5 cents / generation",
+  "costAverage": "Average: ~$2–3 प्रति महीना",
+
+  "howToStartTitle": "🚀 कैसे शुरू करें",
+  "howToStart1": "अपनी DeepSeek API key डालें (required)",
+  "howToStart2": "(Optional) Novita AI key जोड़ें",
+  "howToStart3": "कोई character चुनें या अपना बनाएं",
+  "howToStart4": "Chat शुरू करें या multi-chat try करें",
+
+  "privacyTitle": "🔒 Privacy",
+  "privacyNoDataToDev": "आपका data कभी developer को नहीं भेजा जाता",
+  "privacyDirectApi": "Requests सीधे DeepSeek / Novita AI को जाते हैं",
+  "privacyNoAccess": "Developer को आपके chats, characters या images का कोई access नहीं है",
+  "privacyImagesHidden": "Generated images Android gallery में नहीं दिखते — सिर्फ app के अंदर",
+
+  "supportTitle": "💬 Support",
+  "telegram": "Telegram: @givanchik",
+  "email": "Email: glebivanchik@gmail.com",
+  "supportProject": "Project को support करें",
+  "instruction": "Instructions",
+  "projectPage": "Project page",
+
+  "supportProjectTitle": "Project को support करें",
+  "supportIntroTitle": "☕ Project को support करें",
+  "supportDescription": "यह app पूरी तरह local है, private है और इसमें कोई subscription नहीं है.\n\nअगर यह app आपके काम का है और आप नए features और updates चाहते हैं, तो आप इसका support कर सकते हैं:",
+  "supportDescriptionLite": "अगर यह app आपके काम का है और आप नए features और updates चाहते हैं, तो आप इसका support कर सकते हैं:",
+
+  "supportOptionsTitle": "💵 Support options",
+  "supportOption2": "$2 — development support",
+  "supportOption5": "$5 — faster updates",
+  "supportOption10": "$10 — strong support",
+  "supportSmallContributions": "छोटा support भी बड़ा फर्क डालता है",
+
+  "supportWaysTitle": "💬 Support करने के तरीके",
+  "supportQuickSupport": "☕ Quick support",
+  "supportKofi": "— Ko-fi (card, fast)",
+
+  "supportCrypto": "💸 Crypto (low fees)",
+  "supportUsdt": "— USDT (TRC20)",
+  "supportTon": "— TON",
+
+  "supportInternational": "🌍 International",
+  "supportPaypal": "— PayPal",
+
+  "supportBankTransfer": "🏦 Bank transfer",
+  "supportIban": "— IBAN",
+
+  "supportAlternative": "🧩 Alternative",
+  "supportBoosty": "— Boosty",
+
+  "romantic": "Romantic",
+  "erotic": "Erotic",
+  "nsfw": "NSFW",
+  "office": "Office",
+  "casual": "Casual",
+  "fantasy": "Fantasy",
+  "sciFi": "Sci-fi",
+  "horror": "Horror",
+
+  "categories": "Categories",
+  "categoryRomantic": "Romantic: sweet, soft और shy characters और stories",
+  "categoryErotic": "Erotic: explicit, detailed और passionate content",
+  "categoryNSFW": "NSFW: bold, dirty और aggressive characters और stories",
+  "categoryOffice": "Office: workplace scenarios, boss-employee dynamics",
+  "categoryCasual": "Casual: daily life situations, friendly interactions",
+  "categoryFantasy": "Fantasy: magical worlds, mythical creatures, epic adventures",
+  "categorySciFi": "Sci-fi: futuristic settings, advanced tech, space exploration",
+  "categoryHorror": "Horror: dark, scary और suspenseful stories और characters",
+
+  "photo": "Photo",
+  "copy": "Copy",
+  "enterNameTwo": "Name दर्ज करें",
+
+  "defaultModeHint": "Character card में चुना गया gallery mode (18+, Erotica या Romance) तय करता है कि chat में avatar पर tap करने पर कौन-सी images दिखेंगी",
+
+  "costPrivacySupport": "Cost, privacy, project support",
+
+  "autoDeleteOldChatImages": "पुरानी chat images auto-delete करें",
+  "autoDeleteOldChatImagesDescription": "निर्धारित दिनों से पुरानी chat images अपने आप delete हो जाएंगी",
+  "autoDeleteAfterDays": "days",
+  "autoDeleteAfter": "Auto-delete बाद में",
+
+  "continueAction": "Continue",
+  "moreDetails": "More details",
+  "moreDetailsDescription": "Continue करें और scene को detail में describe करें — actions, emotions और feelings। Double length में लिखें। !!!यह सिर्फ इस message के लिए है। फिर अपने normal style पर वापस आ जाएं!!!",
+
+  "copiedToClipboard": "Clipboard में copy हो गया",
+
+  "newBranch": "नई branch",
+  "contacts": "💬 Contacts",
+  "support": "💬 Support",
+  "aboutPlatforms": "Available on:",
+  "supportFeedback": "अगर आपने project को support किया है और आपके पास ideas या suggestions हैं — बेझिझक लिखें.\nमैं हर message पढ़ता हूँ।",
+
+  "browseGalleryOrCreatePersona": "Gallery browse करें या नया custom persona बनाएं",
+  "startGroupScenarios": "एक साथ कई AI characters के साथ dynamic group scenarios शुरू करें",
+  "configureAppPreferences": "Character creativity, personality drift और long chat summarization adjust करें",
+
+  "continueRoleplay": "Roleplay जारी रखें",
+  "viewAll": "सभी देखें",
+  "noRecentChats": "अभी तक कोई recent chats नहीं हैं। नया शुरू करें!",
+  "minutesAgo": "min पहले",
+  "hoursAgo": "h पहले",
+  "yesterday": "कल",
+  "daysAgo": "d पहले",
+
+  "errorLoadingCharacters": "Characters load करने में error: ",
+
+  "newMultiChat": "नया multi-chat",
+  "newPersona": "नया persona",
+  "enterTitle": "Title दर्ज करें",
+
+  "defaultModeDescription": "Default mode character edit screen में सेट होता है",
+
+  "autoDeleteImages": "पुरानी chat images auto-delete करें",
+  "autoDeleteImagesDescription": "निर्धारित दिनों से पुरानी chat images अपने आप delete हो जाएंगी",
+  "days": "days",
+
+  "projectSupport": "Project support",
+  "appSettingsDescription": "Pricing, privacy और app settings",
+
+  "mainTitle": "Uncensored AI Roleplay",
+  "mainSubtitle": "Characters बनाएं और कोई भी scenario create करें। Scenes सीधे chat में generate करें.",
+  "mainText": "• Fully local\n• No subscription\n• बहुत कम cost",
+
+  "aboutNoCensorshipTitle": "🔓 No censorship",
+  "aboutNoCensorshipText": "आप किसी भी topic पर, किसी भी style में बात कर सकते हैं — बिना किसी restriction के.",
+  "aboutNoCensorshipImages": "Image generation में भी कोई censorship नहीं है। आप जो चाहें वैसा scene या character बना सकते हैं.",
+
+  "ageGateTitle": "Adult content",
+  "ageGateCardTitle": "आपकी उम्र 18+ होनी चाहिए",
+  "ageGateCardBody": "इस app में explicit content है जो केवल adults के लिए है। Continue करने से आप पुष्टि करते हैं कि आपकी उम्र कम से कम 18 साल है और यह content आपके देश में allowed है.",
+  "ageGateConfirm": "मैं 18+ हूँ",
+  "ageGateDecline": "मैं 18 से कम हूँ",
+  "ageGateDeclineMessage": "यह app केवल 18+ users के लिए है। कृपया सही उम्र होने पर वापस आएं.",
+
+  "errorDeepSeekInsufficientBalance": "DeepSeek account में balance कम है। कृपया recharge करें।",
+
+  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
+  "shorterAction": "Shorter",
+  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
+
+  "collapsePanel": "Collapse",
+  "expandPanel": "Expand"
+}
+
+

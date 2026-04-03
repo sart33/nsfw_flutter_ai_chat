@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
@@ -6,6 +8,7 @@ import 'package:nsfw_chat/domain/entities/multi_preset_entity.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/multi_preset_provider.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,6 +34,9 @@ class _CreateEditMultiPresetScreenState
   final _behaviorCtrl = TextEditingController();
   final Set<String> _selectedIds = {};
   bool get _isEdit => widget.presetId != null;
+
+  bool get _isDesktopPlatform =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   @override
   void initState() {
@@ -90,6 +96,8 @@ class _CreateEditMultiPresetScreenState
   @override
   Widget build(BuildContext context) {
     final personasAsync = ref.watch(personaProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDesktopLayout = _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -107,8 +115,26 @@ class _CreateEditMultiPresetScreenState
           ),
         ),
         data: (personas) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+          if (useDesktopLayout) {
+            return _buildDesktopLayout(personas);
+          } else {
+            return _buildMobileLayout(personas);
+          }
+        },
+      ),
+    );
+  }
+
+  // ── Desktop layout ────────────────────────────────────────────────────────
+
+  Widget _buildDesktopLayout(List<PersonaEntity> personas) {
+    return SingleChildScrollView(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: AppTheme.kContentMaxWidth),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -123,75 +149,43 @@ class _CreateEditMultiPresetScreenState
                         ? context.l10n.enterTitle
                         : null,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // ── Persona selector ──────────────────────────────
+                  // ── Persona carousel ──────────────────────────────
                   Text(
                     context.l10n.selectCharacters,
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.8,
                     ),
                   ),
-                  const SizedBox(height: 8),
-
-                  // Чекбокс-список в карточке с бордером
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardBg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.cardBorder, width: 1),
-                    ),
-                    child: Column(
-                      children: personas.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final p = entry.value;
-                        final isLast = index == personas.length - 1;
-                        return Column(
-                          children: [
-                            CheckboxListTile(
-                              value: _selectedIds.contains(p.id),
-                              onChanged: (checked) {
-                                setState(() {
-                                  if (checked == true) {
-                                    _selectedIds.add(p.id);
-                                  } else {
-                                    _selectedIds.remove(p.id);
-                                  }
-                                  _updateGreeting(personas);
-                                });
-                              },
-                              secondary: AvatarWidget(
-                                imagePath: p.avatarPath,
-                                assetPath: p.avatarAssetPath,
-                                name: p.name,
-                                size: 40,
-                              ),
-                              title: Text(
-                                p.name,
-                                style: const TextStyle(
-                                    color: AppTheme.textPrimary),
-                              ),
-                              activeColor: AppTheme.accentVivid,
-                              checkColor: Colors.white,
-                              controlAffinity:
-                              ListTileControlAffinity.leading,
-                            ),
-                            if (!isLast)
-                              Divider(
-                                height: 1,
-                                color: AppTheme.cardBorder,
-                                indent: 16,
-                                endIndent: 16,
-                              ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                  const SizedBox(height: 12),
+                  _DesktopPersonaCarousel(
+                    personas: personas,
+                    selectedIds: _selectedIds,
+                    onToggle: (id) {
+                      setState(() {
+                        if (_selectedIds.contains(id)) {
+                          _selectedIds.remove(id);
+                        } else {
+                          _selectedIds.add(id);
+                        }
+                        _updateGreeting(personas);
+                      });
+                    },
+                    onView: (persona) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PersonaViewScreen(persona: persona),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   // ── Greeting ──────────────────────────────────────
                   TextFormField(
@@ -212,37 +206,189 @@ class _CreateEditMultiPresetScreenState
                       hint: context.l10n.describeBehavior,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
-                  // ── Save ──────────────────────────────────────────
-                  SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () => _save(personas),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentVivid,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppTheme.cardBg,
-                        elevation: 6,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32),
+                  // ── Save button — centered 260px ──────────────────
+                  Center(
+                    child: SizedBox(
+                      width: 260,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () => _save(personas),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentVivid,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppTheme.cardBg,
+                          elevation: 6,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _isEdit ? context.l10n.save : context.l10n.create,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
+                        child: Text(
+                          _isEdit ? context.l10n.save : context.l10n.create,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Mobile layout ─────────────────────────────────────────────────────────
+
+  Widget _buildMobileLayout(List<PersonaEntity> personas) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Name ─────────────────────────────────────────
+            TextFormField(
+              controller: _nameCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              decoration: _fieldDecoration(context.l10n.presetNameLabel),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? context.l10n.enterTitle
+                  : null,
+            ),
+            const SizedBox(height: 20),
+
+            // ── Persona selector ──────────────────────────────
+            Text(
+              context.l10n.selectCharacters,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.cardBg,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.cardBorder, width: 1),
+              ),
+              child: Column(
+                children: personas.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final p = entry.value;
+                  final isLast = index == personas.length - 1;
+                  final isSelected = _selectedIds.contains(p.id);
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            AvatarWidget(
+                              imagePath: p.avatarPath,
+                              assetPath: p.avatarAssetPath,
+                              name: p.name,
+                              size: 40,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                p.name,
+                                style: const TextStyle(
+                                    color: AppTheme.textPrimary),
+                              ),
+                            ),
+                            Switch(
+                              value: isSelected,
+                              onChanged: (checked) {
+                                setState(() {
+                                  if (checked) {
+                                    _selectedIds.add(p.id);
+                                  } else {
+                                    _selectedIds.remove(p.id);
+                                  }
+                                  _updateGreeting(personas);
+                                });
+                              },
+                              activeColor: AppTheme.accentVivid,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isLast)
+                        Divider(
+                          height: 1,
+                          color: AppTheme.cardBorder,
+                          indent: 16,
+                          endIndent: 16,
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Greeting ──────────────────────────────────────
+            TextFormField(
+              controller: _greetCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              maxLines: 4,
+              decoration: _fieldDecoration(context.l10n.greeting),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Behavior ──────────────────────────────────────
+            TextFormField(
+              controller: _behaviorCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              maxLines: 4,
+              decoration: _fieldDecoration(
+                context.l10n.behavior,
+                hint: context.l10n.describeBehavior,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // ── Save ──────────────────────────────────────────
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => _save(personas),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentVivid,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppTheme.cardBg,
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                ),
+                child: Text(
+                  _isEdit ? context.l10n.save : context.l10n.create,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -288,5 +434,212 @@ class _CreateEditMultiPresetScreenState
     }
 
     Navigator.pop(context);
+  }
+}
+
+// ── Desktop Persona Carousel ──────────────────────────────────────────────────
+
+class _DesktopPersonaCarousel extends StatelessWidget {
+  final List<PersonaEntity> personas;
+  final Set<String> selectedIds;
+  final void Function(String id) onToggle;
+  final void Function(PersonaEntity persona) onView;
+
+  const _DesktopPersonaCarousel({
+    required this.personas,
+    required this.selectedIds,
+    required this.onToggle,
+    required this.onView,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 320,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: personas.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final p = personas[index];
+          final isSelected = selectedIds.contains(p.id);
+          return _DesktopPersonaCard(
+            persona: p,
+            isSelected: isSelected,
+            onToggle: () => onToggle(p.id),
+            onView: () => onView(p),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DesktopPersonaCard extends StatelessWidget {
+  final PersonaEntity persona;
+  final bool isSelected;
+  final VoidCallback onToggle;
+  final VoidCallback onView;
+
+  const _DesktopPersonaCard({
+    required this.persona,
+    required this.isSelected,
+    required this.onToggle,
+    required this.onView,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 180,
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? AppTheme.accentVivid : AppTheme.cardBorder,
+          width: isSelected ? 2 : 1,
+        ),
+        boxShadow: isSelected
+            ? [
+          BoxShadow(
+            color: AppTheme.accentVivid.withOpacity(0.25),
+            blurRadius: 12,
+            spreadRadius: 1,
+          )
+        ]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Avatar area ────────────────────────────────────
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(14),
+              ),
+              child: _PersonaImage(persona: persona),
+            ),
+          ),
+
+          // ── Name + short description ───────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+            child: Text(
+              persona.name,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (persona.description.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+              child: Text(
+                persona.description,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 11,
+                  height: 1.3,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            )
+          else
+            const SizedBox(height: 8),
+
+          // ── Controls row ───────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 8, 10),
+            child: Row(
+              children: [
+                // View button
+                InkWell(
+                  onTap: onView,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 10, right: 10, top: 4, bottom: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppTheme.cardBorder, width: 1),
+                    ),
+                    child: const Icon(
+                      Icons.remove_red_eye_outlined,
+                      size: 20,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                // Select toggle
+                Transform.scale(
+                  scale: 0.75,
+                  child: Switch(
+                    value: isSelected,
+                    onChanged: (_) => onToggle(),
+                    activeColor: AppTheme.accentVivid,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Renders persona image from file path or asset path.
+class _PersonaImage extends StatelessWidget {
+  final PersonaEntity persona;
+
+  const _PersonaImage({required this.persona});
+
+  @override
+  Widget build(BuildContext context) {
+    if (persona.avatarPath != null && persona.avatarPath!.isNotEmpty) {
+      return Image.file(
+        // ignore: deprecated_member_use
+        File(persona.avatarPath!),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (_, __, ___) => _fallback(),
+      );
+    }
+    if (persona.avatarAssetPath != null &&
+        persona.avatarAssetPath!.isNotEmpty) {
+      return Image.asset(
+        persona.avatarAssetPath!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (_, __, ___) => _fallback(),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    return Container(
+      color: AppTheme.cardBg,
+      child: Center(
+        child: Text(
+          persona.name.isNotEmpty ? persona.name[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 }

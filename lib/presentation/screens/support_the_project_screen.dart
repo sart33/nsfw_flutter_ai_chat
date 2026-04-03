@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
+import 'dart:io' show Platform;
 import '../../core/config/app_theme.dart';
 
 class SupportProjectScreen extends StatelessWidget {
@@ -36,7 +38,6 @@ class _Divider extends StatelessWidget {
 class SupportProjectContent extends StatelessWidget {
   const SupportProjectContent({Key? key}) : super(key: key);
 
-  // ── Shared text styles ────────────────────────────────────────────────────
   static const _titleStyle = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
@@ -59,43 +60,63 @@ class SupportProjectContent extends StatelessWidget {
     color: AppTheme.textPrimary,
   );
 
-  // ─────────────────────────────────────────────────────────────────────────
+  bool _isDesktop(BuildContext context) {
+    if (kIsWeb) return false;
+    try {
+      if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+        return false;
+      }
+    } catch (_) {
+      return false;
+    }
+    return MediaQuery.of(context).size.width >= AppTheme.kDesktopBreakpoint;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final desktop = _isDesktop(context);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTitle(context.l10n.supportProjectTitle), // "☕ Support the Project"
-
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            decoration: AppTheme.cardDecoration(),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSupportIntroSection(context),
-                  _Divider(),
-                  _buildSupportOptionsSection(context),
-                  _Divider(),
-                  _buildWaysToSupportSection(context),
-                  _Divider(),
-                  _buildSupportSection(context),
-
-                ],
-              ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: desktop ? AppTheme.kContentMaxWidth : double.infinity,
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(desktop ? 32 : 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTitle(context.l10n.supportProjectTitle),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  decoration: AppTheme.cardDecoration(),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSupportIntroSection(context),
+                        _Divider(),
+                        _buildSupportOptionsSection(context),
+                        _Divider(),
+                        _buildWaysToSupportSection(context),
+                        _Divider(),
+                        _buildSupportSection(context),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   Widget _buildTitle(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
@@ -149,60 +170,49 @@ class SupportProjectContent extends StatelessWidget {
     );
   }
 
-  // ── Sections ──────────────────────────────────────────────────────────────
   Widget _buildSupportIntroSection(BuildContext context) {
     return _buildSection(
-      context.l10n.supportIntroTitle, // "☕ Support the Project" (или можно сделать без иконки)
+      context.l10n.supportIntroTitle,
       children: [
         _buildParagraph(context.l10n.supportDescription),
-        // "This app is fully local, private, and has no subscriptions.\n\nIf the app is useful to you and you want new features and updates, you can support its development:"
       ],
     );
   }
 
   Widget _buildSupportOptionsSection(BuildContext context) {
     return _buildSection(
-      context.l10n.supportOptionsTitle, // "💵 Support Options"
+      context.l10n.supportOptionsTitle,
       children: [
         _buildBulletList([
-          context.l10n.supportOption2,   // "$2 — support development"
-          context.l10n.supportOption5,   // "$5 — faster updates"
-          context.l10n.supportOption10,  // "$10 — serious support"
+          context.l10n.supportOption2,
+          context.l10n.supportOption5,
+          context.l10n.supportOption10,
         ]),
         _buildParagraph(context.l10n.supportSmallContributions),
-        // "Even small contributions make a big difference"
       ],
     );
   }
 
   Widget _buildWaysToSupportSection(BuildContext context) {
     return _buildSection(
-      context.l10n.supportWaysTitle, // "💬 Ways to Support" (можно оставить или убрать заголовок)
+      context.l10n.supportWaysTitle,
       children: [
-        _buildParagraph(context.l10n.supportQuickSupport), // "☕ Quick support"
-        _buildBulletList([context.l10n.supportKofi]),     // "— Ko-fi (card, fast)"
-
+        _buildParagraph(context.l10n.supportQuickSupport),
+        _buildBulletList([context.l10n.supportKofi]),
         const SizedBox(height: 8),
-
-        _buildParagraph(context.l10n.supportCrypto), // "💸 Crypto (lowest fees)"
+        _buildParagraph(context.l10n.supportCrypto),
         _buildBulletList([
           context.l10n.supportUsdt,
           context.l10n.supportTon,
         ]),
-
         const SizedBox(height: 8),
-
-        _buildParagraph(context.l10n.supportInternational), // "🌍 International"
+        _buildParagraph(context.l10n.supportInternational),
         _buildBulletList([context.l10n.supportPaypal]),
-
         const SizedBox(height: 8),
-
-        _buildParagraph(context.l10n.supportBankTransfer), // "🏦 Bank transfer"
+        _buildParagraph(context.l10n.supportBankTransfer),
         _buildBulletList([context.l10n.supportIban]),
-
         const SizedBox(height: 8),
-
-        _buildParagraph(context.l10n.supportAlternative), // "🧩 Alternative"
+        _buildParagraph(context.l10n.supportAlternative),
         _buildBulletList([context.l10n.supportBoosty]),
       ],
     );
@@ -210,14 +220,10 @@ class SupportProjectContent extends StatelessWidget {
 
   Widget _buildSupportSection(BuildContext context) {
     return _buildSection(
-      context.l10n.contacts, // '💬 Support'
+      context.l10n.contacts,
       children: [
         _buildParagraph(context.l10n.telegram),
         _buildParagraph(context.l10n.email),
-
-
-
-
       ],
     );
   }

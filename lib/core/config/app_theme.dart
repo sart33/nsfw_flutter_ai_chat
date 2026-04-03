@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 class AppTheme {
   AppTheme._();
 
+// ── UI / layout breakpoints ───────────────────────────────────────────
+  static const double kDesktopBreakpoint = 600.0;
+
+  static const double kContentMaxWidth = 960.0;
+
   // ── Colour palette ────────────────────────────────────────────────────
   static const Color background    = Color(0xFF000000);
   static const Color surface       = Color(0xFF111111);

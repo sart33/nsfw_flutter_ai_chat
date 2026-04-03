@@ -12,10 +12,13 @@ import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/branch_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/create_edit_persona_screen.dart';
 import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
+import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/gallery_thumbnail_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/pending_image_widget.dart';
-
 import 'api_keys_screen.dart';
+
+bool get _isDesktopPlatform =>
+    Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
 /// Full-page view of a persona: avatar header, description, greeting, gallery.
 class PersonaViewScreen extends ConsumerStatefulWidget {
@@ -35,21 +38,23 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
-      action: isKeyError ? SnackBarAction(
+      action: isKeyError
+          ? SnackBarAction(
         label: context.l10n.settings,
         textColor: Colors.white,
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
         ),
-      ) : null,
+      )
+          : null,
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     final personasAsync = ref.watch(personaProvider);
-    
+
     return personasAsync.when(
       loading: () => Scaffold(
         backgroundColor: AppTheme.background,
@@ -72,9 +77,12 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         ),
       ),
       data: (personas) {
-        final currentPersona = personas
-            .firstWhere((p) => p.id == widget.persona.id, orElse: () => widget.persona);
-        final galleryKey = GalleryKey(currentPersona.id, currentPersona.galleryMode);
+        final currentPersona = personas.firstWhere(
+              (p) => p.id == widget.persona.id,
+          orElse: () => widget.persona,
+        );
+        final galleryKey =
+        GalleryKey(currentPersona.id, currentPersona.galleryMode);
         final state = ref.watch(galleryProvider(galleryKey));
         final notifier = ref.read(galleryProvider(galleryKey).notifier);
 
@@ -85,10 +93,12 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
             final msg = switch (next.error) {
               GalleryFullException() => context.l10n.galleryFull,
-              GenerationException() when next.error!.technicalMessage == 'api_key_not_set'
-              => context.l10n.errorNovitaKeyNotSet,
-              GenerationException() when next.error!.technicalMessage == 'api_key_invalid'
-              => context.l10n.errorNovitaKeyInvalid,
+              GenerationException()
+              when next.error!.technicalMessage == 'api_key_not_set' =>
+              context.l10n.errorNovitaKeyNotSet,
+              GenerationException()
+              when next.error!.technicalMessage == 'api_key_invalid' =>
+              context.l10n.errorNovitaKeyInvalid,
               GenerationException() => context.l10n.errorImageGeneration,
               SaveException() => context.l10n.errorSave,
               DeleteException() => context.l10n.errorDelete,
@@ -99,69 +109,167 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           }
         });
 
-        return Scaffold(
-          backgroundColor: AppTheme.background,
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: const BackButton(color: Colors.white),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                tooltip: context.l10n.editCharacter,
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        CreateEditPersonaScreen(personaId: widget.persona.id),
-                  ),
-                ).then((changed) {
-                  if (changed == true && context.mounted) {
-                    ref.invalidate(personaProvider);
-                  }
-                }),
+        final screenWidth = MediaQuery.of(context).size.width;
+        final useDesktop =
+            _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+
+        if (useDesktop) {
+          return _buildDesktopLayout(
+              context, currentPersona, state, notifier);
+        } else {
+          return _buildMobileLayout(
+              context, currentPersona, state, notifier);
+        }
+      },
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // MOBILE LAYOUT (без изменений относительно оригинала)
+  // ══════════════════════════════════════════════════════════════════════
+
+  Widget _buildMobileLayout(
+      BuildContext context,
+      PersonaEntity currentPersona,
+      GalleryState state,
+      GalleryNotifier notifier,
+      ) {
+    final galleryKey =
+    GalleryKey(currentPersona.id, currentPersona.galleryMode);
+
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: const BackButton(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Colors.white),
+            tooltip: context.l10n.editCharacter,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    CreateEditPersonaScreen(personaId: widget.persona.id),
               ),
-              IconButton(
-                icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-                tooltip: context.l10n.chats,
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BranchListScreen(
-                      entityId: 'single:${widget.persona.id}',
-                      entityName: widget.persona.name,
-                      isMulti: false,
-                      greeting: widget.persona.greeting,
-                    ),
-                  ),
+            ).then((changed) {
+              if (changed == true && context.mounted) {
+                ref.invalidate(personaProvider);
+              }
+            }),
+          ),
+          IconButton(
+            icon:
+            const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            tooltip: context.l10n.chats,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BranchListScreen(
+                  entityId: 'single:${widget.persona.id}',
+                  entityName: widget.persona.name,
+                  isMulti: false,
+                  greeting: widget.persona.greeting,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: AppTheme.warning),
-                tooltip: context.l10n.delete,
-                onPressed: () => _confirmDelete(context, ref),
-              ),
-            ],
+            ),
           ),
-          body: Column(
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: AppTheme.warning),
+            tooltip: context.l10n.delete,
+            onPressed: () => _confirmDelete(context, ref),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildAvatarHeader(currentPersona),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoCard(
+                    context.l10n.description,
+                    currentPersona.description,
+                    selectable: true,
+                  ),
+                  const SizedBox(height: 12),
+                  if (currentPersona.greeting.isNotEmpty) ...[
+                    _buildInfoCard(
+                      context.l10n.greeting,
+                      currentPersona.greeting,
+                      italic: true,
+                      textColor: const Color(0xFFCCCCCC),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  _buildGalleryHeader(
+                      state, notifier, context, currentPersona),
+                  const SizedBox(height: 12),
+                  _buildGalleryContent(
+                      state, notifier, context, currentPersona,
+                      crossAxisCount: 3),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // DESKTOP LAYOUT
+  // ══════════════════════════════════════════════════════════════════════
+
+  Widget _buildDesktopLayout(
+      BuildContext context,
+      PersonaEntity currentPersona,
+      GalleryState state,
+      GalleryNotifier notifier,
+      ) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: CustomAppBar(
+        title:
+          currentPersona.name,
+
+        ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: AppTheme.kContentMaxWidth),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildAvatarHeader(currentPersona),
+              // ── Левая колонка ───────────────────────────────────────────
+              SizedBox(
+                width: 300,
+                child: _buildDesktopLeftPanel(context, currentPersona),
+              ),
+
+              // Разделитель
+              Container(width: 1, color: AppTheme.cardBorder),
+
+              // ── Правая колонка (скроллируемая) ──────────────────────────
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Description card
+                      // Description
                       _buildInfoCard(
                         context.l10n.description,
                         currentPersona.description,
                         selectable: true,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
 
-                      // Greeting card
+                      // Greeting
                       if (currentPersona.greeting.isNotEmpty) ...[
                         _buildInfoCard(
                           context.l10n.greeting,
@@ -169,117 +277,207 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                           italic: true,
                           textColor: const Color(0xFFCCCCCC),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                       ],
 
-                      // Gallery section
-                      _buildGalleryHeader(state, notifier, context, currentPersona),
-                      const SizedBox(height: 12),
+                      // Gallery header (mode selector + title row)
+                      _buildGalleryHeader(
+                          state, notifier, context, currentPersona),
+                      const SizedBox(height: 16),
 
-                      // Pending image preview
-                      if (state.pendingImagePath != null)
-                        PendingImageWidget(
-                          path: state.pendingImagePath!,
-                          onSave: () async {
-                            await notifier.confirmPending(
-                                currentPersona.id, currentPersona.description);
-                            if (!context.mounted) return;
-                            if (ref.read(galleryProvider(galleryKey)).error == null) {
-                              Fluttertoast.showToast(msg: context.l10n.savedToGallery);
-                            }
-                          },
-                          onRegenerate: () =>
-                              notifier.regeneratePending(currentPersona.description),
-                          onDiscard: () => notifier.discardPending(),
-                          isLoading: state.isGenerating,
-                        ),
-
-                      // Generating indicator
-                      if (state.isGenerating && state.pendingImagePath == null) ...[
-                        Center(
-                          child: Column(
-                            children: [
-                              LinearProgressIndicator(
-                                color: AppTheme.primaryAccent,
-                                backgroundColor: AppTheme.surface,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                context.l10n.generatingWait,
-                                style: const TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-
-                      // Empty gallery message
-                      if (state.images.isEmpty && !state.isGenerating)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              context.l10n.noImagesClickPlus,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      // Gallery grid
-                      if (state.images.isNotEmpty)
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
-                            childAspectRatio: 2 / 3,
-                          ),
-                          itemCount: state.images.length,
-                          itemBuilder: (context, index) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: GalleryThumbnailWidget(
-                                image: state.images[index],
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => GalleryFullscreenScreen(
-                                      images: state.images,
-                                      initialIndex: index,
-                                      personaDescription: currentPersona.description,
-                                      personaId: currentPersona.id,
-                                      galleryMode: currentPersona.galleryMode,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                      // Gallery content
+                      _buildGalleryContent(
+                          state, notifier, context, currentPersona,
+                          crossAxisCount: 4),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // ── Avatar header ─────────────────────────────────────────────────────
+  /// Левая панель десктопа: аватар-карточка + имя + behavior + кнопки
+  Widget _buildDesktopLeftPanel(
+      BuildContext context, PersonaEntity p) {
+    final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
+    final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Аватар — квадратная карточка с закруглёнными углами
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: AspectRatio(
+              aspectRatio: 3 / 4,
+              child: hasFile
+                  ? Image.file(File(p.avatarPath!),
+                  fit: BoxFit.cover, alignment: Alignment.topCenter)
+                  : hasAsset
+                  ? Image.asset(p.avatarAssetPath!,
+                  fit: BoxFit.cover, alignment: Alignment.topCenter)
+                  : Container(
+                color: AppTheme.cardBg,
+                child: Center(
+                  child: Text(
+                    _initials(p.name),
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Имя + behavior
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                p.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (p.behavior != null && p.behavior!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  p.behavior!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+
+        // Кнопка Chat Now
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SizedBox(
+            height: 44,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentVivid,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              icon: const Icon(Icons.chat_bubble_outline, size: 18),
+              label: Text(
+                context.l10n.chats,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BranchListScreen(
+                    entityId: 'single:${widget.persona.id}',
+                    entityName: widget.persona.name,
+                    isMulti: false,
+                    greeting: widget.persona.greeting,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // Edit + Delete в ряд
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              // Edit
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: AppTheme.cardBorder),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    label: Text(
+                      context.l10n.editCharacter,
+                      style: const TextStyle(fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CreateEditPersonaScreen(
+                            personaId: widget.persona.id),
+                      ),
+                    ).then((changed) {
+                      if (changed == true && context.mounted) {
+                        ref.invalidate(personaProvider);
+                      }
+                    }),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Delete
+              SizedBox(
+                height: 40,
+                width: 40,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.warning,
+                    side: const BorderSide(color: AppTheme.cardBorder),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: const Icon(Icons.delete_outline, size: 18),
+                  onPressed: () => _confirmDelete(context, ref),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // ОБЩИЕ ВИДЖЕТЫ
+  // ══════════════════════════════════════════════════════════════════════
+
+  /// Шапка с аватаром — только для мобайла
   Widget _buildAvatarHeader(PersonaEntity p) {
     final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
     final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
@@ -312,7 +510,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             ),
           // Gradient overlay
           Positioned(
-            bottom: 0, left: 0, right: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             height: 140,
             child: Container(
               decoration: const BoxDecoration(
@@ -326,7 +526,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           ),
           // Name + behavior
           Positioned(
-            bottom: 16, left: 16, right: 16,
+            bottom: 16,
+            left: 16,
+            right: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -359,8 +561,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     );
   }
 
-  // ── Info card — с border как на других экранах ────────────────────────
-
   Widget _buildInfoCard(
       String title,
       String content, {
@@ -392,7 +592,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               color: textColor,
               fontSize: 14,
               height: 1.5,
-              fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+              fontStyle:
+              italic ? FontStyle.italic : FontStyle.normal,
             ),
           )
               : Text(
@@ -401,7 +602,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               color: textColor,
               fontSize: 14,
               height: 1.5,
-              fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+              fontStyle:
+              italic ? FontStyle.italic : FontStyle.normal,
             ),
           ),
         ],
@@ -409,16 +611,20 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     );
   }
 
-  // ── Mode carousel — горизонтальный скролл с чипами ────────────────────
-
   Widget _buildModeSelector(
       GalleryState state, GalleryNotifier notifier, BuildContext context) {
-    // Список режимов: value, label, icon
     final modes = [
-      (value: 'romantic', label: context.l10n.romantic, icon: Icons.favorite_border),
-      (value: 'erotic',   label: context.l10n.erotic,   icon: Icons.local_fire_department),
-      // (value: 'office',   label: context.l10n.office,   icon: Icons.business_center_outlined),
-      (value: 'nude',     label: '18+',                 icon: Icons.whatshot),
+      (
+      value: 'romantic',
+      label: context.l10n.romantic,
+      icon: Icons.favorite_border
+      ),
+      (
+      value: 'erotic',
+      label: context.l10n.erotic,
+      icon: Icons.local_fire_department
+      ),
+      (value: 'nude', label: '18+', icon: Icons.whatshot),
     ];
 
     return Padding(
@@ -426,7 +632,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Горизонтальная карусель чипов
           SizedBox(
             height: 42,
             child: ListView.separated(
@@ -488,7 +693,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          Text(context.l10n.defaultModeHint,
+          Text(
+            context.l10n.defaultModeHint,
             style: const TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 11,
@@ -499,8 +705,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     );
   }
 
-  // ── Gallery header row ────────────────────────────────────────────────
-
   Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier,
       BuildContext context, PersonaEntity currentPersona) {
     return Column(
@@ -510,8 +714,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(context.l10n.gallery,
-              style: TextStyle(
+            Text(
+              context.l10n.gallery,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -531,13 +736,121 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                         ? null
                         : () => notifier
                         .generatePreview(currentPersona.description),
-                    child:  const Icon(Icons.add_a_photo_outlined,
-                          color: Colors.white, size: 20),
-                    ),
+                    child: const Icon(Icons.add_a_photo_outlined,
+                        color: Colors.white, size: 20),
+                  ),
               ],
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  /// Контент галереи — pending, progress, пустое состояние, грид.
+  /// [crossAxisCount] — 3 на мобайле, 4 на десктопе.
+  Widget _buildGalleryContent(
+      GalleryState state,
+      GalleryNotifier notifier,
+      BuildContext context,
+      PersonaEntity currentPersona, {
+        required int crossAxisCount,
+      }) {
+    final galleryKey =
+    GalleryKey(currentPersona.id, currentPersona.galleryMode);
+
+    return Column(
+      children: [
+        // Pending image preview
+        if (state.pendingImagePath != null)
+          PendingImageWidget(
+            path: state.pendingImagePath!,
+            onSave: () async {
+              await notifier.confirmPending(
+                  currentPersona.id, currentPersona.description);
+              if (!context.mounted) return;
+              if (ref.read(galleryProvider(galleryKey)).error == null) {
+                Fluttertoast.showToast(msg: context.l10n.savedToGallery);
+              }
+            },
+            onRegenerate: () =>
+                notifier.regeneratePending(currentPersona.description),
+            onDiscard: () => notifier.discardPending(),
+            isLoading: state.isGenerating,
+          ),
+
+        // Generating indicator
+        if (state.isGenerating && state.pendingImagePath == null) ...[
+          Center(
+            child: Column(
+              children: [
+                LinearProgressIndicator(
+                  color: AppTheme.primaryAccent,
+                  backgroundColor: AppTheme.surface,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.generatingWait,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Empty gallery message
+        if (state.images.isEmpty && !state.isGenerating)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                context.l10n.noImagesClickPlus,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+
+        // Gallery grid
+        if (state.images.isNotEmpty)
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 2 / 3,
+            ),
+            itemCount: state.images.length,
+            itemBuilder: (context, index) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: GalleryThumbnailWidget(
+                  image: state.images[index],
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GalleryFullscreenScreen(
+                        images: state.images,
+                        initialIndex: index,
+                        personaDescription: currentPersona.description,
+                        personaId: currentPersona.id,
+                        galleryMode: currentPersona.galleryMode,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
       ],
     );
   }

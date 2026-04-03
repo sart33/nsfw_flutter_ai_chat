@@ -1,5 +1,5 @@
 {
-  "appTitle": "NSFW Chat",
+  "appTitle": "Uncensored souls",
   "apiKeys": "API Keys",
   "deepSeekApi": "DeepSeek API",
   "requiredForChat": "Required for chat to work",
@@ -119,11 +119,6 @@
   "understood": "Got it",
   "reminderFrequency": "Reminder frequency.",
   "everyNMessages": "1 / {count} messages",
-  "@everyNMessages": {
-    "placeholders": {
-      "count": {}
-    }
-  },
   "chatFontSize": "Chat text size",
   "pixelsLabel": "{size}px",
   "@pixelsLabel": {
@@ -267,7 +262,7 @@
     "categoryHorror": "Horror: dark, scary, suspenseful stories and characters",
 
   "photo": "Photo",
-  "copy": "Копировать",
+  "copy": "Copy",
   "enterNameTwo": "Enter name",
 
 
@@ -319,8 +314,18 @@
   "ageGateCardBody": "This app contains explicit content intended for adults only. By continuing, you confirm that you are at least 18 years of age and that viewing such content is permitted in your country.",
   "ageGateConfirm": "I'm 18 or older",
   "ageGateDecline": "I'm under 18",
-  "ageGateDeclineMessage": "This app is intended for users aged 18 and over. Please come back when you're of age."
+  "ageGateDeclineMessage": "This app is intended for users aged 18 and over. Please come back when you're of age.",
 
+  "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
+
+  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
+  "shorterAction": "Shorter",
+  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
+
+  "collapsePanel": "Collapse",
+  "expandPanel": "Expand"
 }
 
 

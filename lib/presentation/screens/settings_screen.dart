@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
-import 'package:nsfw_chat/presentation/screens/support_the_project.dart';
+import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 
 import 'about_app_screen.dart';
+
+bool get _isDesktopPlatform =>
+    Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -56,7 +61,8 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(context.l10n.understood,
-                style: const TextStyle(color: AppTheme.primaryAccent)),
+                style:
+                const TextStyle(color: AppTheme.primaryAccent)),
           ),
         ],
       ),
@@ -77,12 +83,12 @@ class SettingsScreen extends ConsumerWidget {
           : null,
       children: [
         Padding(
-            padding:
-            const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            padding: const EdgeInsets.symmetric(
+                vertical: 8, horizontal: 12),
             child: Text(col1, style: style)),
         Padding(
-            padding:
-            const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            padding: const EdgeInsets.symmetric(
+                vertical: 8, horizontal: 12),
             child: Text(col2, style: style)),
       ],
     );
@@ -90,226 +96,320 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final notifier = ref.read(settingsProvider.notifier);
+    final settings   = ref.watch(settingsProvider);
+    final notifier   = ref.read(settingsProvider.notifier);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDesktop  =
+        _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+
+    // ── Все блоки-карточки ────────────────────────────────────────────
+    // Собираем список «секций». Каждая секция — это один _SettingsCard.
+    // На мобайле выводим в один столбец, на десктопе — в два.
+
+    final aboutCard = _SettingsCard(children: [
+      _NavTile(
+        icon: Icons.info_outline,
+        title: context.l10n.aboutAppTitle,
+        subtitle: context.l10n.appSettingsDescription,
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const AboutAppScreen())),
+      ),
+    ]);
+
+    final supportCard = _SettingsCard(children: [
+      _NavTile(
+        icon: Icons.money,
+        title: context.l10n.supportProjectTitle,
+        subtitle: context.l10n.projectSupport,
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(
+                builder: (_) => const SupportProjectScreen())),
+      ),
+    ]);
+
+    final apiKeysCard = _SettingsCard(children: [
+      _NavTile(
+        icon: Icons.vpn_key_outlined,
+        title: context.l10n.apiKeys,
+        subtitle: context.l10n.manageApiKeys,
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
+      ),
+    ]);
+
+    final chatFontCard = _SettingsCard(children: [
+      _SliderTile(
+        title: context.l10n.chatFontSize,
+        valueLabel:
+        context.l10n.pixelsLabel(settings.chatFontSize.round()),
+        value: settings.chatFontSize,
+        min: 12,
+        max: 24,
+        divisions: 12,
+        onChanged: (v) => notifier.setChatFontSize(v),
+      ),
+    ]);
+
+    final personalityCard = _SettingsCard(children: [
+      _SwitchTile(
+        title: context.l10n.personalityReminder,
+        subtitle: context.l10n.reminderNote,
+        value: settings.reminderEnabled,
+        onChanged: (v) => notifier.setReminderEnabled(v),
+      ),
+      _Divider(),
+      _SliderTile(
+        title: context.l10n.reminderFrequency,
+        valueLabel:
+        context.l10n.everyNMessages(settings.reminderInterval),
+        value: settings.reminderInterval.toDouble(),
+        min: 1,
+        max: 20,
+        divisions: 19,
+        onChanged: (v) => notifier.setReminderInterval(v.round()),
+      ),
+    ]);
+
+    final creativityCard = _SettingsCard(children: [
+      _SliderTile(
+        title: context.l10n.creativity,
+        valueLabel:
+        settings.generationTemperature.toStringAsFixed(2),
+        value: settings.generationTemperature,
+        min: 0.1,
+        max: 1.5,
+        divisions: 28,
+        onChanged: (v) => notifier.setGenerationTemperature(v),
+      ),
+    ]);
+
+    final summarizationCard = _SettingsCard(children: [
+      _SwitchTile(
+        title: context.l10n.summarizationEnabled,
+        subtitle: context.l10n.summarizationEnabledDesc,
+        value: settings.summarizationEnabled,
+        onChanged: (v) => notifier.setSummarizationEnabled(v),
+      ),
+      if (settings.summarizationEnabled) ...[
+        _Divider(),
+        _SliderTile(
+          title: context.l10n.messages,
+          valueLabel:
+          '${settings.summarizationThreshold} ${context.l10n.messages}',
+          value: settings.summarizationThreshold.toDouble(),
+          min: 30,
+          max: 200,
+          divisions: 17,
+          onChanged: (v) =>
+              notifier.setSummarizationThreshold(v.round()),
+        ),
+      ],
+    ]);
+
+    final autoDeleteCard = _SettingsCard(children: [
+      _SwitchTile(
+        title: context.l10n.autoDeleteImages,
+        subtitle: context.l10n.autoDeleteImagesDescription,
+        value: settings.autoDeleteChatImagesEnabled,
+        onChanged: (v) => notifier.setAutoDeleteEnabled(v),
+      ),
+      if (settings.autoDeleteChatImagesEnabled) ...[
+        _Divider(),
+        _SliderTile(
+          title: context.l10n.autoDeleteAfter,
+          valueLabel:
+          '${settings.autoDeleteChatImagesDays} ${context.l10n.days}',
+          value: settings.autoDeleteChatImagesDays.toDouble(),
+          min: 7,
+          max: 60,
+          divisions: 53,
+          onChanged: (v) => notifier.setAutoDeleteDays(v.round()),
+        ),
+      ],
+    ]);
+
+    final userInputCard = _SettingsCard(children: [
+      _SliderTile(
+        title: context.l10n.userInputLimit,
+        valueLabel:
+        context.l10n.charactersLabel(settings.userInputLimit),
+        value: settings.userInputLimit.toDouble(),
+        min: 1000,
+        max: 8000,
+        divisions: 60,
+        onChanged: (v) => notifier.setUserInputLimit(v.round()),
+      ),
+    ]);
+
+    final aiResponseCard = _SettingsCard(children: [
+      _SliderTile(
+        title: context.l10n.aiResponseLimit,
+        valueLabel:
+        context.l10n.tokensLabel(settings.aiResponseLimit),
+        value: settings.aiResponseLimit.toDouble(),
+        min: 100,
+        max: 2000,
+        divisions: 60,
+        onChanged: (v) => notifier.setAiResponseLimit(v.round()),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        child: GestureDetector(
+          onTap: () => _showTokenInfoDialog(context),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline,
+                  size: 15, color: AppTheme.textSecondary),
+              const SizedBox(width: 6),
+              Text(context.l10n.whatAreTokens,
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 13)),
+            ],
+          ),
+        ),
+      ),
+    ]);
+
+    final clearCard = _SettingsCard(children: [
+      _NavTile(
+        icon: Icons.delete_sweep_outlined,
+        title: context.l10n.confirmClearAllSummarizations,
+        subtitle: context.l10n.clearAllSummarizationsWarning,
+        destructive: true,
+        onTap: () => _confirmClear(context, notifier),
+      ),
+    ]);
 
     return Scaffold(
       appBar: CustomAppBar(title: context.l10n.settings),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        children: [
+      body: useDesktop
+          ? _buildDesktopBody(
+        aboutCard: aboutCard,
+        supportCard: supportCard,
+        apiKeysCard: apiKeysCard,
+        chatFontCard: chatFontCard,
+        personalityCard: personalityCard,
+        creativityCard: creativityCard,
+        summarizationCard: summarizationCard,
+        autoDeleteCard: autoDeleteCard,
+        userInputCard: userInputCard,
+        aiResponseCard: aiResponseCard,
+        clearCard: clearCard,
+      )
+          : _buildMobileBody(
+        aboutCard: aboutCard,
+        supportCard: supportCard,
+        apiKeysCard: apiKeysCard,
+        chatFontCard: chatFontCard,
+        personalityCard: personalityCard,
+        creativityCard: creativityCard,
+        summarizationCard: summarizationCard,
+        autoDeleteCard: autoDeleteCard,
+        userInputCard: userInputCard,
+        aiResponseCard: aiResponseCard,
+        clearCard: clearCard,
+      ),
+    );
+  }
 
-          // ── About — отдельная карточка ─────────────────────────
-          _SettingsCard(children: [
-            _NavTile(
-              icon: Icons.info_outline,
-              title: context.l10n.aboutAppTitle,
-              subtitle: context.l10n.appSettingsDescription,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(
-                      builder: (_) => const AboutAppScreen())),
-            ),
-          ]),
+  // ══════════════════════════════════════════════════════════════════════════
+  // MOBILE LAYOUT — один столбец, без изменений
+  // ══════════════════════════════════════════════════════════════════════════
 
-          const SizedBox(height: 12),
+  Widget _buildMobileBody({
+    required Widget aboutCard,
+    required Widget supportCard,
+    required Widget apiKeysCard,
+    required Widget chatFontCard,
+    required Widget personalityCard,
+    required Widget creativityCard,
+    required Widget summarizationCard,
+    required Widget autoDeleteCard,
+    required Widget userInputCard,
+    required Widget aiResponseCard,
+    required Widget clearCard,
+  }) {
+    const gap = SizedBox(height: 12);
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      children: [
+        aboutCard,       gap,
+        supportCard,     gap,
+        apiKeysCard,     gap,
+        chatFontCard,    gap,
+        personalityCard, gap,
+        creativityCard,  gap,
+        summarizationCard, gap,
+        autoDeleteCard,  gap,
+        userInputCard,   gap,
+        aiResponseCard,  gap,
+        clearCard,
+        const SizedBox(height: 32),
+      ],
+    );
+  }
 
-          // ── Support the project — отдельная карточка ─────────────────────────
-          _SettingsCard(children: [
-            _NavTile(
-              icon: Icons.money,
-              title: context.l10n.supportProjectTitle,
-              subtitle: context.l10n.projectSupport,
-              onTap: () =>
-                  Navigator.push(context,
-                      MaterialPageRoute(
-                          builder: (_) => const SupportProjectScreen())),
-            ),
-          ]),
+  // ══════════════════════════════════════════════════════════════════════════
+  // DESKTOP LAYOUT — два независимых столбца
+  // ══════════════════════════════════════════════════════════════════════════
 
-          const SizedBox(height: 12),
+  Widget _buildDesktopBody({
+    required Widget aboutCard,
+    required Widget supportCard,
+    required Widget apiKeysCard,
+    required Widget chatFontCard,
+    required Widget personalityCard,
+    required Widget creativityCard,
+    required Widget summarizationCard,
+    required Widget autoDeleteCard,
+    required Widget userInputCard,
+    required Widget aiResponseCard,
+    required Widget clearCard,
+  }) {
+    const gap = SizedBox(height: 12);
 
-          // ── API Keys — отдельная карточка ──────────────────────
-          _SettingsCard(children: [
-            _NavTile(
-              icon: Icons.vpn_key_outlined,
-              title: context.l10n.apiKeys,
-              subtitle: context.l10n.manageApiKeys,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
-            ),
-          ]),
+    final leftColumn = <Widget>[
+      aboutCard,         gap,
+      supportCard,       gap,
+      chatFontCard,      gap,
+      creativityCard,    gap,
+      summarizationCard, gap,
+      clearCard,         gap,
+      userInputCard,
+    ];
 
-          const SizedBox(height: 12),
+    final rightColumn = <Widget>[
+      apiKeysCard,      gap,
+      personalityCard,  gap,
+      autoDeleteCard,   gap,
+      aiResponseCard,
+    ];
 
-
-          // ── Chat text size ─────────────────────────────────────
-          _SettingsCard(children: [
-            _SliderTile(
-              title: context.l10n.chatFontSize,
-              valueLabel:
-              context.l10n.pixelsLabel(settings.chatFontSize.round()),
-              value: settings.chatFontSize,
-              min: 12,
-              max: 24,
-              divisions: 12,
-              onChanged: (v) => notifier.setChatFontSize(v),
-            ),
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── Personality reminder + frequency (одна карточка) ───
-          _SettingsCard(children: [
-            _SwitchTile(
-              title: context.l10n.personalityReminder,
-              subtitle: context.l10n.reminderNote,
-              value: settings.reminderEnabled,
-              onChanged: (v) => notifier.setReminderEnabled(v),
-            ),
-            _Divider(),
-            _SliderTile(
-              title: context.l10n.reminderFrequency,
-              valueLabel:
-              context.l10n.everyNMessages(settings.reminderInterval),
-              value: settings.reminderInterval.toDouble(),
-              min: 1,
-              max: 20,
-              divisions: 19,
-              onChanged: (v) => notifier.setReminderInterval(v.round()),
-            ),
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── Response creativity ────────────────────────────────
-          _SettingsCard(children: [
-            _SliderTile(
-              title: context.l10n.creativity,
-              valueLabel:
-              settings.generationTemperature.toStringAsFixed(2),
-              value: settings.generationTemperature,
-              min: 0.1,
-              max: 1.5,
-              divisions: 28,
-              onChanged: (v) => notifier.setGenerationTemperature(v),
-            ),
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── Summarization ──────────────────────────────────────
-          _SettingsCard(children: [
-            _SwitchTile(
-              title: context.l10n.summarizationEnabled,
-              subtitle: context.l10n.summarizationEnabledDesc,
-              value: settings.summarizationEnabled,
-              onChanged: (v) => notifier.setSummarizationEnabled(v),
-            ),
-            if (settings.summarizationEnabled) ...[
-              _Divider(),
-              _SliderTile(
-                title: context.l10n.messages,
-                valueLabel:
-                '${settings.summarizationThreshold} ${context.l10n.messages}',
-                value: settings.summarizationThreshold.toDouble(),
-                min: 30,
-                max: 200,
-                divisions: 17,
-                onChanged: (v) =>
-                    notifier.setSummarizationThreshold(v.round()),
-              ),
-            ],
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── Auto-delete chat images ────────────────────────────
-          _SettingsCard(children: [
-            _SwitchTile(
-              title: context.l10n.autoDeleteImages,
-              subtitle:context.l10n.autoDeleteImagesDescription,
-              value: settings.autoDeleteChatImagesEnabled,
-              onChanged: (v) => notifier.setAutoDeleteEnabled(v),
-            ),
-            if (settings.autoDeleteChatImagesEnabled) ...[
-              _Divider(),
-              _SliderTile(
-                title: context.l10n.autoDeleteAfter,
-                valueLabel: '${settings.autoDeleteChatImagesDays} ${context.l10n.days}',
-                value: settings.autoDeleteChatImagesDays.toDouble(),
-                min: 7,
-                max: 60,
-                divisions: 53,
-                onChanged: (v) =>
-                    notifier.setAutoDeleteDays(v.round()),
-              ),
-            ],
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── User input limit ───────────────────────────────────
-          _SettingsCard(children: [
-            _SliderTile(
-              title: context.l10n.userInputLimit,
-              valueLabel:
-              context.l10n.charactersLabel(settings.userInputLimit),
-              value: settings.userInputLimit.toDouble(),
-              min: 1000,
-              max: 8000,
-              divisions: 60,
-              onChanged: (v) => notifier.setUserInputLimit(v.round()),
-            ),
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── AI response limit ──────────────────────────────────
-          _SettingsCard(children: [
-            _SliderTile(
-              title: context.l10n.aiResponseLimit,
-              valueLabel:
-              context.l10n.tokensLabel(settings.aiResponseLimit),
-              value: settings.aiResponseLimit.toDouble(),
-              min: 2000,
-              max: 8000,
-              divisions: 60,
-              onChanged: (v) => notifier.setAiResponseLimit(v.round()),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              child: GestureDetector(
-                onTap: () => _showTokenInfoDialog(context),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline,
-                        size: 15, color: AppTheme.textSecondary),
-                    const SizedBox(width: 6),
-                    Text(context.l10n.whatAreTokens,
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 13)),
-                  ],
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppTheme.kContentMaxWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: leftColumn,
                 ),
               ),
-            ),
-          ]),
-
-          const SizedBox(height: 12),
-
-          // ── Clear all summaries ────────────────────────────────
-          _SettingsCard(children: [
-            _NavTile(
-              icon: Icons.delete_sweep_outlined,
-              title: context.l10n.confirmClearAllSummarizations,
-              subtitle: context.l10n.clearAllSummarizationsWarning,
-              destructive: true,
-              onTap: () => _confirmClear(context, notifier),
-            ),
-          ]),
-
-          const SizedBox(height: 32),
-        ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: rightColumn,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -328,8 +428,8 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(context.l10n.cancel,
-                style:
-                const TextStyle(color: AppTheme.textSecondary)),
+                style: const TextStyle(
+                    color: AppTheme.textSecondary)),
           ),
           TextButton(
             onPressed: () async {
@@ -353,9 +453,9 @@ class SettingsScreen extends ConsumerWidget {
                 }
               }
             },
-            // оранжевый вместо красного для destructive-действия
             child: Text(context.l10n.clear,
-                style: const TextStyle(color: AppTheme.warning)),
+                style:
+                const TextStyle(color: AppTheme.warning)),
           ),
         ],
       ),
@@ -364,7 +464,7 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Reusable sub-widgets
+//  Reusable sub-widgets (без изменений)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SettingsCard extends StatelessWidget {
@@ -422,7 +522,8 @@ class _NavTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               Container(
@@ -463,8 +564,6 @@ class _NavTile extends StatelessWidget {
   }
 }
 
-/// Switch уменьшен через Transform.scale(0.8) —
-/// визуально компактнее, touch target остаётся нормальным.
 class _SwitchTile extends StatelessWidget {
   final String title;
   final String subtitle;

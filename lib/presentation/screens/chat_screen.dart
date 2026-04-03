@@ -56,6 +56,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _inputCtrl  = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _initialized = false;
+  bool _sidePanelCollapsed = false;
+
 
   PersonaEntity? _singlePersona;
   List<PersonaEntity> _multiPersonas = [];
@@ -311,31 +313,81 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildDesktopBody(
       BuildContext context, ChatState chatState, SettingsState settings) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppTheme.kContentMaxWidth),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Левая панель 300px
-            SizedBox(
-              width: 300,
-              child: _buildDesktopSidePanel(context),
-            ),
-
-            // Разделитель
-            Container(width: 1, color: AppTheme.cardBorder),
-
-            // Правая часть — чат
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildChatContent(context, chatState, settings,
-                    showHeader: false),
+        child: SizedBox(
+          height: screenHeight - kToolbarHeight, // высота без AppBar
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Левая панель 300px — скроллируемая
+              SizedBox(
+                width: 300,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Скроллируемое содержимое — занимает всё доступное место
+                    Expanded(
+                      child: AnimatedSize(
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeInOut,
+                        alignment: Alignment.topCenter,
+                        child: _sidePanelCollapsed
+                            ? const SizedBox(width: 300, height: 0)
+                            : _buildDesktopSidePanel(context),
+                      ),
+                    ),
+                    // Кнопка-стрелка прибита к низу
+                    GestureDetector(
+                      onTap: () => setState(() => _sidePanelCollapsed = !_sidePanelCollapsed),
+                      child: Container(
+                        margin: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: AppTheme.primaryAccent.withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _sidePanelCollapsed
+                                  ? Icons.keyboard_arrow_down
+                                  : Icons.keyboard_arrow_up,
+                              color: AppTheme.primaryAccent,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _sidePanelCollapsed ? context.l10n.expandPanel : context.l10n.collapsePanel,
+                              style: const TextStyle(
+                                  fontSize: 13, color: AppTheme.textPrimary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+
+              Container(width: 1, color: AppTheme.cardBorder),
+
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildChatContent(context, chatState, settings,
+                      showHeader: false),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -365,7 +417,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Аватар — клик открывает галерею
                 GestureDetector(
                   onTap: () => _openGalleryFromAvatar(context),
                   child: ClipRRect(
@@ -377,13 +428,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-
                 Text(p.name,
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold)),
-
                 if (p.behavior != null && p.behavior!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(p.behavior!,
@@ -393,8 +442,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           color: AppTheme.textSecondary, fontSize: 12)),
                 ],
                 const SizedBox(height: 16),
-
-                // Профиль — фиолетовая
                 SizedBox(
                   height: 44,
                   child: ElevatedButton.icon(
@@ -413,8 +460,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // Редактировать + Удалить
                 Row(
                   children: [
                     Expanded(
@@ -434,8 +479,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => CreateEditPersonaScreen(
-                                  personaId: p.id),
+                              builder: (_) =>
+                                  CreateEditPersonaScreen(personaId: p.id),
                             ),
                           ),
                         ),
@@ -466,7 +511,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ],
     );
   }
-
   // ── MULTI: скролл-список карточек по каждому персонажу ───────────────
 
   Widget _buildMultiSidePanel(BuildContext context) {
@@ -479,7 +523,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Скроллируемый список персонажей
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
@@ -491,7 +534,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Аватар — клик открывает галерею
                     GestureDetector(
                       onTap: () =>
                           _openGalleryFromMultiAvatar(context, p.name),
@@ -504,15 +546,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-
                     Text(p.name,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-
-                    // Профиль
                     SizedBox(
                       height: 36,
                       child: ElevatedButton.icon(
@@ -528,20 +567,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             style: const TextStyle(fontSize: 13)),
                         onPressed: () => Navigator.push(context,
                             MaterialPageRoute(
-                                builder: (_) =>
-                                    PersonaViewScreen(persona: p))),
+                                builder: (_) => PersonaViewScreen(persona: p))),
                       ),
                     ),
                     const SizedBox(height: 6),
-
-                    // Редактировать
                     SizedBox(
                       height: 36,
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          side:
-                          const BorderSide(color: AppTheme.cardBorder),
+                          side: const BorderSide(color: AppTheme.cardBorder),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
@@ -551,19 +586,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => CreateEditPersonaScreen(
-                                personaId: p.id),
+                            builder: (_) =>
+                                CreateEditPersonaScreen(personaId: p.id),
                           ),
                         ),
                       ),
                     ),
-
-                    // Разделитель между персонажами
                     if (index < _multiPersonas.length - 1) ...[
                       const SizedBox(height: 16),
-                      const Divider(
-                          height: 1,
-                          color: AppTheme.cardBorder),
+                      const Divider(height: 1, color: AppTheme.cardBorder),
                     ],
                   ],
                 ),
@@ -571,8 +602,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             },
           ),
         ),
-
-        // Удалить чат — прибит к низу панели
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
           child: SizedBox(
@@ -593,9 +622,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ],
     );
-  }
-
-  /// Общий виджет изображения аватара персонажа
+  }  /// Общий виджет изображения аватара персонажа
   Widget _buildAvatarImage(PersonaEntity p) {
     final hasFile =
         p.avatarPath != null && File(p.avatarPath!).existsSync();
@@ -646,7 +673,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _inputCtrl.text.trim().isNotEmpty;
     final lastAiIdx =
     chatState.messages.lastIndexWhere((m) => !m.isUser);
-
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDesktop  =
+        _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
     return Column(
       children: [
         // ── Messages ──────────────────────────────────────────────
@@ -781,6 +810,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        if (useDesktop)
                         _QuickActionButton(
                             label: context.l10n.shorterAction,
                             onTap: () => _sendQuick(
@@ -971,8 +1001,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
     if (!widget.isMulti && _singlePersona != null) {
       notifier.sendMessage(
-          content: content, 
-          persona: _singlePersona!, 
+          content: content,
+          persona: _singlePersona!,
           maxTokens: tokens,
           quickActionType: QuickActionType.none);
     } else if (widget.isMulti) {

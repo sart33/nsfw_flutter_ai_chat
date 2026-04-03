@@ -35,13 +35,18 @@ class DatabaseHelper {
       final path = p.join(dbPath, 'chat_history.db');
       _db = await openDatabase(
         path,
-        version: 13,
+        version: 14,
         onCreate: (db, version) async {
           await _createAllTables(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 13) {
             await _createMultiPresetsTable(db);
+          }
+          if (oldVersion < 14) {
+            await db.execute(
+              'ALTER TABLE messages ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0'
+            );
           }
         },
       );
@@ -80,6 +85,7 @@ class DatabaseHelper {
       timestamp       INTEGER NOT NULL,
       is_quick_action INTEGER NOT NULL DEFAULT 0,
       imageLocalPath  TEXT,
+      is_hidden       INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY (branch_id) REFERENCES branches(id)
     )
   ''');
