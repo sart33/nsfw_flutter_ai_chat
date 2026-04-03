@@ -12,6 +12,7 @@ class ChatMessageModel {
   final String? branchId;
   final bool isQuickAction;
   final String? imageLocalPath;
+  final bool isHidden;
 
   ChatMessageModel({
     String? id,
@@ -23,6 +24,7 @@ class ChatMessageModel {
     this.branchId,
     this.isQuickAction = false,
     this.imageLocalPath,
+    this.isHidden = false,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -40,6 +42,7 @@ class ChatMessageModel {
         'timestamp': timestamp.millisecondsSinceEpoch,
         'is_quick_action': isQuickAction ? 1 : 0,
         'imageLocalPath': imageLocalPath,
+        'is_hidden': isHidden ? 1 : 0,
       };
 
   /// Creates a model from a SQLite row map.
@@ -77,6 +80,7 @@ class ChatMessageModel {
       branchId: map['branch_id'] as String?,
       isQuickAction: (map['is_quick_action'] as int? ?? 0) == 1,
       imageLocalPath: map['imageLocalPath'] as String?,
+      isHidden: (map['is_hidden'] as int? ?? 0) == 1,
     );
   }
 
@@ -97,6 +101,7 @@ class ChatMessageModel {
     String? branchId,
     bool? isQuickAction,
     String? imageLocalPath,
+    bool? isHidden,
   }) =>
       ChatMessageModel(
         id: id ?? this.id,
@@ -108,5 +113,6 @@ class ChatMessageModel {
         branchId: branchId ?? this.branchId,
         isQuickAction: isQuickAction ?? this.isQuickAction,
         imageLocalPath: imageLocalPath ?? this.imageLocalPath,
+        isHidden: isHidden ?? this.isHidden,
       );
 }

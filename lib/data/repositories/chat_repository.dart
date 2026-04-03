@@ -125,8 +125,9 @@ class ChatRepository {
   Future<List<Map<String, dynamic>>> _buildMessagesWithSummary(
     String branchId,
     String systemPrompt,
-    List<ChatMessageModel> history,
-  ) async {
+    List<ChatMessageModel> history, {
+    bool suppressHidden = false,
+  }) async {
     final summaryBlocks = await _db.getSummaryBlocks(branchId);
     final covered = await _db.getCoveredMessageCount(branchId);
     debugPrint('[SUMMARY_READ] branchId=$branchId blocks=${summaryBlocks.length} covered=$covered');
@@ -134,32 +135,18 @@ class ChatRepository {
     final messages = <Map<String, dynamic>>[];
     messages.add({'role': 'system', 'content': systemPrompt});
 
-    if (summaryBlocks.isNotEmpty) {
-      final combinedSummary = summaryBlocks
-          .map((block) => block['summary_text'] as String)
-          .join('\n\n[Then:]\n\n');
+    final toInclude = summaryBlocks.isNotEmpty
+        ? (covered < history.length ? history.sublist(covered) : history)
+        : history;
 
-      messages.add({
-        'role': 'system',
-        'content': 'Previous chat history (summarized):\n\n$combinedSummary',
-      });
-      debugPrint('[Summary] Injected ${summaryBlocks.length} blocks into context');
-
-      // Include only messages NOT yet covered by summaries
-      final uncovered = covered < history.length
-          ? history.sublist(covered)
-          : history;
-
-      messages.addAll(uncovered.map((m) => {
+    messages.addAll(toInclude.map((m) {
+      if (m.isHidden && suppressHidden) return null;
+      if (m.isHidden) return {'role': 'assistant', 'content': m.content};
+      return {
         'role': m.isUser ? 'user' : 'assistant',
         'content': m.content,
-      }));
-    } else {
-      messages.addAll(history.map((m) => {
-        'role': m.isUser ? 'user' : 'assistant',
-        'content': m.content,
-      }));
-    }
+      };
+    }).whereType<Map<String, dynamic>>());
 
     return messages;
   }
@@ -176,6 +163,7 @@ class ChatRepository {
     required PersonaEntity persona,
     required int maxTokens,
     required String branchId,
+    bool suppressHidden = false,
   }) async {
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
@@ -197,6 +185,7 @@ class ChatRepository {
         branchId,
         systemPrompt,
         history,
+        suppressHidden: suppressHidden,
       );
 
       // Add greeting if needed
@@ -276,6 +265,7 @@ class ChatRepository {
     required String behavior,
     required int maxTokens,
     required String branchId,
+    bool suppressHidden = false,
   }) async {
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
@@ -301,6 +291,7 @@ class ChatRepository {
         branchId,
         systemPrompt,
         history,
+        suppressHidden: suppressHidden,
       );
 
       // Format multi-persona messages with [Name]: prefix

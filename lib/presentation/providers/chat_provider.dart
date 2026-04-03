@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
+import 'package:nsfw_chat/core/enums/quick_action_type.dart';
 import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
 import 'package:nsfw_chat/core/services/chat_image_service.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
@@ -120,6 +121,23 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  // ── PRIVATE HELPERS ────────────────────────────────────────────────────
+
+  Future<void> _saveHiddenReset(String content) async {
+    final repo = await _repo();
+    final hidden = ChatMessageModel(
+      id: const Uuid().v4(),
+      senderName: 'hidden',
+      content: content,
+      isUser: false,
+      isHidden: true,
+    );
+    await repo.saveMessage(hidden, _branchId);
+    state = state.copyWith(
+      messages: [...state.messages, hidden],
+    );
+  }
+
   // ── SEND (SINGLE) ──────────────────────────────────────────────────────
 
   /// Send a user message in a single-persona chat.
@@ -129,6 +147,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     required int maxTokens,
     bool skipSave = false,
     bool isQuickAction = false,
+    QuickActionType quickActionType = QuickActionType.none,
+    String? hiddenResetContent,
   }) async {
     final repo = await _repo();
 
@@ -165,11 +185,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
 
     try {
+      final suppressHidden = quickActionType == QuickActionType.moreDetails || 
+                            quickActionType == QuickActionType.shorter;
       final reply = await repo.sendMessage(
         history: state.messages,
         persona: persona,
         maxTokens: maxTokens,
         branchId: _branchId,
+        suppressHidden: suppressHidden,
       );
 
       final aiMsg = ChatMessageModel(
@@ -190,6 +213,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
       log(
           'sendMessage: aiMsg saved, message count after=${state.messages.length}',
           name: 'PROVIDER');
+      
+      // Save hidden reset message if provided (after AI message is saved)
+      if (hiddenResetContent != null && hiddenResetContent.isNotEmpty) {
+        await _saveHiddenReset(hiddenResetContent);
+      }
       
       // Update branch preview and timestamp
       final previewText = reply.length > 100 ? '${reply.substring(0, 100)}…' : reply;
@@ -214,6 +242,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     required int maxTokens,
     bool skipSave = false,
     bool isQuickAction = false,
+    QuickActionType quickActionType = QuickActionType.none,
+    String? hiddenResetContent,
   }) async {
     final repo = await _repo();
     debugPrint('[ChatNotifier] sendMultiMessage called with content="$content", behavior="$behavior"');
@@ -244,12 +274,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
     final effectiveTokens = (maxTokens * personas.length).clamp(1, 8192);
 
     try {
+      final suppressHidden = quickActionType == QuickActionType.moreDetails || 
+                            quickActionType == QuickActionType.shorter;
       final reply = await repo.sendMultiMessage(
         history: state.messages,
         personas: personas,
         behavior: behavior,
         maxTokens: effectiveTokens,
         branchId: _branchId,
+        suppressHidden: suppressHidden,
       );
 
       final parsed = _parseMultiReply(reply, personas);
@@ -268,6 +301,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, ...newMessages],
         isLoading: false,
       );
+      
+      // Save hidden reset message if provided (after AI messages are saved)
+      if (hiddenResetContent != null && hiddenResetContent.isNotEmpty) {
+        await _saveHiddenReset(hiddenResetContent);
+      }
     } catch (e) {
       debugPrint('[ChatNotifier] sendMultiMessage error: $e');
       state = state.copyWith(
@@ -315,6 +353,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           persona: persona,
           maxTokens: maxTokens,
           skipSave: true, // Don't save user message again.
+          quickActionType: QuickActionType.none,
         );
       } else if (personas != null && behavior != null) {
         await sendMultiMessage(
@@ -323,6 +362,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           behavior: behavior,
           maxTokens: maxTokens,
           skipSave: true, // Don't save user message again.
+          quickActionType: QuickActionType.none,
         );
       }
     } else {
@@ -374,6 +414,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           persona: persona,
           maxTokens: maxTokens,
           branchId: _branchId,
+          suppressHidden: false,
         );
         final aiMsg = ChatMessageModel(
           id: const Uuid().v4(),
@@ -410,6 +451,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           behavior: behavior,
           maxTokens: effectiveTokens,
           branchId: _branchId,
+          suppressHidden: false,
         );
         final parsed = _parseMultiReply(reply, personas);
         final newMessages = <ChatMessageModel>[];
@@ -461,6 +503,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         content: lastUserMsg.content,
         persona: persona,
         maxTokens: maxTokens,
+        quickActionType: QuickActionType.none,
       );
     } else if (personas != null && behavior != null) {
       await sendMultiMessage(
@@ -468,6 +511,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         personas: personas,
         behavior: behavior,
         maxTokens: maxTokens,
+        quickActionType: QuickActionType.none,
       );
     }
   }
