@@ -154,8 +154,7 @@
   "summarizationThreshold": "Summarize after {count} messages",
   "branchSummarized": "Branch summarized",
   "previousHistorySummary": "Previous conversation summary: ",
-  "messages" : "messages",
-
+  "messages": "messages",
   "clearAllSummarizations": "Clear All Summaries",
   "clearAllSummarizationsSubtitle": "Deletes all summary blocks from the database",
   "confirmClearAllSummarizations": "Clear All Summaries?",
@@ -163,7 +162,6 @@
   "clear": "Clear",
   "allSummarizationsCleared": "All summaries cleared",
   "errorClearingSummaries": "Error: {error}",
-
   "persona_1_name": "Natasha",
   "persona_1_description": "Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts with nipple piercings, thin waist, intricate tattoos on arms and below panty line, tongue and navel piercings). Wears a small ruby anal plug and straps around breasts, waist, hips — her signature style.",
   "persona_1_greeting": "Hey... Missed me already? 😈",
@@ -175,10 +173,8 @@
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Hey... Missed us? 😈\nAnna: Hi... *blushes* Nice to see you.",
   "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail in English.",
-
   "noApiKeyMessage": "To start chatting, you need a DeepSeek API key. Takes 1–2 minutes.",
   "noApiKeyAction": "Add key",
-
   "errorDeepSeekKeyInvalid": "DeepSeek key is invalid. Please update it in settings.",
   "errorDeepSeekNotSet": "DeepSeek key not set. Please add it in settings.",
   "errorNovitaKeyInvalid": "Novita key is invalid. Please update it in settings.",
@@ -186,7 +182,6 @@
   "errorApiKeyInvalid": "API key is invalid. Please update it in settings.",
   "errorConnectionFailed": "Connection error. Check your internet.",
   "errorImageGeneration": "Image generation failed. Please try again.",
-
   "aboutAppTitle": "About the App",
   "aboutTitle": "🧠 About the App",
   "aboutAppName": "Uncensored AI Roleplay Chat",
@@ -194,33 +189,27 @@
   "imagesWarningLabel": "⚠️ Images:",
   "imagesHiddenFromGallery": "Not visible in the Android gallery",
   "imagesVisibleInApp": "Accessible only inside the app",
-
   "costTitle": "💰 Cost",
   "costDescription": "The app has no subscription. You pay only for API usage:",
   "costChat": "Chat: ~0.2–0.5 cents / hour",
   "costImage": "Images: ~0.5 cents / generation",
   "costAverage": "Average: ~$2–3 per month",
-
   "howToStartTitle": "🚀 How to Start",
   "howToStart1": "Enter your DeepSeek API key (required)",
   "howToStart2": "(Optional) Add Novita AI key",
   "howToStart3": "Choose a character or create your own",
   "howToStart4": "Start chatting or try the multi-chat",
-
   "privacyTitle": "🔒 Privacy",
   "privacyNoDataToDev": "Your data is never sent to the developer",
   "privacyDirectApi": "Requests go directly to DeepSeek / Novita AI",
   "privacyNoAccess": "The developer has zero access to your chats, characters or images",
   "privacyImagesHidden": "Generated images are not visible in the Android gallery — only inside the app",
-
   "supportTitle": "💬 Support",
   "telegram": "Telegram: @givanchik",
   "email": "Email: glebivanchik@gmail.com",
   "supportProject": "Support the Project",
   "instruction": "Instruction",
   "projectPage": "Project Page",
-
-
   "supportProjectTitle": "Support the Project",
   "supportIntroTitle": "☕ Support the Project",
   "supportDescription": "This app is fully local, private, and has no subscriptions.\n\nIf the app is useful to you and you want new features and updates, you can support its development:",
@@ -242,7 +231,6 @@
   "supportIban": "— IBAN",
   "supportAlternative": "🧩 Alternative",
   "supportBoosty": "— Boosty",
-
   "romantic": "Romantic",
   "erotic": "Erotic",
   "nsfw": "NSFW",
@@ -255,18 +243,16 @@
   "categoryRomantic": "Romantic: sweet, tender, shy characters and stories",
   "categoryErotic": "Erotic: explicit, detailed, passionate content",
   "categoryNSFW": "NSFW: bold, dirty, aggressive characters and stories",
-    "categoryOffice": "Office: workplace scenarios, boss-employee dynamics",
-    "categoryCasual": "Casual: everyday situations, friendly interactions",
-    "categoryFantasy": "Fantasy: magical worlds, mythical creatures, epic adventures",
-    "categorySciFi": "Sci-fi: futuristic settings, advanced technology, space exploration",
-    "categoryHorror": "Horror: dark, scary, suspenseful stories and characters",
-
+  "categoryOffice": "Office: workplace scenarios, boss-employee dynamics",
+  "categoryCasual": "Casual: everyday situations, friendly interactions",
+  "categoryFantasy": "Fantasy: magical worlds, mythical creatures, epic adventures",
+  "categorySciFi": "Sci-fi: futuristic settings, advanced technology, space exploration",
+  "categoryHorror": "Horror: dark, scary, suspenseful stories and characters",
   "photo": "Photo",
   "copy": "Copy",
   "enterNameTwo": "Enter name",
-
-
-  "defaultModeHint": "The gallery mode chosen in the character card (18+, Erotica, or Romance) decides which images will be shown when you tap the character's avatar in the chat",  "costPrivacySupport": "Cost, privacy, project support",
+  "defaultModeHint": "The gallery mode chosen in the character card (18+, Erotica, or Romance) decides which images will be shown when you tap the character's avatar in the chat",
+  "costPrivacySupport": "Cost, privacy, project support",
   "autoDeleteOldChatImages": "Auto-delete old chat images",
   "autoDeleteOldChatImagesDescription": "Automatically delete chat images older than specified days",
   "autoDeleteAfterDays": "days",
@@ -275,13 +261,11 @@
   "moreDetails": "More details",
   "moreDetailsDescription": "Continue and describe the scene in detail — actions, emotions and feelings of the characters. Write twice as much. !!!This all refers to this message. Then return to your usual style and response length.!!!",
   "copiedToClipboard": "Copied to clipboard",
-
   "newBranch": "New branch",
   "contacts": "\uD83D\uDCAC Contacts",
-  "support" : "\uD83D\uDCAC Support",
+  "support": "\uD83D\uDCAC Support",
   "aboutPlatforms": "Available on:",
   "supportFeedback": "If you supported the project and have ideas or wishes — feel free to write me.\nI read every message.",
-
   "browseGalleryOrCreatePersona": "Browse the gallery or create a new custom persona from scratch.",
   "startGroupScenarios": "Start dynamic group scenarios with multiple AI characters at once.",
   "configureAppPreferences": "Adjust character creativity, personality drift, and long chat summarization",
@@ -308,24 +292,30 @@
   "aboutNoCensorshipTitle": "\uD83D\uDD13 No Censorship",
   "aboutNoCensorshipText": "You can discuss any topics, in any form and style — with no restrictions or limits.",
   "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them.",
-
   "ageGateTitle": "Adult Content",
   "ageGateCardTitle": "You must be 18 or older",
   "ageGateCardBody": "This app contains explicit content intended for adults only. By continuing, you confirm that you are at least 18 years of age and that viewing such content is permitted in your country.",
   "ageGateConfirm": "I'm 18 or older",
   "ageGateDecline": "I'm under 18",
   "ageGateDeclineMessage": "This app is intended for users aged 18 and over. Please come back when you're of age.",
-
   "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
-
   "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
   "shorterAction": "Shorter",
   "shorterPrompt": "Continue briefly, 3-5 sentences only.",
   "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
-
   "collapsePanel": "Collapse",
-  "expandPanel": "Expand"
+  "expandPanel": "Expand",
+
+  "chooseAvatarStyle": "Choose avatar style",
+  "avatarStyleEveningDress": "Evening Elegance",
+  "avatarStyleSummerDress": "Summer Walk",
+  "avatarStyleOffice": "Office Style",
+  "avatarStyleLingerie": "Lingerie Mood",
+  "avatarStyleBikini": "Beach Bikini",
+  "avatarStyleSilkRobe": "Silk Morning",
+  "avatarStyleNude": "Art Nude",
+
+  "avatarStatusPreparingPrompt": "Preparing prompt...",
+  "avatarStatusGeneratingImage": "Generating image..."
 }
-
-

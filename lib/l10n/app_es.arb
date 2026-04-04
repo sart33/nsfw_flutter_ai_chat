@@ -328,6 +328,14 @@
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
 
   "collapsePanel": "Contraer",
-  "expandPanel": "Expandir"
+  "expandPanel": "Expandir",
+
+  "avatarStyleEveningDress": "Elegancia nocturna",
+  "avatarStyleSummerDress": "Paseo de verano",
+  "avatarStyleOffice": "Estilo de oficina",
+  "avatarStyleLingerie": "Ambiente íntimo",
+  "avatarStyleBikini": "Bikini en la playa",
+  "avatarStyleSilkRobe": "Seda matutina",
+  "avatarStyleNude": "Desnudo artístico"
 }
 

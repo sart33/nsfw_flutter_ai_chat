@@ -134,8 +134,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       GalleryState state,
       GalleryNotifier notifier,
       ) {
-    final galleryKey =
-    GalleryKey(currentPersona.id, currentPersona.galleryMode);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -315,7 +313,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AspectRatio(
-              aspectRatio: 3 / 4,
+              aspectRatio: 9 / 14,
               child: hasFile
                   ? Image.file(File(p.avatarPath!),
                   fit: BoxFit.cover, alignment: Alignment.topCenter)
@@ -785,7 +783,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             child: Column(
               children: [
                 LinearProgressIndicator(
-                  color: AppTheme.primaryAccent,
+                  color: AppTheme.accentVividInputBorder,
                   backgroundColor: AppTheme.surface,
                 ),
                 const SizedBox(height: 8),

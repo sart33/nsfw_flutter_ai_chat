@@ -19,7 +19,7 @@ class AppTheme {
   static const Color primaryAccent = Color(0xFFAA7EF4); // фиолетовый акцент
   static const Color accentVivid   = Color(0xBE7C3AED);
   // FAB / иконки AppBar
-  static const Color accentVividInputBorder   = Color(0x7C3AEDBE); // FAB / иконки AppBar
+  static const Color accentVividInputBorder   = Color(0x7C39FF6A); // FAB / иконки AppBar
   static const Color accentLight   = Color(0xFFAB76FF); // иконки в карточках
   static const Color cardBorder    = Color(0xFF393948); // бордер карточек
   static const Color textPrimary   = Color(0xFFFFFFFF);

@@ -332,7 +332,18 @@
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
 
   "collapsePanel": "Свернуть",
-  "expandPanel": "Развернуть"
+  "expandPanel": "Развернуть",
+
+  "chooseAvatarStyle": "Выберите стиль аватара",
+  "avatarStyleEveningDress": "Вечерняя элегантность",
+  "avatarStyleSummerDress": "Летняя прогулка",
+  "avatarStyleOffice": "Офисный стиль",
+  "avatarStyleLingerie": "Интимный настрой",
+  "avatarStyleBikini": "Пляжное бикини",
+  "avatarStyleSilkRobe": "Утренний шелк",
+  "avatarStyleNude": "Художественный ню",
+  "avatarStatusPreparingPrompt": "Подготовка промпта...",
+  "avatarStatusGeneratingImage": "Генерация изображения..."
 }
 
 

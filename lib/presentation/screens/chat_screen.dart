@@ -422,7 +422,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: AspectRatio(
-                      aspectRatio: 3 / 4,
+                      aspectRatio: 9 / 14,
                       child: _buildAvatarImage(p),
                     ),
                   ),
@@ -540,7 +540,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: AspectRatio(
-                          aspectRatio: 3 / 4,
+                          aspectRatio: 9 / 14,
                           child: _buildAvatarImage(p),
                         ),
                       ),
@@ -697,14 +697,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
               // Loading indicator
               if (chatState.isLoading && index == 0) {
-                return const Padding(
+                return Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: SizedBox(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAccent),
+                        ),
                     ),
+                      const SizedBox(height: 10),
+                      Text(
+                        context.l10n.avatarStatusGeneratingImage,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppTheme.primaryAccent, fontSize: 13),
+                      ),
+                  ]
                   ),
                 );
               }

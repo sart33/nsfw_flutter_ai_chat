@@ -1,12 +1,15 @@
 import 'dart:async' show unawaited;
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+import 'package:nsfw_chat/data/models/avatar_style_option_model.dart';
 import 'package:nsfw_chat/core/services/novita_avatar_service.dart';
 import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
 import 'package:nsfw_chat/core/utils/seed_utils.dart';
@@ -14,14 +17,12 @@ import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:nsfw_chat/core/config/app_config.dart';
 
+import '../../core/factory/database_helper.dart';
 import '../../domain/exceptions/app_exceptions.dart';
 import '../widgets/custom_app_bar_widget.dart';
 import 'api_keys_screen.dart';
 
-bool get _isDesktopPlatform =>
-    Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
 /// Create or edit a persona.
 class CreateEditPersonaScreen extends ConsumerStatefulWidget {
@@ -42,10 +43,294 @@ class _CreateEditPersonaScreenState
   final _greetCtrl  = TextEditingController();
   final _behaviorCtrl = TextEditingController();
 
+  // --- Avatar style generation state ---
   String? _avatarPath;
-  bool    _isGeneratingAvatar = false;
+  bool    _isGeneratingAvatar  = false;
+  bool    _isCleaningPrompt    = false;   // отдельный флаг для DeepSeek фазы
   String? _generatedAvatarPreviewPath;
   String  _galleryMode = 'nude';
+
+  int?    _selectedTemplateId;
+  String? _cachedCleanedDescription;   // описание, которое уже было очищено
+  String? _cachedCleanedLevel;
+  String? _lastSentDescription;        // то, что последний раз отправляли в DeepSeek
+
+  bool get _isDesktopPlatform =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+  // ── Style label (без l10n.getString — его не существует) ─────────────────
+
+  String _getStyleLabel(BuildContext context, String nameKey) {
+    return switch (nameKey) {
+      'avatarStyleEveningDress' => context.l10n.avatarStyleEveningDress,
+      'avatarStyleSummerDress'  => context.l10n.avatarStyleSummerDress,
+      'avatarStyleOffice'       => context.l10n.avatarStyleOffice,
+      'avatarStyleLingerie'     => context.l10n.avatarStyleLingerie,
+      'avatarStyleBikini'       => context.l10n.avatarStyleBikini,
+      'avatarStyleSilkRobe'     => context.l10n.avatarStyleSilkRobe,
+      'avatarStyleNude'        =>  context.l10n.avatarStyleNude,
+      _ => nameKey,
+    };
+    // TODO: заменить на context.l10n.xxx когда добавишь ключи в arb
+  }
+
+  // ── Style picker ─────────────────────────────────────────────────────────
+
+  Future<void> showAvatarStylePicker(BuildContext ctx) async {
+    if (_isGeneratingAvatar) return;
+
+    var title = ctx.l10n.chooseAvatarStyle;
+
+    if (_isDesktopPlatform && MediaQuery.of(ctx).size.width >= 600) {
+      await showDialog<void>(
+        context: ctx,
+        builder: (dialogCtx) => AlertDialog(
+          title: Text(title),
+          content: SizedBox(
+            width: 400,
+            child: _buildStyleGrid(dialogCtx),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(ctx.l10n.cancel),
+            ),
+          ],
+        ),
+      );
+    } else {
+      await showModalBottomSheet<void>(
+        context: ctx,
+        backgroundColor: Theme.of(ctx).scaffoldBackgroundColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (sheetCtx) => SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(sheetCtx).size.height * 0.75,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(title,
+                      style: Theme.of(sheetCtx).textTheme.titleMedium),
+                ),
+                Flexible(
+                  child: _buildStyleGrid(sheetCtx),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildStyleGrid(BuildContext ctx) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const ClampingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: AvatarStyleOption.allOptions.length,
+      itemBuilder: (_, i) => _buildStyleCard(ctx, AvatarStyleOption.allOptions[i]),
+    );
+  }
+
+  Widget _buildStyleCard(BuildContext ctx, AvatarStyleOption option) {
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          Navigator.pop(ctx);
+          _generateAvatarWithStyle(option);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(option.icon, size: 32,
+                  color: Theme.of(ctx).colorScheme.primary),
+              const SizedBox(height: 8),
+              Text(
+                _getStyleLabel(ctx, option.nameKey),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Core generation ──────────────────────────────────────────────────────
+
+  Future<void> _generateAvatarWithStyle(AvatarStyleOption option) async {
+    if (_isGeneratingAvatar) return;
+
+    final description = _descCtrl.text.trim();
+    if (description.isEmpty) return;
+
+    final personaId = widget.personaId ?? 'avatar_preview_temp';
+
+    setState(() {
+      _isGeneratingAvatar = true;
+      _isCleaningPrompt = false;
+    });
+
+    try {
+      String cleaned;
+
+      if (option.intimacyLevel == 'nsfw') {
+        // Для nude — берём description как есть, DeepSeek не нужен
+        cleaned = description;
+      } else {
+        // Проверяем: описание уже очищалось в этой сессии?
+        final needsClean = description != _lastSentDescription;
+
+        if (needsClean) {
+          // Фаза 1: DeepSeek
+          setState(() => _isCleaningPrompt = true);
+          await PromptCleanerService.instance.cleanAndSave(personaId, description);
+          setState(() {
+            _isCleaningPrompt = false;
+            _lastSentDescription = description;
+          });
+        }
+
+        // Читаем из БД
+        final prompts = await DatabaseHelper.instance.getPersonaPrompts(personaId);
+        cleaned = switch (option.intimacyLevel) {
+          'erotic'   => prompts?['erotic']   ?? description,
+          'romantic' => prompts?['romantic'] ?? description,
+          'office'   => prompts?['office']   ?? description,
+          _          => description,
+        };
+      }
+
+      // Загружаем шаблон
+      final jsonStr = await DefaultAssetBundle.of(context)
+          .loadString('assets/json/image_templates.json');
+      final templates = jsonDecode(jsonStr) as List<dynamic>;
+      final template = templates.firstWhere(
+            (t) => (t as Map<String, dynamic>)['id'] == option.templateId,
+        orElse: () => throw Exception('Template ${option.templateId} not found'),
+      ) as Map<String, dynamic>;
+
+      final finalPrompt = (template['prompt_template'] as String)
+          .replaceAll('{description}', cleaned);
+
+      // Кэшируем для регенерации
+      setState(() {
+        _selectedTemplateId      = option.templateId;
+        _cachedCleanedDescription = cleaned;
+        _cachedCleanedLevel      = option.intimacyLevel;
+      });
+
+      // Фаза 2: Novita
+      final dir  = await getApplicationDocumentsDirectory();
+      final path = await NovitaAvatarService.generateAvatarFromPrompt(
+        finalPrompt,
+        dir.path,
+        seed: AppConfig.defaultSeed,
+      );
+
+      if (mounted) setState(() => _generatedAvatarPreviewPath = path);
+
+    } on NovitaException catch (e) {
+      debugPrint('[Avatar] style generation error: $e');
+      if (!mounted) return;
+      final isKeyError =
+          e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
+      final msg = switch (e.message) {
+        'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
+        'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
+        _                 => context.l10n.errorImageGeneration,
+      };
+      _showSnack(msg, isKeyError: isKeyError);
+    } catch (e) {
+      debugPrint('[Avatar] style generation error: $e');
+      if (mounted) _showSnack(context.l10n.errorImageGeneration);
+    } finally {
+      if (mounted) setState(() {
+        _isGeneratingAvatar = false;
+        _isCleaningPrompt   = false;
+      });
+    }
+  }
+
+  // ── Regenerate (без нового запроса в DeepSeek) ───────────────────────────
+  Future<void> regenerateAvatarWithStyle() async {
+    if (_isGeneratingAvatar) return;
+
+    // Если стиль был выбран ранее — используем кэш, никакого DeepSeek
+    if (_cachedCleanedDescription != null && _selectedTemplateId != null) {
+      _deleteTempPreview();
+      setState(() {
+        _generatedAvatarPreviewPath = null;
+        _isGeneratingAvatar = true;
+        _isCleaningPrompt = false;
+      });
+
+      try {
+        final jsonStr = await DefaultAssetBundle.of(context)
+            .loadString('assets/json/image_templates.json');
+        final templates = jsonDecode(jsonStr) as List<dynamic>;
+        final template = templates.firstWhere(
+              (t) => (t as Map<String, dynamic>)['id'] == _selectedTemplateId,
+          orElse: () => throw Exception('Template $_selectedTemplateId not found'),
+        ) as Map<String, dynamic>;
+
+        final finalPrompt = (template['prompt_template'] as String)
+            .replaceAll('{description}', _cachedCleanedDescription!);
+
+        final dir  = await getApplicationDocumentsDirectory();
+        final path = await NovitaAvatarService.generateAvatarFromPrompt(
+          finalPrompt,
+          dir.path,
+          seed: regenSeed(), // новый seed, всё остальное то же самое
+        );
+
+        if (mounted) setState(() => _generatedAvatarPreviewPath = path);
+
+      } on NovitaException catch (e) {
+        if (!mounted) return;
+        final isKeyError =
+            e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
+        final msg = switch (e.message) {
+          'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
+          'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
+          _                 => context.l10n.errorImageGeneration,
+        };
+        _showSnack(msg, isKeyError: isKeyError);
+      } catch (e) {
+        if (mounted) _showSnack(context.l10n.errorImageGeneration);
+      } finally {
+        if (mounted) setState(() => _isGeneratingAvatar = false);
+      }
+
+    } else {
+      // Стиль ещё не выбран — показываем picker заново
+      await showAvatarStylePicker(context);
+    }
+  }
+
+
+
 
   bool get _isEdit => widget.personaId != null;
 
@@ -276,7 +561,7 @@ class _CreateEditPersonaScreenState
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: AspectRatio(
-              aspectRatio: 3 / 4,
+              aspectRatio: 9 / 14,
               child: _buildAvatarPreviewWidget(),
             ),
           ),
@@ -299,7 +584,7 @@ class _CreateEditPersonaScreenState
                 _nameCtrl.text.trim().isEmpty ||
                 _descCtrl.text.trim().isEmpty)
                 ? null
-                : _generateAvatar,
+                : () => showAvatarStylePicker(context),
             fullWidth: true,
           ),
 
@@ -313,14 +598,14 @@ class _CreateEditPersonaScreenState
                   child: _buildIconLabelButton(
                     icon: Icons.refresh,
                     label: context.l10n.regenerate,
-                    onPressed: _regenerateAvatar,
+                    onPressed: regenerateAvatarWithStyle,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildIconLabelButton(
-                    icon: Icons.crop,
-                    label: context.l10n.cropAndSave,
+                    icon: Icons.save_alt_outlined,
+                    label: context.l10n.save,
                     onPressed: _cropGeneratedAvatar,
                   ),
                 ),
@@ -437,7 +722,7 @@ class _CreateEditPersonaScreenState
                   _nameCtrl.text.trim().isEmpty ||
                   _descCtrl.text.trim().isEmpty)
                   ? null
-                  : _generateAvatar,
+                  : () => showAvatarStylePicker(context),
             ),
           ],
         ),
@@ -451,7 +736,7 @@ class _CreateEditPersonaScreenState
                 child: _buildIconLabelButton(
                   icon: Icons.refresh,
                   label: context.l10n.regenerate,
-                  onPressed: _regenerateAvatar,
+                  onPressed: regenerateAvatarWithStyle,
                 ),
               ),
               const SizedBox(width: 16),
@@ -483,6 +768,14 @@ class _CreateEditPersonaScreenState
   Widget _buildAvatarPreviewWidget({double radius = 0}) {
     // Generation in progress
     if (_isGeneratingAvatar) {
+      final isClean = _isCleaningPrompt;
+      final label = isClean
+          ? context.l10n.avatarStatusPreparingPrompt
+          : context.l10n.avatarStatusGeneratingImage;
+      final color = isClean
+          ? AppTheme.primaryAccent
+          : AppTheme.accentVividInputBorder;
+
       return Container(
         decoration: BoxDecoration(
           color: AppTheme.surface,
@@ -492,13 +785,18 @@ class _CreateEditPersonaScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                backgroundColor: color.withOpacity(0.15),
+              ),
+            ),
             const SizedBox(height: 10),
             Text(
-              context.l10n.generatingAvatar,
+              label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 12),
+              style: TextStyle(color: color, fontSize: 13),
             ),
           ],
         ),
@@ -601,7 +899,7 @@ class _CreateEditPersonaScreenState
   }) {
     return TextButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, size: 18, color: AppTheme.userIcon),
+      icon: Icon(icon, size: 18, color: AppTheme.primaryAccent),
       label: Text(
         label,
         style: const TextStyle(color: AppTheme.userIcon, fontSize: 13),
@@ -669,51 +967,7 @@ class _CreateEditPersonaScreenState
     }
   }
 
-  Future<void> _generateAvatar({int? seed}) async {
-    if (_descCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.fillCharacterDescription)),
-      );
-      return;
-    }
 
-    setState(() => _isGeneratingAvatar = true);
-
-    try {
-      final dir  = await getApplicationDocumentsDirectory();
-      final path = await NovitaAvatarService.generateAvatar(
-        _descCtrl.text.trim(),
-        dir.path,
-        seed: seed ?? AppConfig.defaultSeed,
-      );
-      if (mounted) {
-        setState(() => _generatedAvatarPreviewPath = path);
-      }
-    } on NovitaException catch (e) {
-      debugPrint('[Avatar] generation error: $e');
-      if (!mounted) return;
-      final isKeyError =
-          e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
-      final msg = switch (e.message) {
-        'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
-        'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
-        'timeout'         => context.l10n.errorImageGeneration,
-        _                 => context.l10n.errorImageGeneration,
-      };
-      _showSnack(msg, isKeyError: isKeyError);
-    } catch (e) {
-      debugPrint('[Avatar] generation error: $e');
-      if (mounted) _showSnack(context.l10n.errorImageGeneration);
-    } finally {
-      if (mounted) setState(() => _isGeneratingAvatar = false);
-    }
-  }
-
-  Future<void> _regenerateAvatar() async {
-    _deleteTempPreview();
-    setState(() => _generatedAvatarPreviewPath = null);
-    await _generateAvatar(seed: regenSeed());
-  }
 
   Future<void> _cropGeneratedAvatar() async {
     final previewPath = _generatedAvatarPreviewPath;

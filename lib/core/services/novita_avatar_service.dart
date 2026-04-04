@@ -24,107 +24,80 @@ class NovitaAvatarService {
 
   /// Generates an avatar image from [description] and saves it to [saveDir].
   /// Returns the absolute path to the saved file.
-  static Future<String> generateAvatar(
-      String description, String saveDir, {int seed = 101}) async {
-      // 0. Get API key from secure storage
-      final apiKey = await AppConfig.getNovitaApiKey();
-      if (apiKey.isEmpty) {
-        throw NovitaException('api_key_not_set');
-      }
+  /// This method builds a hardcoded erotic prompt internally.
+  /// For custom prompts, use [generateAvatarFromPrompt] instead.
+  static Future<String> generateAvatarFromPrompt(
+      String prompt,
+      String saveDir, {
+        int seed = 101,
+      }) async {
+    final apiKey = await AppConfig.getNovitaApiKey();
+    if (apiKey.isEmpty) throw NovitaException('api_key_not_set');
+    debugPrint('[NovitaAvatarService] prompt: $prompt');
+    return _submit(prompt, saveDir, seed: seed, apiKey: apiKey);
+  }
 
-      // 1. Build prompt
-      final prompt =
-          'Эротическое фото $description, explicit nsfw details, aroused expression, '
-          'detailed skin texture, erotic pose with focus on body and face. '
-          'Masterpiece, best quality, ultra detailed';
-      debugPrint('[NovitaAvatarService] prompt: $prompt');
-      // 2. Submit generation task
-      final submitResp = await _dio.post(
-        '$_baseUrl/z-image-turbo',
-        options: Options(headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        }),
-        data: {
-          'seed': seed,
-          'size': '512*768',
-          'prompt': prompt,
-          // 'negative_prompt': _negativePrompt,
-        },
+  /// Internal method that performs the actual generation with the given prompt and API key.
+  static Future<String> _submit(
+      String prompt,
+      String saveDir, {
+        required int seed,
+        required String apiKey,
+      }) async {
+    final submitResp = await _dio.post(
+      '$_baseUrl/z-image-turbo',
+      options: Options(headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      }),
+      data: {'seed': seed, 'size': '512*768', 'prompt': prompt},
+    );
+
+    if (submitResp.statusCode == 401 || submitResp.statusCode == 403) {
+      throw NovitaException('api_key_invalid');
+    } else if (submitResp.statusCode != 200) {
+      throw NovitaException('http_${submitResp.statusCode}');
+    }
+
+    final taskId = submitResp.data['task_id'] as String?;
+    if (taskId == null || taskId.isEmpty) throw NovitaException('task_id_missing');
+
+    Map<String, dynamic>? resultData;
+    for (int i = 0; i < 40; i++) {
+      await Future.delayed(const Duration(seconds: 3));
+      final poll = await _dio.get(
+        '$_baseUrl/task-result',
+        queryParameters: {'task_id': taskId},
+        options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
-
-      // Check for 401 error
-      if (submitResp.statusCode == 401 || submitResp.statusCode == 403) {
-        throw NovitaException('api_key_invalid');
-
-      } else if (submitResp.statusCode != 200) {
-        throw NovitaException('http_${submitResp.statusCode}');
-
+      final status = poll.data['task']?['status'] as String? ?? '';
+      if (status == 'TASK_STATUS_SUCCEED') {
+        resultData = poll.data as Map<String, dynamic>;
+        break;
+      } else if (status == 'TASK_STATUS_FAILED') {
+        throw NovitaException('generation_failed');
       }
+    }
 
-      // 3. Get task_id
-      final taskId = submitResp.data['task_id'] as String?;
-      if (taskId == null || taskId.isEmpty) {
-        throw NovitaException('task_id_missing');
+    if (resultData == null) throw NovitaException('timeout');
 
-      }
+    final images = resultData['images'] as List<dynamic>?;
+    if (images == null || images.isEmpty) throw NovitaException('no_images');
+    final imageUrl = images[0]['image_url'] as String?;
+    if (imageUrl == null || imageUrl.isEmpty) throw NovitaException('no_image_url');
 
-      // 4. Poll for result — every 3 s, max 40 attempts (2 min total)
-      Map<String, dynamic>? resultData;
-      for (int attempt = 0; attempt < 40; attempt++) {
-        await Future.delayed(const Duration(seconds: 3));
+    final downloadResp = await _dio.get<List<int>>(
+      imageUrl,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    final bytes = downloadResp.data;
+    if (bytes == null || bytes.isEmpty) throw NovitaException('empty_image');
 
-        final pollResp = await _dio.get(
-          '$_baseUrl/task-result',
-          queryParameters: {'task_id': taskId},
-          options: Options(headers: {
-            'Authorization': 'Bearer $apiKey',
-          }),
-        );
-
-        final status =
-            pollResp.data['task']?['status'] as String? ?? '';
-
-        if (status == 'TASK_STATUS_SUCCEED') {
-          resultData = pollResp.data as Map<String, dynamic>;
-          break;
-        } else if (status == 'TASK_STATUS_FAILED') {
-          throw NovitaException('generation_failed');
-        }
-        // Otherwise keep polling (TASK_STATUS_QUEUED / TASK_STATUS_PROCESSING)
-      }
-
-      if (resultData == null) throw NovitaException('timeout');
-
-      // 5. Extract image URL
-      final images = resultData['images'] as List<dynamic>?;
-      if (images == null || images.isEmpty) throw NovitaException('no_images');
-
-      final imageUrl = images[0]['image_url'] as String?;
-      if (imageUrl == null || imageUrl.isEmpty) throw NovitaException('no_image_url');
-
-      // 6. Download image bytes
-      final downloadResp = await _dio.get<List<int>>(
-        imageUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
-      final bytes = downloadResp.data;
-      if (bytes == null || bytes.isEmpty) throw NovitaException('empty_image');
-
-
-      // 7. Save to disk
-      final dir = Directory(saveDir);
-      if (!dir.existsSync()) {
-        dir.createSync(recursive: true);
-      }
-      final fileName =
-          'avatar_preview_${DateTime.now().millisecondsSinceEpoch}.webp';
-      final filePath = '$saveDir/$fileName';
-      final file = File(filePath);
-      await file.writeAsBytes(bytes, flush: true);
-
-      // 8. Return saved path
-      return filePath;
-
+    final dir = Directory(saveDir);
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+    final fileName = 'avatar_preview_${DateTime.now().millisecondsSinceEpoch}.webp';
+    final filePath = '$saveDir/$fileName';
+    await File(filePath).writeAsBytes(bytes, flush: true);
+    return filePath;
   }
 }
