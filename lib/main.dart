@@ -50,16 +50,20 @@ void main() async {
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-class NsfwChatApp extends StatelessWidget {
+class NsfwChatApp extends ConsumerWidget {
   const NsfwChatApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localeCode = ref.watch(settingsProvider.select((s) => s.selectedLocale));
+    final locale = localeCode != null ? Locale(localeCode) : null;
+
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'Uncensored Souls',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      locale: locale, // null = следовать системе
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -83,7 +87,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // FlutterNativeSplash.remove();
     _checkApiKeyAndNavigate();
   }
 

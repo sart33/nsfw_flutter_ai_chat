@@ -16,6 +16,10 @@ class SettingsState {
   final int summarizationThreshold;
   final bool autoDeleteChatImagesEnabled;
   final int autoDeleteChatImagesDays;
+  final String? selectedLocale; // null = системная
+  static const _sentinel = Object();
+
+
 
   const SettingsState({
     this.userInputLimit = 2000,
@@ -28,7 +32,9 @@ class SettingsState {
     this.summarizationEnabled = true,  // default true
     this.summarizationThreshold = 50,  // default 50
     this.autoDeleteChatImagesEnabled = false, // default false
-    this.autoDeleteChatImagesDays = AppConfig.autoDeleteDefaultDays, // default from AppConfig
+    this.autoDeleteChatImagesDays = AppConfig.autoDeleteDefaultDays,
+    this.selectedLocale // default from AppConfig
+
   });
 
   SettingsState copyWith({
@@ -43,6 +49,7 @@ class SettingsState {
     int? summarizationThreshold,
     bool? autoDeleteChatImagesEnabled,
     int? autoDeleteChatImagesDays,
+    Object? selectedLocale = _sentinel,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
@@ -56,6 +63,9 @@ class SettingsState {
         summarizationThreshold: summarizationThreshold ?? this.summarizationThreshold,
         autoDeleteChatImagesEnabled: autoDeleteChatImagesEnabled ?? this.autoDeleteChatImagesEnabled,
         autoDeleteChatImagesDays: autoDeleteChatImagesDays ?? this.autoDeleteChatImagesDays,
+        selectedLocale: selectedLocale == _sentinel
+            ? this.selectedLocale
+            : selectedLocale as String?,
       );
 }
 
@@ -72,6 +82,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keySummarizationThreshold = 'settings_summarization_threshold';
   static const _keyAutoDeleteEnabled = 'settings_auto_delete_enabled';
   static const _keyAutoDeleteDays = 'settings_auto_delete_days';
+  static const _keyLocale = 'settings_locale';
+
 
   SettingsNotifier() : super(const SettingsState()) {
     _load();
@@ -86,10 +98,14 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;
     final yamlPersonaEnabled = prefs.getBool(_keyYamlPersonaEnabled) ?? false;
     final temperature = prefs.getDouble(_keyGenerationTemperature) ?? 0.9;
-    final summarizationEnabled = prefs.getBool(_keySummarizationEnabled) ?? true;
-    final summarizationThreshold = prefs.getInt(_keySummarizationThreshold) ?? 50;
+    final summarizationEnabled = prefs.getBool(_keySummarizationEnabled) ??
+        true;
+    final summarizationThreshold = prefs.getInt(_keySummarizationThreshold) ??
+        50;
     final autoDeleteEnabled = prefs.getBool(_keyAutoDeleteEnabled) ?? false;
-    final autoDeleteDays = prefs.getInt(_keyAutoDeleteDays) ?? AppConfig.autoDeleteDefaultDays;
+    final autoDeleteDays = prefs.getInt(_keyAutoDeleteDays) ??
+        AppConfig.autoDeleteDefaultDays;
+    final locale = prefs.getString(_keyLocale); // null если не установлен
     state = SettingsState(
       userInputLimit: userLimit,
       aiResponseLimit: aiLimit,
@@ -102,6 +118,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       summarizationThreshold: summarizationThreshold,
       autoDeleteChatImagesEnabled: autoDeleteEnabled,
       autoDeleteChatImagesDays: autoDeleteDays,
+      selectedLocale: locale,
     );
   }
 
@@ -197,6 +214,17 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     state = state.copyWith(autoDeleteChatImagesDays: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyAutoDeleteDays, clamped);
+  }
+
+  /// Set selected locale (null = system default).
+  Future<void> setLocale(String? languageCode) async {
+    state = state.copyWith(selectedLocale: languageCode);
+    final prefs = await SharedPreferences.getInstance();
+    if (languageCode == null) {
+      await prefs.remove(_keyLocale);
+    } else {
+      await prefs.setString(_keyLocale, languageCode);
+    }
   }
 }
 

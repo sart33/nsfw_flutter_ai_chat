@@ -14,6 +14,15 @@ import 'about_app_screen.dart';
 bool get _isDesktopPlatform =>
     Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
+final _supportedLocales = [
+  (code: 'en', name: 'English'),
+  (code: 'ru', name: 'Русский'),
+  (code: 'uk', name: 'Українська'),
+  (code: 'es', name: 'Español'),
+  (code: 'pt', name: 'Português'),
+  (code: 'hi', name: 'हिन्दी'),
+];
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -280,6 +289,45 @@ class SettingsScreen extends ConsumerWidget {
       ),
     ]);
 
+    final currentLocale = settings.selectedLocale;
+
+    final languageCard = _SettingsCard(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.language, // добавь в ARB
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                // «Системный» чип
+                _LocaleChip(
+                  label: context.l10n.systemLanguage, // добавь в ARB
+                  selected: currentLocale == null,
+                  onTap: () => notifier.setLocale(null),
+                ),
+                ..._supportedLocales.map((loc) => _LocaleChip(
+                  label: loc.name,
+                  selected: currentLocale == loc.code,
+                  onTap: () => notifier.setLocale(loc.code),
+                )),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ]);
+
     return Scaffold(
       appBar: CustomAppBar(title: context.l10n.settings),
       body: useDesktop
@@ -295,6 +343,7 @@ class SettingsScreen extends ConsumerWidget {
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
+        languageCard: languageCard,
       )
           : _buildMobileBody(
         aboutCard: aboutCard,
@@ -308,6 +357,7 @@ class SettingsScreen extends ConsumerWidget {
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
+        languageCard: languageCard,
       ),
     );
   }
@@ -328,6 +378,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget userInputCard,
     required Widget aiResponseCard,
     required Widget clearCard,
+    required Widget languageCard,
   }) {
     const gap = SizedBox(height: 12);
     return ListView(
@@ -340,10 +391,11 @@ class SettingsScreen extends ConsumerWidget {
         personalityCard, gap,
         creativityCard,  gap,
         summarizationCard, gap,
+        clearCard,       gap,
         autoDeleteCard,  gap,
         userInputCard,   gap,
         aiResponseCard,  gap,
-        clearCard,
+        languageCard,
         const SizedBox(height: 32),
       ],
     );
@@ -365,6 +417,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget userInputCard,
     required Widget aiResponseCard,
     required Widget clearCard,
+    required Widget languageCard,
   }) {
     const gap = SizedBox(height: 12);
 
@@ -382,7 +435,8 @@ class SettingsScreen extends ConsumerWidget {
       apiKeysCard,      gap,
       personalityCard,  gap,
       autoDeleteCard,   gap,
-      aiResponseCard,
+      aiResponseCard,   gap,
+      languageCard,
     ];
 
     return Align(
@@ -678,6 +732,44 @@ class _SliderTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LocaleChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _LocaleChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primaryAccent : AppTheme.iconBg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppTheme.primaryAccent : AppTheme.cardBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : AppTheme.textSecondary,
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }
