@@ -212,25 +212,35 @@
   "projectPage": "Project Page",
   "supportProjectTitle": "Support the Project",
   "supportIntroTitle": "☕ Support the Project",
-  "supportDescription": "This app is fully local, private, and has no subscriptions.\n\nIf the app is useful to you and you want new features and updates, you can support its development:",
-  "supportDescriptionLite": "If the app is useful to you and you want new features and updates, you can support its development:",
+  "supportDescription": "The app works without subscriptions or feature limitations.\n\nIf you enjoy using it and want new features to keep coming, you can support its development.",
+  "supportDescriptionLite": "If you enjoy using the app and want new features, you can support its development.",
+
   "supportOptionsTitle": "💵 Support Options",
   "supportOption2": "$2 — support development",
-  "supportOption5": "$5 — faster updates",
-  "supportOption10": "$10 — serious support",
-  "supportSmallContributions": "Even small contributions make a big difference",
-  "supportWaysTitle": "💬 Ways to Support",
-  "supportQuickSupport": "☕ Quick support",
-  "supportKofi": "— Ko-fi (card, fast)",
-  "supportCrypto": "💸 Crypto (lowest fees)",
-  "supportUsdt": "— USDT (TRC20)",
-  "supportTon": "— TON",
-  "supportInternational": "🌍 International",
-  "supportPaypal": "— PayPal",
-  "supportBankTransfer": "🏦 Bank transfer",
-  "supportIban": "— IBAN",
-  "supportAlternative": "🧩 Alternative",
-  "supportBoosty": "— Boosty",
+  "supportOption5": "$5 — noticeable support",
+  "supportOption10": "$10 — strong support",
+
+  "supportCryptoTitle": "\uD83D\uDCB8 Cryptocurrency",
+  "supportUsdtTitle": "USDT (TRC20) — main option",
+  "supportUsdtDescription": "No minimum amount. Convenient for small transfers.",
+  "supportUsdtFee": "Fees are usually minimal (typically < $1).",
+
+  "supportNowPaymentsTitle": "Via payment service (NOWPayments)",
+  "supportNowPaymentsDescription": "Supports more payment methods but may have a minimum amount.",
+
+  "supportTonTitle": "TON (via Telegram)",
+  "supportTonDescription": "The easiest option if you use Telegram.\nTransfer takes a couple of seconds.",
+  "supportTonAddress": "[address / link]",
+
+  "supportCardTitle": "Bank card (USD)",
+  "supportCardNumber": "Card number:",
+  "supportCardName": "Name:",
+
+  "supportIbanTitle": "\uD83C\uDFE6 Bank transfer (SWIFT / IBAN)",
+  "supportIban": "IBAN:",
+  "supportSwift": "SWIFT/BIC:",
+  "supportRecipient": "Recipient:",
+
   "romantic": "Romantic",
   "erotic": "Erotic",
   "nsfw": "NSFW",
@@ -317,5 +327,8 @@
   "avatarStyleNude": "Art Nude",
 
   "avatarStatusPreparingPrompt": "Preparing prompt...",
-  "avatarStatusGeneratingImage": "Generating image..."
+  "avatarStatusGeneratingImage": "Generating image...",
+
+  "language": "Language",
+  "systemLanguage": "System"
 }

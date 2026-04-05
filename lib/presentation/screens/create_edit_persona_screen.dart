@@ -71,7 +71,6 @@ class _CreateEditPersonaScreenState
       'avatarStyleNude'        =>  context.l10n.avatarStyleNude,
       _ => nameKey,
     };
-    // TODO: заменить на context.l10n.xxx когда добавишь ключи в arb
   }
 
   // ── Style picker ─────────────────────────────────────────────────────────
@@ -791,7 +790,7 @@ class _CreateEditPersonaScreenState
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(color),
-                backgroundColor: color.withOpacity(0.15),
+                backgroundColor: color.withValues(alpha: 0.15),
               ),
             ),
             const SizedBox(height: 10),

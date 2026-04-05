@@ -697,24 +697,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
               // Loading indicator
               if (chatState.isLoading && index == 0) {
-                return Padding(
+                return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(
+                  child: Center(
+                    child: SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryAccent),
-                        ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                      const SizedBox(height: 10),
-                      Text(
-                        context.l10n.avatarStatusGeneratingImage,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppTheme.primaryAccent, fontSize: 13),
-                      ),
-                  ]
                   ),
                 );
               }

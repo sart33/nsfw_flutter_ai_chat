@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 import '../../core/config/app_theme.dart';
 
@@ -53,6 +54,12 @@ class AboutAppContent extends StatelessWidget {
 
   static const _bodyStyle = TextStyle(
     fontSize: 16,
+    color: AppTheme.textPrimary,
+  );
+
+  static const _bodyStyleBold = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
     color: AppTheme.textPrimary,
   );
 
@@ -115,6 +122,17 @@ class AboutAppContent extends StatelessWidget {
                         _buildSupportSection(context, desktop),
                         _Divider(),
                         _buildWaysToSupportSection(context),
+                        _Divider(),
+                        _buildWaysToSupportSectionCrypto(context),
+                        _Divider(),
+                        _buildWaysToSupportSectionNOWPayments(context),
+                        _Divider(),
+                        _buildWaysToSupportSectionTON(context),
+                        _Divider(),
+                        _buildWaysToSupportSectionCard(context),
+                        _Divider(),
+                        _buildWaysToSupportSectionIBAN(context),
+                        _Divider(),
                       ],
                     ),
                   ),
@@ -154,6 +172,13 @@ class AboutAppContent extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(text, style: _bodyStyle),
+    );
+  }
+
+  Widget _buildParagraphBold(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Text(text, style: _bodyStyleBold),
     );
   }
 
@@ -279,13 +304,16 @@ class AboutAppContent extends StatelessWidget {
 
     Widget projectButton = ElevatedButton(
       style: buttonStyle,
-      onPressed: () {},
+      onPressed: ()  => launchUrl(
+        Uri.parse('https://sart33.github.io/uncensored-souls/')),
       child: Text(context.l10n.projectPage),
+
     );
 
     Widget instructionButton = ElevatedButton(
       style: buttonStyle,
-      onPressed: () {},
+      onPressed: ()  => launchUrl(
+          Uri.parse('https://sart33.github.io/uncensored-souls/user-guide.html')),
       child: Text(context.l10n.instruction),
     );
 
@@ -327,7 +355,6 @@ class AboutAppContent extends StatelessWidget {
           context.l10n.supportOption5,
           context.l10n.supportOption10,
         ]),
-        _buildParagraph(context.l10n.supportSmallContributions),
       ],
     );
   }
@@ -338,23 +365,93 @@ class AboutAppContent extends StatelessWidget {
       children: [
         _buildParagraph(context.l10n.supportDescriptionLite),
         _buildSupportOptionsSection(context),
-        _buildParagraph(context.l10n.supportQuickSupport),
-        _buildBulletList([context.l10n.supportKofi]),
-        const SizedBox(height: 8),
-        _buildParagraph(context.l10n.supportCrypto),
+              ],
+    );
+  }
+
+  Widget _buildWaysToSupportSectionCrypto(BuildContext context) {
+    return _buildSection(
+      context.l10n.supportCryptoTitle, // "Способы поддержки"
+      children: [
+        _buildParagraphBold(context.l10n.supportUsdtTitle),
+        _buildParagraph(context.l10n.supportUsdtDescription),
+        SizedBox(height: 8),
+        // QR-код + адрес
+        Center(
+          child: Column(
+            children: [
+              Image.asset(
+                'assets/images/usdt_qr.webp',
+                // ← поменяй путь, если у тебя другой
+                width: 240,
+                height: 240,
+              ),
+              SizedBox(height: 12),
+              const SelectableText(
+                'TCAPRirtjDJ7qa1WYHhVwKwmmoC17Fepfe',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 15,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8),
+        _buildParagraph(context.l10n.supportUsdtFee),
+      ],
+    );
+  }
+
+  Widget _buildWaysToSupportSectionNOWPayments(BuildContext context) {
+    return _buildSection(
+      context.l10n.supportNowPaymentsTitle, // "Способы поддержки"
+      children: [
+        _buildParagraph(context.l10n.supportNowPaymentsDescription),
+        Image.asset(
+          'assets/images/now_payments_button_black.webp',
+          width: 240,
+          height: 60,
+        ),
+        // ← это просто картинка кнопки, она не кликабельная, кликабельная кнопка будет ниже'
+      ],
+    );
+  }
+
+  Widget _buildWaysToSupportSectionTON(BuildContext context) {
+    return _buildSection(
+      context.l10n.supportTonTitle,
+      children: [
+        _buildParagraph(context.l10n.supportTonDescription),
+        _buildParagraph("[адрес / ссылка]"),
+      ],
+    );
+  }
+
+  Widget _buildWaysToSupportSectionCard(BuildContext context) {
+    return _buildSection(
+      context.l10n.supportCardTitle,
+      children: [
         _buildBulletList([
-          context.l10n.supportUsdt,
-          context.l10n.supportTon,
+          '${context.l10n.supportCardNumber} 4441 1110 8136 7306',
+          '${context.l10n.supportCardName} HLIB IVANCHYK',
         ]),
-        const SizedBox(height: 8),
-        _buildParagraph(context.l10n.supportInternational),
-        _buildBulletList([context.l10n.supportPaypal]),
-        const SizedBox(height: 8),
-        _buildParagraph(context.l10n.supportBankTransfer),
-        _buildBulletList([context.l10n.supportIban]),
-        const SizedBox(height: 8),
-        _buildParagraph(context.l10n.supportAlternative),
-        _buildBulletList([context.l10n.supportBoosty]),
+      ],
+    );
+  }
+
+  Widget _buildWaysToSupportSectionIBAN(BuildContext context) {
+    return _buildSection(
+      context.l10n.supportIbanTitle,
+      children: [
+        _buildBulletList([
+          '${context.l10n.supportIban} UA103220010000026209341508272',
+          '${context.l10n.supportSwift} SWIFT/BIC: UNJSUAUKXXX',
+          '${context.l10n.supportRecipient} IVANCHYK HLIB',
+        ]),
+
+        const SizedBox(height: 16),
       ],
     );
   }

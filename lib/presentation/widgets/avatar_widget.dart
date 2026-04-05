@@ -4,7 +4,7 @@ import 'package:nsfw_chat/core/config/app_theme.dart';
 
 /// Displays a persona avatar with fallback priority:
 /// 1. [imagePath] — File on disk (user uploaded / generated). Check existsSync().
-/// 2. [assetPath] — Flutter asset (e.g. "assets/avatars/natasha.png").
+/// 2. [assetPath] — Flutter asset (e.g. "assets/avatars/natasha.webp").
 /// 3. Initials fallback — colored circle with first letter.
 ///
 /// - Square crop for thumbnail/icon usage.

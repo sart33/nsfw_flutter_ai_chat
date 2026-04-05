@@ -231,25 +231,32 @@
 
   "supportProjectTitle": "Поддержать проект",
   "supportIntroTitle": "☕ Поддержать проект",
-  "supportDescription": "Это приложение полностью локальное, приватное и без подписки.\n\nЕсли приложение вам полезно и вы хотите новые функции и обновления, вы можете поддержать его разработку:",
-  "supportDescriptionLite": "Если приложение вам полезно и вы хотите новые функции и обновления, вы можете поддержать его разработку:",
+  "supportDescription": "Приложение работает без подписки и ограничений по функционалу.\n\nЕсли оно вам заходит и вы хотите, чтобы появлялись новые функции — можете поддержать разработку.",
+  "supportDescriptionLite": "Если приложение вам заходит и вы хотите, чтобы появлялись новые функции — можете поддержать разработку.",
   "supportOptionsTitle": "💵 Варианты поддержки",
   "supportOption2": "$2 — поддержка разработки",
-  "supportOption5": "$5 — ускоренные обновления",
-  "supportOption10": "$10 — серьёзная поддержка",
-  "supportSmallContributions": "Даже небольшое пожертвование имеет большое значение",
-  "supportWaysTitle": "💬 Способы поддержки",
-  "supportQuickSupport": "☕ Быстрая поддержка",
-  "supportKofi": "— Ko-fi (картой, быстро)",
-  "supportCrypto": "💸 Криптовалюта (самые низкие комиссии)",
-  "supportUsdt": "— USDT (TRC20)",
-  "supportTon": "— TON",
-  "supportInternational": "🌍 Международные способы",
-  "supportPaypal": "— PayPal",
-  "supportBankTransfer": "🏦 Банковский перевод",
-  "supportIban": "— IBAN",
-  "supportAlternative": "🧩 Альтернатива",
-  "supportBoosty": "— Boosty",
+  "supportOption5": "$5 — заметная поддержка",
+  "supportOption10": "$10 — сильная поддержка",
+  "supportCryptoTitle": "\uD83D\uDCB8 Криптовалюта",
+  "supportUsdtTitle": "USDT (TRC20) — основной способ",
+  "supportUsdtDescription": "Без минимальной суммы. Удобно для небольших переводов.",
+  "supportUsdtFee": "Комиссия обычно минимальная (как правило < $1).",
+
+  "supportNowPaymentsTitle": "Через платёжный сервис (NOWPayments)",
+  "supportNowPaymentsDescription": "Поддерживает больше способов оплаты, но может иметь минимальную сумму.",
+
+  "supportTonTitle": "TON (через Telegram)",
+  "supportTonDescription": "Самый простой способ, если у вас есть Telegram.\\nПеревод занимает пару секунд.",
+  "supportTonAddress": "[address / link]",
+
+  "supportCardTitle": "Банковская карта (USD)",
+  "supportCardNumber": "Номер карты:",
+  "supportCardName": "Имя:",
+
+  "supportIbanTitle": "\uD83C\uDFE6 Банковский перевод (SWIFT / IBAN)",
+  "supportIban": "IBAN:",
+  "supportSwift": "SWIFT/BIC:",
+  "supportRecipient": "Получатель:",
 
   "romantic": "Романтика",
     "erotic": "Эротика",
@@ -342,8 +349,12 @@
   "avatarStyleBikini": "Пляжное бикини",
   "avatarStyleSilkRobe": "Утренний шелк",
   "avatarStyleNude": "Художественный ню",
+
   "avatarStatusPreparingPrompt": "Подготовка промпта...",
-  "avatarStatusGeneratingImage": "Генерация изображения..."
+  "avatarStatusGeneratingImage": "Генерация изображения...",
+
+  "language": "Язык",
+  "systemLanguage": "Системный"
 }
 
 

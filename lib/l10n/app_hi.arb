@@ -238,31 +238,35 @@
 
   "supportProjectTitle": "Project को support करें",
   "supportIntroTitle": "☕ Project को support करें",
-  "supportDescription": "यह app पूरी तरह local है, private है और इसमें कोई subscription नहीं है.\n\nअगर यह app आपके काम का है और आप नए features और updates चाहते हैं, तो आप इसका support कर सकते हैं:",
-  "supportDescriptionLite": "अगर यह app आपके काम का है और आप नए features और updates चाहते हैं, तो आप इसका support कर सकते हैं:",
+  "supportDescription": "यह app बिना subscription और बिना feature limits के काम करता है.\n\nअगर आपको यह app पसंद आ रहा है और आप चाहते हैं कि नए features आते रहें, तो आप development support कर सकते हैं.",
+
+  "supportDescriptionLite": "अगर आपको app पसंद है और आप नए features चाहते हैं, तो आप support कर सकते हैं.",
 
   "supportOptionsTitle": "💵 Support options",
   "supportOption2": "$2 — development support",
-  "supportOption5": "$5 — faster updates",
+  "supportOption5": "$5 — noticeable support",
   "supportOption10": "$10 — strong support",
-  "supportSmallContributions": "छोटा support भी बड़ा फर्क डालता है",
 
-  "supportWaysTitle": "💬 Support करने के तरीके",
-  "supportQuickSupport": "☕ Quick support",
-  "supportKofi": "— Ko-fi (card, fast)",
+  "supportCryptoTitle": "\uD83D\uDCB8 Cryptocurrency",
+  "supportUsdtTitle": "USDT (TRC20) — main option",
+  "supportUsdtDescription": "कोई minimum amount नहीं है. छोटे transfers के लिए convenient है.",
+  "supportUsdtFee": "Fees आमतौर पर बहुत कम होती हैं (usually < $1).",
 
-  "supportCrypto": "💸 Crypto (low fees)",
-  "supportUsdt": "— USDT (TRC20)",
-  "supportTon": "— TON",
+  "supportNowPaymentsTitle": "Payment service के through (NOWPayments)",
+  "supportNowPaymentsDescription": "यह ज्यादा payment methods support करता है, लेकिन minimum amount हो सकता है.",
 
-  "supportInternational": "🌍 International",
-  "supportPaypal": "— PayPal",
+  "supportTonTitle": "TON (Telegram के through)",
+  "supportTonDescription": "अगर आप Telegram use करते हैं, तो यह सबसे आसान तरीका है.\nTransfer सिर्फ कुछ seconds लेता है.",
+  "supportTonAddress": "[address / link]",
 
-  "supportBankTransfer": "🏦 Bank transfer",
-  "supportIban": "— IBAN",
+  "supportCardTitle": "Bank card (USD)",
+  "supportCardNumber": "Card number:",
+  "supportCardName": "Name:",
 
-  "supportAlternative": "🧩 Alternative",
-  "supportBoosty": "— Boosty",
+  "supportIbanTitle": "\uD83C\uDFE6 Bank transfer (SWIFT / IBAN)",
+  "supportIban": "IBAN:",
+  "supportSwift": "SWIFT/BIC:",
+  "supportRecipient": "Recipient:",
 
   "romantic": "Romantic",
   "erotic": "Erotic",
