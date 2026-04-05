@@ -571,7 +571,7 @@ class _CreateEditPersonaScreenState
           _buildActionButton(
             icon: Icons.photo_library,
             label: context.l10n.fromGallery,
-            onPressed: _isGeneratingAvatar ? null : _pickFromGallery,
+            onPressed: _isGeneratingAvatar ? null : _pickFromGalleryDesktop,
             fullWidth: true,
           ),
           const SizedBox(height: 10),
@@ -592,22 +592,20 @@ class _CreateEditPersonaScreenState
           if (_generatedAvatarPreviewPath != null &&
               !_isGeneratingAvatar) ...[
             const SizedBox(height: 12),
-            Row(
+            Column(
               children: [
-                Expanded(
-                  child: _buildIconLabelButton(
-                    icon: Icons.refresh,
-                    label: context.l10n.regenerate,
-                    onPressed: regenerateAvatarWithStyle,
-                  ),
+                _buildIconLabelButton(
+                  icon: Icons.refresh,
+                  label: context.l10n.regenerate,
+                  onPressed: _isGeneratingAvatar ? null : regenerateAvatarWithStyle,
+                  isPrimary: false,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildIconLabelButton(
-                    icon: Icons.save_alt_outlined,
-                    label: context.l10n.save,
-                    onPressed: _cropGeneratedAvatar,
-                  ),
+                const SizedBox(height: 12),
+                _buildIconLabelButton(
+                  icon: Icons.save_alt_outlined,
+                  label: context.l10n.save,
+                  onPressed: _isGeneratingAvatar ? null : _cropGeneratedAvatar,
+                  isPrimary: true,
                 ),
               ],
             ),
@@ -709,20 +707,24 @@ class _CreateEditPersonaScreenState
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildActionButton(
-              icon: Icons.photo_library,
-              label: context.l10n.fromGallery,
-              onPressed: _isGeneratingAvatar ? null : _pickFromGallery,
+            Expanded(
+              child: _buildActionButton(
+                icon: Icons.photo_library,
+                label: context.l10n.fromGallery,
+                onPressed: _isGeneratingAvatar ? null : _pickFromGallery,
+              ),
             ),
             const SizedBox(width: 12),
-            _buildActionButton(
-              icon: Icons.auto_awesome,
-              label: context.l10n.generate,
-              onPressed: (_isGeneratingAvatar ||
-                  _nameCtrl.text.trim().isEmpty ||
-                  _descCtrl.text.trim().isEmpty)
-                  ? null
-                  : () => showAvatarStylePicker(context),
+            Expanded(
+              child: _buildActionButton(
+                icon: Icons.auto_awesome,
+                label: context.l10n.generate,
+                onPressed: (_isGeneratingAvatar ||
+                    _nameCtrl.text.trim().isEmpty ||
+                    _descCtrl.text.trim().isEmpty)
+                    ? null
+                    : () => showAvatarStylePicker(context),
+              ),
             ),
           ],
         ),
@@ -739,7 +741,7 @@ class _CreateEditPersonaScreenState
                   onPressed: regenerateAvatarWithStyle,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildIconLabelButton(
                   icon: Icons.crop,
@@ -869,21 +871,28 @@ class _CreateEditPersonaScreenState
     required VoidCallback? onPressed,
     bool fullWidth = false,
   }) {
-    final btn = OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        backgroundColor: AppTheme.cardBg,
-        foregroundColor: onPressed == null
-            ? AppTheme.textSecondary
-            : AppTheme.textPrimary,
-        side: BorderSide(
-          color: onPressed == null
-              ? AppTheme.textSecondary.withAlpha(80)
-              : AppTheme.cardBorder,
+    final btn = SizedBox(
+      height: 44,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18, color: Colors.white),
+        label: Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppTheme.cardBg,
+          foregroundColor: Colors.white,
+          side: BorderSide(
+            color: onPressed == null
+                ? AppTheme.cardBorder.withAlpha(80)
+                : AppTheme.cardBorder,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+        ),
       ),
     );
 
@@ -896,18 +905,73 @@ class _CreateEditPersonaScreenState
     required IconData icon,
     required String label,
     required VoidCallback? onPressed,
+    bool isPrimary = false,
   }) {
-    return TextButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18, color: AppTheme.primaryAccent),
-      label: Text(
-        label,
-        style: const TextStyle(color: AppTheme.userIcon, fontSize: 13),
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: isPrimary
+          ? ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18, color: Colors.white),
+        label: Text(
+          label,
+          maxLines: 1,
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.accentVivid,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32),
+          ),
+        ),
+      )
+          : OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18, color: Colors.white),
+        label: Text(
+          label, maxLines: 1,
+          style: const TextStyle(color: Colors.white, fontSize: 14, overflow: TextOverflow.ellipsis),
+        ),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppTheme.cardBg,
+          foregroundColor: Colors.white,
+          side: BorderSide(
+            color: onPressed == null
+                ? AppTheme.cardBorder.withAlpha(80)
+                : AppTheme.cardBorder,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32),
+          ),
+        ),
       ),
     );
   }
 
   // ── Avatar actions ────────────────────────────────────────────────────────
+
+  Future<void> _pickFromGalleryDesktop() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    setState(() {
+      _avatarPath = picked.path;
+      _generatedAvatarPreviewPath = null;
+    });
+  }
+
 
   Future<void> _pickFromGallery() async {
     final source = await showModalBottomSheet<ImageSource>(
@@ -923,14 +987,15 @@ class _CreateEditPersonaScreenState
             ListTile(
               leading: const Icon(Icons.photo_library,
                   color: AppTheme.textPrimary),
-              title: Text(context.l10n.gallery,
+              title: Text(ctx.l10n.gallery,
                   style: const TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
+            if (!_isDesktopPlatform)
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined,
                   color: AppTheme.textPrimary),
-              title: Text(context.l10n.camera,
+              title: Text(ctx.l10n.camera,
                   style: const TextStyle(color: AppTheme.textPrimary)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
