@@ -123,11 +123,11 @@ class ChatRepository {
 
   /// Builds API messages with optional summary injection from segmented memory.
   Future<List<Map<String, dynamic>>> _buildMessagesWithSummary(
-    String branchId,
-    String systemPrompt,
-    List<ChatMessageModel> history, {
-    bool suppressHidden = false,
-  }) async {
+      String branchId,
+      String systemPrompt,
+      List<ChatMessageModel> history, {
+        bool suppressHidden = false,
+      }) async {
     final summaryBlocks = await _db.getSummaryBlocks(branchId);
     final covered = await _db.getCoveredMessageCount(branchId);
     debugPrint('[SUMMARY_READ] branchId=$branchId blocks=${summaryBlocks.length} covered=$covered');
@@ -135,8 +135,20 @@ class ChatRepository {
     final messages = <Map<String, dynamic>>[];
     messages.add({'role': 'system', 'content': systemPrompt});
 
+    // ── Inject all summary blocks in order ──
+    if (summaryBlocks.isNotEmpty) {
+      final summaryText = summaryBlocks
+          .map((b) => b['summary_text'] as String)
+          .join('\n\n');
+      messages.add({
+        'role': 'assistant',
+        'content': '[Summary of previous conversation:]\n$summaryText',
+      });
+    }
+
+    // ── Include only messages not yet covered by summaries ──
     final toInclude = summaryBlocks.isNotEmpty
-        ? (covered < history.length ? history.sublist(covered) : history)
+        ? (covered < history.length ? history.sublist(covered) : <ChatMessageModel>[])
         : history;
 
     messages.addAll(toInclude.map((m) {
@@ -206,7 +218,7 @@ class ChatRepository {
         if (counter >= reminderInterval) {
           _setReminderCounter(0);
           final reminderText =
-              'Помни свою личность и поведение: ${persona.behavior}\n';
+              'Remember your identity and behavior: ${persona.behavior}\n';
           messages.add({'role': 'system', 'content': reminderText});
           debugPrint('[Reminder] Injected reminder for counter=$counter: $reminderText');
         }
@@ -312,8 +324,7 @@ class ChatRepository {
         if (counter >= reminderInterval) {
           _setReminderCounter(0);
           final reminderText =
-              'Помни свою личность и поведение: $behaviorReminder\n'
-              'Описывай ощущения и действия подробно.';
+              'Remember your identity and behavior: $behaviorReminder\n';
           messages.add({'role': 'system', 'content': reminderText});
           debugPrint('[Reminder] Injected reminder for counter=$counter');
         }
@@ -467,8 +478,7 @@ class ChatRepository {
     // Add multi-chat rules
     prompt.write('''
 Reply as your character. Start every message with [YourName]: .
-Take turns. Do not speak for other characters.
-Stay in character at all times.
+
 ''');
     
     // Add user-defined behavior if provided

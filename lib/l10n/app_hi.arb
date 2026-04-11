@@ -248,16 +248,7 @@
   "supportOption10": "$10 — strong support",
 
   "supportCryptoTitle": "\uD83D\uDCB8 Cryptocurrency",
-  "supportUsdtTitle": "USDT (TRC20) — main option",
-  "supportUsdtDescription": "कोई minimum amount नहीं है. छोटे transfers के लिए convenient है.",
-  "supportUsdtFee": "Fees आमतौर पर बहुत कम होती हैं (usually < $1).",
 
-  "supportNowPaymentsTitle": "Payment service के through (NOWPayments)",
-  "supportNowPaymentsDescription": "यह ज्यादा payment methods support करता है, लेकिन minimum amount हो सकता है.",
-
-  "supportTonTitle": "TON (Telegram के through)",
-  "supportTonDescription": "अगर आप Telegram use करते हैं, तो यह सबसे आसान तरीका है.\nTransfer सिर्फ कुछ seconds लेता है.",
-  "supportTonAddress": "[address / link]",
 
   "supportCardTitle": "Bank card (USD)",
   "supportCardNumber": "Card number:",
@@ -371,7 +362,44 @@
   "avatarStyleLingerie": "Lingerie mood",
   "avatarStyleBikini": "Beach bikini",
   "avatarStyleSilkRobe": "Silk morning",
-  "avatarStyleNude": "Art nude"
+  "avatarStyleNude": "Art nude",
+
+  "language": "Language",
+  "systemLanguage": "System",
+  "sendTon": "TON भेजें",
+  "walletAddressCopied": "Wallet address copy हो गया",
+  "supportBoostyDescription": "Boosty creators को support करने का platform है। अगर आप इसे use करते हैं, तो वहाँ project को support कर सकते हैं।",
+
+  "supportLightningDescription": "Lightning Network के ज़रिए support करें — तेज़ और लगभग शून्य फीस। Lightning wallet चाहिए: Phoenix, Muun, Blink, Wallet of Satoshi.",
+  "supportLightningDonateAmount": "${amount} donate करें",
+  "@supportLightningDonateAmount": {
+    "placeholders": {
+      "amount": { "type": "int" }
+    }
+  },
+  "supportLightningError": "Invoice नहीं बना। फिर कोशिश करें।",
+  "supportLightningCopied": "Invoice copy हो गया",
+  "supportLightningScanOrOpen": "QR scan करें या Lightning wallet में खोलें",
+  "supportLightningOpenWallet": "Wallet में खोलें",
+  "supportLightningCopyInvoice": "Invoice copy करें",
+  "supportLightningNoWallet": "कोई Lightning wallet नहीं मिला",
+  "supportKofiTitle": "Ko-fi",
+  "supportKofiDescription": "Ko-fi के ज़रिए support करें — card और PayPal accept करता है। Min. $2.\nआपको «USouls AI» page पर redirect किया जाएगा — यह Uncensored Souls का official payment page है।",
+  "supportKofi2": "Development support करें",
+  "supportKofi5": "नए features जल्दी लाएं",
+  "supportKofi10": "Updates तेज़ करें",
+  "supportKofiButton": "Ko-fi पर support करें",
+
+  "supportTonTitle": "TON",
+  "supportTonDescription": "Desktop: किसी भी TON wallet से QR scan करें। Mobile: TonKeeper app चाहिए।",
+  "supportUsdtTitle": "USDT (TRC20)",
+  "supportUsdtDescription": "Crypto users के लिए। Fee ~$1–2.5.",
+  "supportNowPaymentsTitle": "Payment service के through (NOWPayments)",
+  "supportNowpaymentsDescription": "ज़्यादा payment methods। Min. $10.80.",
+  "supportAdditionalTitle": "अन्य तरीके"
+
+
+
 }
 
 

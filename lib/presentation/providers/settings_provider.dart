@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -71,6 +73,8 @@ class SettingsState {
 
 /// Manages user-adjustable limits, persisted in SharedPreferences.
 class SettingsNotifier extends StateNotifier<SettingsState> {
+  final _ready = Completer<void>();
+  Future<void> get ready => _ready.future;
   static const _keyUserInput = 'settings_user_input_limit';
   static const _keyAiResponse = 'settings_ai_response_limit';
   static const _keyChatFontSize = 'chat_font_size';
@@ -120,6 +124,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       autoDeleteChatImagesDays: autoDeleteDays,
       selectedLocale: locale,
     );
+  _ready.complete();
   }
 
   /// Set user input limit (1000–4000).
@@ -130,9 +135,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     await prefs.setInt(_keyUserInput, clamped);
   }
 
-  /// Set AI response limit (100–2500).
+  /// Set AI response limit (100–4000).
   Future<void> setAiResponseLimit(int value) async {
-    final clamped = value.clamp(100, 2000);
+    final clamped = value.clamp(100, 4000);
     state = state.copyWith(aiResponseLimit: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyAiResponse, clamped);

@@ -257,7 +257,7 @@ class SettingsScreen extends ConsumerWidget {
         context.l10n.tokensLabel(settings.aiResponseLimit),
         value: settings.aiResponseLimit.toDouble(),
         min: 100,
-        max: 2000,
+        max: 4000,
         divisions: 60,
         onChanged: (v) => notifier.setAiResponseLimit(v.round()),
       ),

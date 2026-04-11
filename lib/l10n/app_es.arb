@@ -235,16 +235,10 @@
   "supportOption10": "$10 — apoyo fuerte",
 
   "supportCryptoTitle": "\uD83D\uDCB8 Criptomoneda",
-  "supportUsdtTitle": "USDT (TRC20) — opción principal",
-  "supportUsdtDescription": "Sin monto mínimo. Conveniente para envíos pequeños.",
-  "supportUsdtFee": "Las comisiones suelen ser mínimas (normalmente < $1).",
 
-  "supportNowPaymentsTitle": "A través del servicio de pago (NOWPayments)",
-  "supportNowPaymentsDescription": "Admite más métodos de pago, pero puede tener un monto mínimo.",
 
-  "supportTonTitle": "TON (a través de Telegram)",
-  "supportTonDescription": "La forma más sencilla si usas Telegram.\nLa transferencia tarda unos segundos.",
-  "supportTonAddress": "[dirección / enlace]",
+
+
 
   "supportCardTitle": "Tarjeta bancaria (USD)",
   "supportCardNumber": "Número de tarjeta:",
@@ -345,6 +339,40 @@
   "avatarStyleLingerie": "Ambiente íntimo",
   "avatarStyleBikini": "Bikini en la playa",
   "avatarStyleSilkRobe": "Seda matutina",
-  "avatarStyleNude": "Desnudo artístico"
+  "avatarStyleNude": "Desnudo artístico",
+
+  "language": "Idioma",
+  "systemLanguage": "Sistema",
+  "sendTon": "Enviar TON",
+  "walletAddressCopied": "Dirección de cartera copiada",
+  "supportBoostyDescription": "Boosty es una plataforma para apoyar a creadores. Si la usas, puedes apoyar el proyecto allí.",
+
+  "supportLightningDescription": "Apoya vía Lightning Network — pagos rápidos con comisión casi nula.\nNecesitas una cartera Lightning: Phoenix, Muun, Blink, Wallet of Satoshi.",
+  "supportLightningDonateAmount": "Donar ${amount}",
+  "@supportLightningDonateAmount": {
+    "placeholders": {
+      "amount": { "type": "int" }
+    }
+  },
+  "supportLightningError": "No se pudo crear la factura. Inténtalo de nuevo.",
+  "supportLightningCopied": "Factura copiada",
+  "supportLightningScanOrOpen": "Escanea el QR o ábrelo en tu cartera Lightning",
+  "supportLightningOpenWallet": "Abrir en cartera",
+  "supportLightningCopyInvoice": "Copiar factura",
+  "supportLightningNoWallet": "No se encontró cartera Lightning",
+  "supportKofiTitle": "Ko-fi",
+  "supportKofi2": "Apoyar el desarrollo",
+  "supportKofi5": "Acelerar nuevas funciones",
+  "supportKofi10": "Acelerar las actualizaciones",
+  "supportKofiButton": "Apoyar en Ko-fi",
+  "supportKofiDescription": "Apoya vía Ko-fi — acepta tarjetas y PayPal. Mín. $2.\nSerás redirigido a «USouls AI» — esta es la página de pago oficial de Uncensored Souls.",
+
+  "supportTonTitle": "TON",
+  "supportTonDescription": "Escritorio: escanea el QR con cualquier cartera TON. Móvil: requiere TonKeeper.",
+  "supportUsdtTitle": "USDT (TRC20)",
+  "supportUsdtDescription": "Para quienes ya usan cripto. Sin monto mínimo. Comisión ~$1–2.5.",
+  "supportNowpaymentsDescription": "Admite más métodos de pago. Mín. $10.80.",
+  "supportNowPaymentsTitle": "A través del servicio de pago (NOWPayments)",
+  "supportAdditionalTitle": "Additional options"
 }
 

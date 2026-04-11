@@ -33,6 +33,8 @@ void main() async {
   // Прогреваем провайдеры ДО runApp, чтобы первый кадр
   // не блокировался их инициализацией
   final container = ProviderContainer();
+  final settingsNotifier = container.read(settingsProvider.notifier);
+  await settingsNotifier.ready;
   await Future.wait([
     container.read(personaProvider.future),
     container.read(recentChatsProvider.future),

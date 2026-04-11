@@ -221,16 +221,7 @@
   "supportOption10": "$10 — strong support",
 
   "supportCryptoTitle": "\uD83D\uDCB8 Cryptocurrency",
-  "supportUsdtTitle": "USDT (TRC20) — main option",
-  "supportUsdtDescription": "No minimum amount. Convenient for small transfers.",
-  "supportUsdtFee": "Fees are usually minimal (typically < $1).",
 
-  "supportNowPaymentsTitle": "Via payment service (NOWPayments)",
-  "supportNowPaymentsDescription": "Supports more payment methods but may have a minimum amount.",
-
-  "supportTonTitle": "TON (via Telegram)",
-  "supportTonDescription": "The easiest option if you use Telegram.\nTransfer takes a couple of seconds.",
-  "supportTonAddress": "[address / link]",
 
   "supportCardTitle": "Bank card (USD)",
   "supportCardNumber": "Card number:",
@@ -330,5 +321,46 @@
   "avatarStatusGeneratingImage": "Generating image...",
 
   "language": "Language",
-  "systemLanguage": "System"
+  "systemLanguage": "System",
+
+
+
+  "walletAddressCopied": "Wallet address copied to clipboard",
+  "supportBoostyDescription" : "Boosty is a platform for supporting creators. If you use it, you can support the project there.",
+  "supportLightningDescription": "Support via Lightning Network — fast, near-zero fee payments.\nRequires a Lightning wallet: Phoenix, Muun, Blink, Wallet of Satoshi.",
+
+  "supportLightningError": "Failed to create invoice. Try again.",
+  "supportLightningCopied": "Invoice copied",
+  "supportLightningScanOrOpen": "Scan QR or open in your Lightning wallet",
+  "supportLightningOpenWallet": "Open in wallet",
+  "supportLightningCopyInvoice": "Copy invoice",
+
+  "supportLightningDonateAmount": "Donate ${amount}",
+  "@supportLightningDonateAmount": {
+    "placeholders": {
+      "amount": { "type": "int" }
+    }
+  },
+  "supportLightningNoWallet": "No Lightning wallet found",
+  "viaLightning": "via Lightning",
+
+
+  "supportKofiTitle": "Ko-fi",
+  "supportKofiDescription": "Support via Ko-fi — accepts cards and PayPal. Min. $2.\nYou will be redirected to \"USouls AI\" — this is the official payment page for Uncensored Souls.",
+
+  "supportKofi2": "Support development",
+  "supportKofi5": "Speed up new features",
+  "supportKofi10": "Accelerate updates",
+  "supportKofiButton": "Support on Ko-fi",
+
+  "supportUsdtTitle": "USDT (TRC20)",
+  "supportUsdtDescription": "For those already in crypto. No minimum amount. Fee ~$1–2.5.",
+  "supportNowPaymentsTitle": "Via payment service (NOWPayments)",
+  "supportNowpaymentsDescription": "More payment methods. Min. $10.80.",
+  "supportAdditionalTitle": "Additional options",
+
+  "showQr": "Show QR",
+  "hideQr": "Hide QR"
+
+
 }

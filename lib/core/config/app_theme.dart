@@ -22,6 +22,7 @@ class AppTheme {
   static const Color accentVividInputBorder   = Color(0x7C39FF6A); // FAB / иконки AppBar
   static const Color accentLight   = Color(0xFFAB76FF); // иконки в карточках
   static const Color cardBorder    = Color(0xFF393948); // бордер карточек
+  static const Color lightBorder    = Color(0xFF6F6F88); // бордер карточек
   static const Color textPrimary   = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B0B0);
   static const Color textThird     = Color(0xFFD0D0D0);
