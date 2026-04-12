@@ -93,25 +93,24 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkApiKeyAndNavigate() async {
-    // Сначала все быстрые операции
     final prefs = await SharedPreferences.getInstance();
     final ageConfirmed = prefs.getBool('age_confirmed') ?? false;
 
     if (!mounted) return;
-
-    // Снимаем splash только перед самой навигацией
     FlutterNativeSplash.remove();
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => ageConfirmed ? const HomeScreen() : const AgeGateScreen(),
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ageConfirmed ? const HomeScreen() : const AgeGateScreen(),
+        ),
+      );
 
-    // Cleanup запускаем ПОСЛЕ навигации, в фоне
-    final container = ProviderScope.containerOf(context);
-    final settings = container.read(settingsProvider);
-    unawaited(ChatImageCleanupService.instance.runIfEnabled(settings));
+      final container = ProviderScope.containerOf(context);
+      final settings = container.read(settingsProvider);
+      unawaited(ChatImageCleanupService.instance.runIfEnabled(settings));
+    });
   }
 
   @override
