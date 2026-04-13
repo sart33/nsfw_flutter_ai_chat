@@ -133,7 +133,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       content: Text(message, style: const TextStyle(color: Colors.white)),
       action: withSettings
           ? SnackBarAction(
-        label: context.l10n.settings,
+        label: context.l10n.settings
+
+        ,
         textColor: Colors.white,
         onPressed: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
@@ -1065,14 +1067,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final apiKey = await AppConfig.getDeepSeekApiKey();
     if (apiKey.isNotEmpty) return true;
     if (!mounted) return false;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    final navigator = Navigator.of(context);
+    final errorText = context.l10n.errorDeepSeekNotSet;
+    final settingsText = context.l10n.settings;
+    scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
       backgroundColor: AppTheme.error,
-      content: Text(context.l10n.errorDeepSeekNotSet,
-          style: const TextStyle(color: Colors.white)),
+      content: Text(errorText, style: const TextStyle(color: Colors.white)),
       action: SnackBarAction(
-        label:     context.l10n.settings,
+        label: settingsText,
         textColor: Colors.white,
-        onPressed: () => Navigator.push(context,
+        onPressed: () => navigator.push(
             MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
       ),
       duration: const Duration(seconds: 8),

@@ -11,6 +11,7 @@ import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:photo_view/photo_view.dart';
 
 import '../../domain/exceptions/app_exceptions.dart';
+import '../../main.dart';
 import 'api_keys_screen.dart';
 
 class GalleryFullscreenScreen extends ConsumerStatefulWidget {
@@ -53,20 +54,23 @@ class _GalleryFullscreenScreenState
   }
 
   void _showSnack(String msg, {bool isKeyError = false}) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: isKeyError ?  AppTheme.error : AppTheme.warning,
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    final navigator = Navigator.of(context);
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
-      action: isKeyError ? SnackBarAction(
+      action: isKeyError
+          ? SnackBarAction(
         label: context.l10n.settings,
         textColor: Colors.white,
-        onPressed: () =>
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-            ),
-      ) : null,
+        onPressed: () => navigator.push(
+          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+        ),
+      )
+          : null,
     ));
   }
 
