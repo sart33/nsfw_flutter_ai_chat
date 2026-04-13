@@ -20,6 +20,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/factory/database_helper.dart';
 import '../../domain/exceptions/app_exceptions.dart';
+import '../../main.dart';
 import '../widgets/custom_app_bar_widget.dart';
 import 'api_keys_screen.dart';
 
@@ -367,8 +368,11 @@ class _CreateEditPersonaScreenState
   }
 
   void _showSnack(String msg, {bool isKeyError = false}) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    final navigator = Navigator.of(context);
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
       backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
@@ -376,8 +380,7 @@ class _CreateEditPersonaScreenState
           ? SnackBarAction(
         label: context.l10n.settings,
         textColor: Colors.white,
-        onPressed: () => Navigator.push(
-          context,
+        onPressed: () => navigator.push(
           MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
         ),
       )

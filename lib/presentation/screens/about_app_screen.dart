@@ -790,7 +790,7 @@ class AboutAppContent extends StatelessWidget {
     return _buildSection(
       context.l10n.aboutTitle,
       children: [
-        _buildParagraph('Uncensored Souls v:${AppConfig.appVersion}'),
+        _buildParagraph('Uncensored Souls - ${AppConfig.appVersion}'),
         _buildParagraph(context.l10n.aboutNoCensorshipTitle),
         _buildBulletList([
           context.l10n.aboutNoCensorshipText,
