@@ -15,6 +15,7 @@ import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/gallery_thumbnail_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/pending_image_widget.dart';
+import '../../main.dart';
 import 'api_keys_screen.dart';
 
 bool get _isDesktopPlatform =>
@@ -33,8 +34,11 @@ class PersonaViewScreen extends ConsumerStatefulWidget {
 class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
   void _showSnack(String msg, {bool isKeyError = false}) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    final navigator = Navigator.of(context);
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
       backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isKeyError ? 8 : 6),
       content: Text(msg, style: const TextStyle(color: Colors.white)),
@@ -42,8 +46,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           ? SnackBarAction(
         label: context.l10n.settings,
         textColor: Colors.white,
-        onPressed: () => Navigator.push(
-          context,
+        onPressed: () => navigator.push(
           MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
         ),
       )
