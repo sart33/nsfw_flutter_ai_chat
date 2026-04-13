@@ -191,7 +191,7 @@
   "imagesVisibleInApp": "Accessible only inside the app",
   "costTitle": "💰 Cost",
   "costDescription": "The app has no subscription. You pay only for API usage:",
-  "costChat": "Chat: ~0.2–0.5 cents / hour",
+  "costChat": "Chat: ~0.5–1.5 cents / hour",
   "costImage": "Images: ~0.5 cents / generation",
   "costAverage": "Average: ~$2–3 per month",
   "howToStartTitle": "🚀 How to Start",
