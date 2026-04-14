@@ -431,6 +431,17 @@ class DatabaseHelper {
     }
   }
 
+  /// Deletes all summary blocks for [branchId] that cover more than [messageCount] messages.
+  Future<void> deleteSummaryBlocksAfter(String branchId, int messageCount) async {
+    final db = await database;
+    log('DELETE summaries WHERE branch_id=$branchId AND messages_covered > $messageCount', name: 'DB_DELETE');
+    await db.delete(
+      'summaries',
+      where: 'branch_id = ? AND messages_covered > ?',
+      whereArgs: [branchId, messageCount],
+    );
+  }
+
   /// Deletes the message with [messageId] and every message after it
   /// (by timestamp) within the same branch.
   Future<void> deleteMessagesFromId(
@@ -598,21 +609,32 @@ class DatabaseHelper {
   // ── SUMMARY BLOCKS ──────────────────────────────────────────────────────
 
   /// Returns all summary blocks for a branch, ordered by block_number ascending.
-  Future<List<Map<String, dynamic>>> getSummaryBlocks(String branchId) async {
+  Future<List<Map<String, dynamic>>> getSummaryBlocks(String branchId, {int? limit}) async {
     try {
       final db = await database;
-      log('SELECT summaries WHERE branch_id=$branchId ORDER BY block_number ASC', name: 'DB_READ');
-      final results = await db.query(
-        'summaries',
-        where: 'branch_id = ?',
-        whereArgs: [branchId],
-        orderBy: 'block_number ASC',
-      );
-      log('getSummaryBlocks result count: ${results.length}', name: 'DB_READ');
+      List<Map<String, dynamic>> results;
+      if (limit != null) {
+        // Берём последние N по block_number, потом разворачиваем
+        final reversed = await db.query(
+          'summaries',
+          where: 'branch_id = ?',
+          whereArgs: [branchId],
+          orderBy: 'block_number DESC',
+          limit: limit,
+        );
+        results = reversed.reversed.toList();
+      } else {
+        results = await db.query(
+          'summaries',
+          where: 'branch_id = ?',
+          whereArgs: [branchId],
+          orderBy: 'block_number ASC',
+        );
+      }
+      log('getSummaryBlocks branchId=$branchId returned=${results.length}', name: 'DB_READ');
       return results;
     } catch (e) {
       log('getSummaryBlocks error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getSummaryBlocks error: $e');
       rethrow;
     }
   }

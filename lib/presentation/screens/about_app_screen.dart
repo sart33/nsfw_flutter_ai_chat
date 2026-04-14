@@ -805,7 +805,7 @@ class AboutAppContent extends StatelessWidget {
         _buildParagraph(context.l10n.aboutPlatforms),
         _buildBulletList([
           "Android",
-          "Windows (Beta)",
+          "Windows",
           "macOS (Alpha)",
         ]),
       ],

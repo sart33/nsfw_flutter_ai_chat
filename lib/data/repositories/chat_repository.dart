@@ -127,9 +127,13 @@ class ChatRepository {
       String systemPrompt,
       List<ChatMessageModel> history, {
         bool suppressHidden = false,
+        int maxBlocks = 4,
+
       }) async {
-    final summaryBlocks = await _db.getSummaryBlocks(branchId);
+    final summaryBlocks  = await _db.getSummaryBlocks(branchId, limit: maxBlocks);
     final covered = await _db.getCoveredMessageCount(branchId);
+
+    // Keep only the most recent [maxBlocks] summary blocks to avoid hitting token limits.
     debugPrint('[SUMMARY_READ] branchId=$branchId blocks=${summaryBlocks.length} covered=$covered');
 
     final messages = <Map<String, dynamic>>[];
@@ -193,11 +197,14 @@ class ChatRepository {
           _prefs.getInt('settings_summarization_threshold') ?? 50;
 
       final systemPrompt = await _buildSingleSystemPrompt(persona);
+      final maxBlocks = _prefs.getInt('settings_summary_max_blocks') ?? 4;
       final messages = await _buildMessagesWithSummary(
         branchId,
         systemPrompt,
         history,
         suppressHidden: suppressHidden,
+        maxBlocks: maxBlocks,
+
       );
 
       // Add greeting if needed
@@ -299,11 +306,14 @@ class ChatRepository {
           personas.map((p) => p.behavior ?? '').where((b) => b.isNotEmpty).join(' ');
 
       final systemPrompt = _buildMultiSystemPrompt(personas, behavior);
+      final maxBlocks = _prefs.getInt('settings_summary_max_blocks') ?? 4;
+
       final messages = await _buildMessagesWithSummary(
         branchId,
         systemPrompt,
         history,
         suppressHidden: suppressHidden,
+        maxBlocks: maxBlocks,
       );
 
       // Format multi-persona messages with [Name]: prefix
@@ -390,6 +400,15 @@ class ChatRepository {
       await _db.insertMessage(msg.toMap(), branchId);
     } catch (e) {
       print('ChatRepository.saveMessage error: $e');
+      rethrow;
+    }
+  }
+  /// Deletes all summary blocks for [branchId] that cover messages after [messageCount].
+  Future<void> deleteSummaryBlocksAfter(String branchId, int messageCount) async {
+    try {
+      await _db.deleteSummaryBlocksAfter(branchId, messageCount);
+    } catch (e) {
+      print('ChatRepository.deleteSummaryBlocksAfter error: $e');
       rethrow;
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -16,6 +17,7 @@ class SettingsState {
   final double generationTemperature;
   final bool summarizationEnabled;
   final int summarizationThreshold;
+  final int summaryMaxBlocks;
   final bool autoDeleteChatImagesEnabled;
   final int autoDeleteChatImagesDays;
   final String? selectedLocale; // null = системная
@@ -25,14 +27,15 @@ class SettingsState {
 
   const SettingsState({
     this.userInputLimit = 2000,
-    this.aiResponseLimit = 4000,
-    this.chatFontSize = 16.0,
+    this.aiResponseLimit = 400,
+    this.chatFontSize = 18.0,
     this.reminderInterval = 10,        // default 10
     this.reminderEnabled = true,       // default true
     this.yamlPersonaEnabled = false,   // default false
-    this.generationTemperature = 0.9,
+    this.generationTemperature = 0.75,
     this.summarizationEnabled = true,  // default true
-    this.summarizationThreshold = 50,  // default 50
+    this.summarizationThreshold = 30, // default 50
+    this.summaryMaxBlocks = 4,
     this.autoDeleteChatImagesEnabled = false, // default false
     this.autoDeleteChatImagesDays = AppConfig.autoDeleteDefaultDays,
     this.selectedLocale // default from AppConfig
@@ -49,6 +52,7 @@ class SettingsState {
     double? generationTemperature,
     bool? summarizationEnabled,
     int? summarizationThreshold,
+    int? summaryMaxBlocks,
     bool? autoDeleteChatImagesEnabled,
     int? autoDeleteChatImagesDays,
     Object? selectedLocale = _sentinel,
@@ -63,6 +67,7 @@ class SettingsState {
         generationTemperature: generationTemperature ?? this.generationTemperature,
         summarizationEnabled: summarizationEnabled ?? this.summarizationEnabled,
         summarizationThreshold: summarizationThreshold ?? this.summarizationThreshold,
+        summaryMaxBlocks: summaryMaxBlocks ?? this.summaryMaxBlocks,
         autoDeleteChatImagesEnabled: autoDeleteChatImagesEnabled ?? this.autoDeleteChatImagesEnabled,
         autoDeleteChatImagesDays: autoDeleteChatImagesDays ?? this.autoDeleteChatImagesDays,
         selectedLocale: selectedLocale == _sentinel
@@ -84,6 +89,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyGenerationTemperature = 'generation_temperature';
   static const _keySummarizationEnabled = 'settings_summarization_enabled';
   static const _keySummarizationThreshold = 'settings_summarization_threshold';
+  static const _keySummaryMaxBlocks = 'settings_summary_max_blocks';
   static const _keyAutoDeleteEnabled = 'settings_auto_delete_enabled';
   static const _keyAutoDeleteDays = 'settings_auto_delete_days';
   static const _keyLocale = 'settings_locale';
@@ -95,17 +101,18 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final userLimit = prefs.getInt(_keyUserInput) ?? 2000;
+    final userLimit = prefs.getInt(_keyUserInput) ?? 400;
     final aiLimit = prefs.getInt(_keyAiResponse) ?? 4000;
-    final fontSize = prefs.getDouble(_keyChatFontSize) ?? 16.0;
+    final fontSize = prefs.getDouble(_keyChatFontSize) ?? 18.0;
     final reminderInterval = prefs.getInt(_keyReminderInterval) ?? 10;
     final reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;
     final yamlPersonaEnabled = prefs.getBool(_keyYamlPersonaEnabled) ?? false;
-    final temperature = prefs.getDouble(_keyGenerationTemperature) ?? 0.9;
+    final temperature = prefs.getDouble(_keyGenerationTemperature) ?? 0.75;
     final summarizationEnabled = prefs.getBool(_keySummarizationEnabled) ??
         true;
     final summarizationThreshold = prefs.getInt(_keySummarizationThreshold) ??
-        50;
+        30;
+    final summaryMaxBlocks = prefs.getInt(_keySummaryMaxBlocks) ?? 4;
     final autoDeleteEnabled = prefs.getBool(_keyAutoDeleteEnabled) ?? false;
     final autoDeleteDays = prefs.getInt(_keyAutoDeleteDays) ??
         AppConfig.autoDeleteDefaultDays;
@@ -120,6 +127,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       generationTemperature: temperature,
       summarizationEnabled: summarizationEnabled,
       summarizationThreshold: summarizationThreshold,
+      summaryMaxBlocks: summaryMaxBlocks,
       autoDeleteChatImagesEnabled: autoDeleteEnabled,
       autoDeleteChatImagesDays: autoDeleteDays,
       selectedLocale: locale,
@@ -188,12 +196,19 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     await prefs.setBool(_keySummarizationEnabled, value);
   }
 
-  /// Set the message-count threshold that triggers summarization (30–200).
+  /// Set the message-count threshold that triggers summarization (20–100).
   Future<void> setSummarizationThreshold(int value) async {
-    final clamped = value.clamp(30, 200);
+    final clamped = value.clamp(20, 100);
     state = state.copyWith(summarizationThreshold: clamped);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keySummarizationThreshold, clamped);
+  }
+  /// Set the maximum number of summary blocks to keep (0–10).
+  Future<void> setSummaryMaxBlocks(int value) async {
+    final clamped = value.clamp(1, 10);
+    state = state.copyWith(summaryMaxBlocks: clamped);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keySummaryMaxBlocks, clamped);
   }
 
   /// Clears all summary blocks from the database.
@@ -201,7 +216,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     try {
       await DatabaseHelper.instance.clearAllSummaries();
     } catch (e) {
-      print('Error clearing summaries: $e');
+      debugPrint('Error clearing summaries: $e');
       rethrow;
     }
   }

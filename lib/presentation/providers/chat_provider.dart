@@ -345,6 +345,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
       await repo.deleteMessageAndAfter(nextId, _branchId);
       newMessages.removeRange(idx + 1, newMessages.length);
       state = state.copyWith(messages: newMessages);
+      // Also delete summary blocks after this point since history changed.
+      await repo.deleteSummaryBlocksAfter(_branchId, newMessages.length);
 
       // Regenerate AI response.
       if (persona != null) {
@@ -386,6 +388,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
     await repo.deleteMessageAndAfter(messageId, _branchId);
     final newMessages = state.messages.sublist(0, idx);
     state = state.copyWith(messages: newMessages);
+    // Also delete summary blocks after this point since history changed.
+    await repo.deleteSummaryBlocksAfter(_branchId, newMessages.length);
+
   }
 
   /// Regenerate the last AI message.

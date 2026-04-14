@@ -32,26 +32,31 @@ class PersonaViewScreen extends ConsumerStatefulWidget {
 }
 
 class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
-
   void _showSnack(String msg, {bool isKeyError = false}) {
     final messenger = scaffoldMessengerKey.currentState;
     if (messenger == null) return;
     final navigator = Navigator.of(context);
     messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
-      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
-      duration: Duration(seconds: isKeyError ? 8 : 6),
-      content: Text(msg, style: const TextStyle(color: Colors.white)),
-      action: isKeyError
-          ? SnackBarAction(
-        label: context.l10n.settings,
-        textColor: Colors.white,
-        onPressed: () => navigator.push(
-          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-        ),
-      )
-          : null,
-    ));
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
+        duration: Duration(seconds: isKeyError ? 8 : 6),
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+        action:
+            isKeyError
+                ? SnackBarAction(
+                  label: context.l10n.settings,
+                  textColor: Colors.white,
+                  onPressed:
+                      () => navigator.push(
+                        MaterialPageRoute(
+                          builder: (_) => const ApiKeysScreen(),
+                        ),
+                      ),
+                )
+                : null,
+      ),
+    );
   }
 
   @override
@@ -59,49 +64,54 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     final personasAsync = ref.watch(personaProvider);
 
     return personasAsync.when(
-      loading: () => Scaffold(
-        backgroundColor: AppTheme.background,
-        body: const Center(
-          child: CircularProgressIndicator(color: AppTheme.accentVivid),
-        ),
-      ),
-      error: (error, stackTrace) => Scaffold(
-        backgroundColor: AppTheme.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: const BackButton(color: Colors.white),
-        ),
-        body: Center(
-          child: Text(
-            '${context.l10n.errorLoadingCharacters}$error',
-            style: const TextStyle(color: AppTheme.warning),
+      loading:
+          () => Scaffold(
+            backgroundColor: AppTheme.background,
+            body: const Center(
+              child: CircularProgressIndicator(color: AppTheme.accentVivid),
+            ),
           ),
-        ),
-      ),
+      error:
+          (error, stackTrace) => Scaffold(
+            backgroundColor: AppTheme.background,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: const BackButton(color: Colors.white),
+            ),
+            body: Center(
+              child: Text(
+                '${context.l10n.errorLoadingCharacters}$error',
+                style: const TextStyle(color: AppTheme.warning),
+              ),
+            ),
+          ),
       data: (personas) {
         final currentPersona = personas.firstWhere(
-              (p) => p.id == widget.persona.id,
+          (p) => p.id == widget.persona.id,
           orElse: () => widget.persona,
         );
-        final galleryKey =
-        GalleryKey(currentPersona.id, currentPersona.galleryMode);
+        final galleryKey = GalleryKey(
+          currentPersona.id,
+          currentPersona.galleryMode,
+        );
         final state = ref.watch(galleryProvider(galleryKey));
         final notifier = ref.read(galleryProvider(galleryKey).notifier);
 
         ref.listen<GalleryState>(galleryProvider(galleryKey), (prev, next) {
           if (next.error != null && next.error != prev?.error) {
-            final isKeyError = next.error is GenerationException &&
+            final isKeyError =
+                next.error is GenerationException &&
                 (next.error!.technicalMessage?.contains('api_key') ?? false);
 
             final msg = switch (next.error) {
               GalleryFullException() => context.l10n.galleryFull,
               GenerationException()
-              when next.error!.technicalMessage == 'api_key_not_set' =>
-              context.l10n.errorNovitaKeyNotSet,
+                  when next.error!.technicalMessage == 'api_key_not_set' =>
+                context.l10n.errorNovitaKeyNotSet,
               GenerationException()
-              when next.error!.technicalMessage == 'api_key_invalid' =>
-              context.l10n.errorNovitaKeyInvalid,
+                  when next.error!.technicalMessage == 'api_key_invalid' =>
+                context.l10n.errorNovitaKeyInvalid,
               GenerationException() => context.l10n.errorImageGeneration,
               SaveException() => context.l10n.errorSave,
               DeleteException() => context.l10n.errorDelete,
@@ -117,11 +127,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
 
         if (useDesktop) {
-          return _buildDesktopLayout(
-              context, currentPersona, state, notifier);
+          return _buildDesktopLayout(context, currentPersona, state, notifier);
         } else {
-          return _buildMobileLayout(
-              context, currentPersona, state, notifier);
+          return _buildMobileLayout(context, currentPersona, state, notifier);
         }
       },
     );
@@ -132,12 +140,11 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   // ══════════════════════════════════════════════════════════════════════
 
   Widget _buildMobileLayout(
-      BuildContext context,
-      PersonaEntity currentPersona,
-      GalleryState state,
-      GalleryNotifier notifier,
-      ) {
-
+    BuildContext context,
+    PersonaEntity currentPersona,
+    GalleryState state,
+    GalleryNotifier notifier,
+  ) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       extendBodyBehindAppBar: true,
@@ -149,33 +156,37 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           IconButton(
             icon: const Icon(Icons.edit_outlined, color: Colors.white),
             tooltip: context.l10n.editCharacter,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    CreateEditPersonaScreen(personaId: widget.persona.id),
-              ),
-            ).then((changed) {
-              if (changed == true && context.mounted) {
-                ref.invalidate(personaProvider);
-              }
-            }),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => CreateEditPersonaScreen(
+                          personaId: widget.persona.id,
+                        ),
+                  ),
+                ).then((changed) {
+                  if (changed == true && context.mounted) {
+                    ref.invalidate(personaProvider);
+                  }
+                }),
           ),
           IconButton(
-            icon:
-            const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             tooltip: context.l10n.chats,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BranchListScreen(
-                  entityId: 'single:${widget.persona.id}',
-                  entityName: widget.persona.name,
-                  isMulti: false,
-                  greeting: widget.persona.greeting,
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => BranchListScreen(
+                          entityId: 'single:${widget.persona.id}',
+                          entityName: widget.persona.name,
+                          isMulti: false,
+                          greeting: widget.persona.greeting,
+                        ),
+                  ),
                 ),
-              ),
-            ),
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: AppTheme.warning),
@@ -208,12 +219,15 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                     ),
                     const SizedBox(height: 20),
                   ],
-                  _buildGalleryHeader(
-                      state, notifier, context, currentPersona),
+                  _buildGalleryHeader(state, notifier, context, currentPersona),
                   const SizedBox(height: 12),
                   _buildGalleryContent(
-                      state, notifier, context, currentPersona,
-                      crossAxisCount: 3),
+                    state,
+                    notifier,
+                    context,
+                    currentPersona,
+                    crossAxisCount: 3,
+                  ),
                 ],
               ),
             ),
@@ -228,28 +242,28 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   // ══════════════════════════════════════════════════════════════════════
 
   Widget _buildDesktopLayout(
-      BuildContext context,
-      PersonaEntity currentPersona,
-      GalleryState state,
-      GalleryNotifier notifier,
-      ) {
+    BuildContext context,
+    PersonaEntity currentPersona,
+    GalleryState state,
+    GalleryNotifier notifier,
+  ) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: CustomAppBar(
-        title:
-          currentPersona.name,
-
-        ),
+      appBar: CustomAppBar(title: currentPersona.name),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: AppTheme.kContentMaxWidth),
+          constraints: const BoxConstraints(
+            maxWidth: AppTheme.kContentMaxWidth,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Левая колонка ───────────────────────────────────────────
               SizedBox(
                 width: 300,
-                child: _buildDesktopLeftPanel(context, currentPersona),
+                child: SingleChildScrollView(
+                  child: _buildDesktopLeftPanel(context, currentPersona),
+                ),
               ),
 
               // Разделитель
@@ -283,13 +297,21 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
                       // Gallery header (mode selector + title row)
                       _buildGalleryHeader(
-                          state, notifier, context, currentPersona),
+                        state,
+                        notifier,
+                        context,
+                        currentPersona,
+                      ),
                       const SizedBox(height: 16),
 
                       // Gallery content
                       _buildGalleryContent(
-                          state, notifier, context, currentPersona,
-                          crossAxisCount: 4),
+                        state,
+                        notifier,
+                        context,
+                        currentPersona,
+                        crossAxisCount: 4,
+                      ),
                     ],
                   ),
                 ),
@@ -302,8 +324,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   }
 
   /// Левая панель десктопа: аватар-карточка + имя + behavior + кнопки
-  Widget _buildDesktopLeftPanel(
-      BuildContext context, PersonaEntity p) {
+  Widget _buildDesktopLeftPanel(BuildContext context, PersonaEntity p) {
     final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
     final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
 
@@ -316,26 +337,33 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AspectRatio(
-              aspectRatio: 9 / 14,
-              child: hasFile
-                  ? Image.file(File(p.avatarPath!),
-                  fit: BoxFit.cover, alignment: Alignment.topCenter)
-                  : hasAsset
-                  ? Image.asset(p.avatarAssetPath!,
-                  fit: BoxFit.cover, alignment: Alignment.topCenter)
-                  : Container(
-                color: AppTheme.cardBg,
-                child: Center(
-                  child: Text(
-                    _initials(p.name),
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              aspectRatio: 9 / 13,
+              child:
+                  hasFile
+                      ? Image.file(
+                        File(p.avatarPath!),
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                      : hasAsset
+                      ? Image.asset(
+                        p.avatarAssetPath!,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                      : Container(
+                        color: AppTheme.cardBg,
+                        child: Center(
+                          child: Text(
+                            _initials(p.name),
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
             ),
           ),
         ),
@@ -393,17 +421,19 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BranchListScreen(
-                    entityId: 'single:${widget.persona.id}',
-                    entityName: widget.persona.name,
-                    isMulti: false,
-                    greeting: widget.persona.greeting,
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => BranchListScreen(
+                            entityId: 'single:${widget.persona.id}',
+                            entityName: widget.persona.name,
+                            isMulti: false,
+                            greeting: widget.persona.greeting,
+                          ),
+                    ),
                   ),
-                ),
-              ),
             ),
           ),
         ),
@@ -433,17 +463,20 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                       style: const TextStyle(fontSize: 13),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CreateEditPersonaScreen(
-                            personaId: widget.persona.id),
-                      ),
-                    ).then((changed) {
-                      if (changed == true && context.mounted) {
-                        ref.invalidate(personaProvider);
-                      }
-                    }),
+                    onPressed:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => CreateEditPersonaScreen(
+                                  personaId: widget.persona.id,
+                                ),
+                          ),
+                        ).then((changed) {
+                          if (changed == true && context.mounted) {
+                            ref.invalidate(personaProvider);
+                          }
+                        }),
                   ),
                 ),
               ),
@@ -490,11 +523,17 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         fit: StackFit.expand,
         children: [
           if (hasFile)
-            Image.file(File(p.avatarPath!),
-                fit: BoxFit.cover, alignment: Alignment.topCenter)
+            Image.file(
+              File(p.avatarPath!),
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+            )
           else if (hasAsset)
-            Image.asset(p.avatarAssetPath!,
-                fit: BoxFit.cover, alignment: Alignment.topCenter)
+            Image.asset(
+              p.avatarAssetPath!,
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+            )
           else
             Container(
               color: AppTheme.cardBg,
@@ -563,12 +602,12 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   }
 
   Widget _buildInfoCard(
-      String title,
-      String content, {
-        bool selectable = false,
-        bool italic = false,
-        Color textColor = AppTheme.textPrimary,
-      }) {
+    String title,
+    String content, {
+    bool selectable = false,
+    bool italic = false,
+    Color textColor = AppTheme.textPrimary,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -588,42 +627,43 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           const SizedBox(height: 8),
           selectable
               ? SelectableText(
-            content,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 14,
-              height: 1.5,
-              fontStyle:
-              italic ? FontStyle.italic : FontStyle.normal,
-            ),
-          )
+                content,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 14,
+                  height: 1.5,
+                  fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+                ),
+              )
               : Text(
-            content,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 14,
-              height: 1.5,
-              fontStyle:
-              italic ? FontStyle.italic : FontStyle.normal,
-            ),
-          ),
+                content,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 14,
+                  height: 1.5,
+                  fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+                ),
+              ),
         ],
       ),
     );
   }
 
   Widget _buildModeSelector(
-      GalleryState state, GalleryNotifier notifier, BuildContext context) {
+    GalleryState state,
+    GalleryNotifier notifier,
+    BuildContext context,
+  ) {
     final modes = [
       (
-      value: 'romantic',
-      label: context.l10n.romantic,
-      icon: Icons.favorite_border
+        value: 'romantic',
+        label: context.l10n.romantic,
+        icon: Icons.favorite_border,
       ),
       (
-      value: 'erotic',
-      label: context.l10n.erotic,
-      icon: Icons.local_fire_department
+        value: 'erotic',
+        label: context.l10n.erotic,
+        icon: Icons.local_fire_department,
       ),
       (value: 'nude', label: '18+', icon: Icons.whatshot),
     ];
@@ -649,16 +689,18 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.accentVivid
-                          : AppTheme.cardBg,
+                      color:
+                          isSelected ? AppTheme.accentVivid : AppTheme.cardBg,
                       borderRadius: BorderRadius.circular(32),
                       border: Border.all(
-                        color: isSelected
-                            ? AppTheme.accentVivid
-                            : AppTheme.cardBorder,
+                        color:
+                            isSelected
+                                ? AppTheme.accentVivid
+                                : AppTheme.cardBorder,
                         width: 1,
                       ),
                     ),
@@ -666,24 +708,30 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (isSelected) ...[
-                          const Icon(Icons.check,
-                              size: 14, color: Colors.white),
+                          const Icon(
+                            Icons.check,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 5),
                         ] else ...[
-                          Icon(mode.icon,
-                              size: 14, color: AppTheme.textSecondary),
+                          Icon(
+                            mode.icon,
+                            size: 14,
+                            color: AppTheme.textSecondary,
+                          ),
                           const SizedBox(width: 5),
                         ],
                         Text(
                           mode.label,
                           style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : AppTheme.textSecondary,
+                            color:
+                                isSelected
+                                    ? Colors.white
+                                    : AppTheme.textSecondary,
                             fontSize: 13,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                       ],
@@ -696,18 +744,19 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           const SizedBox(height: 6),
           Text(
             context.l10n.defaultModeHint,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 11,
-            ),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildGalleryHeader(GalleryState state, GalleryNotifier notifier,
-      BuildContext context, PersonaEntity currentPersona) {
+  Widget _buildGalleryHeader(
+    GalleryState state,
+    GalleryNotifier notifier,
+    BuildContext context,
+    PersonaEntity currentPersona,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -728,17 +777,24 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                 Text(
                   '${state.images.length}/20',
                   style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 12),
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 if (state.images.length < 20)
                   GestureDetector(
-                    onTap: state.isGenerating
-                        ? null
-                        : () => notifier
-                        .generatePreview(currentPersona.description),
-                    child: const Icon(Icons.add_a_photo_outlined,
-                        color: Colors.white, size: 20),
+                    onTap:
+                        state.isGenerating
+                            ? null
+                            : () => notifier.generatePreview(
+                              currentPersona.description,
+                            ),
+                    child: const Icon(
+                      Icons.add_a_photo_outlined,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
               ],
             ),
@@ -751,14 +807,16 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   /// Контент галереи — pending, progress, пустое состояние, грид.
   /// [crossAxisCount] — 3 на мобайле, 4 на десктопе.
   Widget _buildGalleryContent(
-      GalleryState state,
-      GalleryNotifier notifier,
-      BuildContext context,
-      PersonaEntity currentPersona, {
-        required int crossAxisCount,
-      }) {
-    final galleryKey =
-    GalleryKey(currentPersona.id, currentPersona.galleryMode);
+    GalleryState state,
+    GalleryNotifier notifier,
+    BuildContext context,
+    PersonaEntity currentPersona, {
+    required int crossAxisCount,
+  }) {
+    final galleryKey = GalleryKey(
+      currentPersona.id,
+      currentPersona.galleryMode,
+    );
 
     return Column(
       children: [
@@ -768,14 +826,16 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             path: state.pendingImagePath!,
             onSave: () async {
               await notifier.confirmPending(
-                  currentPersona.id, currentPersona.description);
+                currentPersona.id,
+                currentPersona.description,
+              );
               if (!context.mounted) return;
               if (ref.read(galleryProvider(galleryKey)).error == null) {
                 Fluttertoast.showToast(msg: context.l10n.savedToGallery);
               }
             },
-            onRegenerate: () =>
-                notifier.regeneratePending(currentPersona.description),
+            onRegenerate:
+                () => notifier.regeneratePending(currentPersona.description),
             onDiscard: () => notifier.discardPending(),
             isLoading: state.isGenerating,
           ),
@@ -836,18 +896,20 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                 borderRadius: BorderRadius.circular(10),
                 child: GalleryThumbnailWidget(
                   image: state.images[index],
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => GalleryFullscreenScreen(
-                        images: state.images,
-                        initialIndex: index,
-                        personaDescription: currentPersona.description,
-                        personaId: currentPersona.id,
-                        galleryMode: currentPersona.galleryMode,
+                  onTap:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => GalleryFullscreenScreen(
+                                images: state.images,
+                                initialIndex: index,
+                                personaDescription: currentPersona.description,
+                                personaId: currentPersona.id,
+                                galleryMode: currentPersona.galleryMode,
+                              ),
+                        ),
                       ),
-                    ),
-                  ),
                 ),
               );
             },
@@ -861,33 +923,41 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   void _confirmDelete(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(context.l10n.deleteCharacter,
-            style: const TextStyle(color: AppTheme.textPrimary)),
-        content: Text(
-          context.l10n.characterAndGalleryWillBeDeleted,
-          style: const TextStyle(color: AppTheme.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.cancel,
-                style: const TextStyle(color: AppTheme.textSecondary)),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(
+              context.l10n.deleteCharacter,
+              style: const TextStyle(color: AppTheme.textPrimary),
+            ),
+            content: Text(
+              context.l10n.characterAndGalleryWillBeDeleted,
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  context.l10n.cancel,
+                  style: const TextStyle(color: AppTheme.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  ref.read(personaProvider.notifier).delete(widget.persona.id);
+                  GalleryRepository.instance.deleteAllForPersona(
+                    widget.persona.id,
+                  );
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  context.l10n.delete,
+                  style: const TextStyle(color: AppTheme.warning),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref.read(personaProvider.notifier).delete(widget.persona.id);
-              GalleryRepository.instance
-                  .deleteAllForPersona(widget.persona.id);
-              Navigator.pop(context);
-            },
-            child: Text(context.l10n.delete,
-                style: const TextStyle(color: AppTheme.warning)),
-          ),
-        ],
-      ),
     );
   }
 

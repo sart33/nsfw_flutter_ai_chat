@@ -166,17 +166,18 @@ class SettingsScreen extends ConsumerWidget {
         value: settings.reminderEnabled,
         onChanged: (v) => notifier.setReminderEnabled(v),
       ),
-      _Divider(),
-      _SliderTile(
-        title: context.l10n.reminderFrequency,
-        valueLabel:
-        context.l10n.everyNMessages(settings.reminderInterval),
-        value: settings.reminderInterval.toDouble(),
-        min: 1,
-        max: 20,
-        divisions: 19,
-        onChanged: (v) => notifier.setReminderInterval(v.round()),
-      ),
+      if (settings.reminderEnabled) ...[
+        _Divider(),
+        _SliderTile(
+          title: context.l10n.reminderFrequency,
+          valueLabel: context.l10n.everyNMessages(settings.reminderInterval),
+          value: settings.reminderInterval.toDouble(),
+          min: 1,
+          max: 20,
+          divisions: 20,
+          onChanged: (v) => notifier.setReminderInterval(v.round()),
+        ),
+      ],
     ]);
 
     final creativityCard = _SettingsCard(children: [
@@ -187,7 +188,7 @@ class SettingsScreen extends ConsumerWidget {
         value: settings.generationTemperature,
         min: 0.1,
         max: 1.5,
-        divisions: 28,
+        divisions: 15,
         onChanged: (v) => notifier.setGenerationTemperature(v),
       ),
     ]);
@@ -206,11 +207,22 @@ class SettingsScreen extends ConsumerWidget {
           valueLabel:
           '${settings.summarizationThreshold} ${context.l10n.messages}',
           value: settings.summarizationThreshold.toDouble(),
-          min: 30,
-          max: 200,
-          divisions: 17,
+          min: 20,
+          max: 100,
+          divisions: 20,
           onChanged: (v) =>
               notifier.setSummarizationThreshold(v.round()),
+        ),
+        _Divider(),
+        _SliderTile(
+          title: context.l10n.summaryMaxBlocks,
+          subtitle: context.l10n.summaryMaxBlocksDesc,// новый ARB ключ
+          valueLabel: '${settings.summaryMaxBlocks}',
+          value: settings.summaryMaxBlocks.toDouble(),
+          min: 1,
+          max: 10,
+          divisions: 10,
+          onChanged: (v) => notifier.setSummaryMaxBlocks(v.round()),
         ),
       ],
     ]);
@@ -231,7 +243,7 @@ class SettingsScreen extends ConsumerWidget {
           value: settings.autoDeleteChatImagesDays.toDouble(),
           min: 7,
           max: 60,
-          divisions: 53,
+          divisions: 30,
           onChanged: (v) => notifier.setAutoDeleteDays(v.round()),
         ),
       ],
@@ -243,9 +255,9 @@ class SettingsScreen extends ConsumerWidget {
         valueLabel:
         context.l10n.charactersLabel(settings.userInputLimit),
         value: settings.userInputLimit.toDouble(),
-        min: 1000,
+        min: 400,
         max: 8000,
-        divisions: 60,
+        divisions: 15,
         onChanged: (v) => notifier.setUserInputLimit(v.round()),
       ),
     ]);
@@ -258,7 +270,7 @@ class SettingsScreen extends ConsumerWidget {
         value: settings.aiResponseLimit.toDouble(),
         min: 100,
         max: 4000,
-        divisions: 60,
+        divisions: 30,
         onChanged: (v) => notifier.setAiResponseLimit(v.round()),
       ),
       Padding(
@@ -674,6 +686,7 @@ class _SwitchTile extends StatelessWidget {
 
 class _SliderTile extends StatelessWidget {
   final String title;
+  final String? subtitle;  // новый опциональный параметр
   final String valueLabel;
   final double value;
   final double min;
@@ -683,6 +696,7 @@ class _SliderTile extends StatelessWidget {
 
   const _SliderTile({
     required this.title,
+    this.subtitle,
     required this.valueLabel,
     required this.value,
     required this.min,
@@ -714,6 +728,12 @@ class _SliderTile extends StatelessWidget {
                       color: AppTheme.primaryAccent, fontSize: 14)),
             ],
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 3),
+            Text(subtitle!,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 13)),
+          ],
           const SizedBox(height: 6),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(

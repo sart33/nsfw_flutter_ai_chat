@@ -133,9 +133,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       content: Text(message, style: const TextStyle(color: Colors.white)),
       action: withSettings
           ? SnackBarAction(
-        label: context.l10n.settings
-
-        ,
+        label: context.l10n.settings,
         textColor: Colors.white,
         onPressed: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
