@@ -326,6 +326,8 @@
   "collapsePanel": "Recolher",
   "expandPanel": "Expandir",
 
+  "chooseAvatarStyle": "Escolha o estilo do avatar",
+
   "avatarStyleEveningDress": "Elegância noturna",
   "avatarStyleSummerDress": "Passeio de verão",
   "avatarStyleOffice": "Estilo de escritório",
@@ -340,7 +342,6 @@
   "walletAddressCopied": "Endereço da carteira copiado",
   "supportBoostyDescription": "Boosty é uma plataforma para apoiar criadores. Se você a usa, pode apoiar o projeto lá.",
 
-  "supportLightningDescription": "Apoie via Lightning Network — pagamentos rápidos com taxa quase zero.\nNecessário carteira Lightning: Phoenix, Muun, Blink, Wallet of Satoshi.",
   "supportLightningDonateAmount": "Doar ${amount}",
   "@supportLightningDonateAmount": {
     "placeholders": {
@@ -354,17 +355,29 @@
   "supportLightningCopyInvoice": "Copiar fatura",
   "supportLightningNoWallet": "Nenhuma carteira Lightning encontrada",
   "supportKofiTitle": "Ko-fi",
-  "supportKofiDescription": "Apoie via Ko-fi — aceita cartões e PayPal. Mín. $2.\nVocê será redirecionado para «USouls AI» — esta é a página de pagamento oficial do Uncensored Souls.",
   "supportKofi2": "Apoiar o desenvolvimento",
   "supportKofi5": "Acelerar novos recursos",
   "supportKofi10": "Acelerar as atualizações",
   "supportKofiButton": "Apoiar no Ko-fi",
 
   "supportTonTitle": "TON",
-  "supportTonDescription": "Desktop: escaneie o QR com qualquer carteira TON. Mobile: requer TonKeeper.",
   "supportUsdtTitle": "USDT (TRC20)",
-  "supportUsdtDescription": "Para quem já usa cripto. Sem valor mínimo. Taxa ~$1–2.5.",
   "supportNowPaymentsTitle": "Via serviço de pagamento (NOWPayments)",
-  "supportNowpaymentsDescription": "Mais métodos de pagamento. Mín. $10.80.",
-  "supportAdditionalTitle": "Opções adicionais"
+  "supportAdditionalTitle": "Opções adicionais",
+
+  "supportLightningDescription": "Lightning Network — pagamentos rápidos com taxa quase zero.\nRequer uma carteira Lightning (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Apoie via Ko-fi — cartões e PayPal. Mínimo $2. Taxa pequena (~3%).\nVocê será redirecionado para «USouls AI» — esta é a página de pagamento oficial do Uncensored Souls.",
+  "supportUsdtDescription": "Sem valor mínimo. Taxa de rede baixa (geralmente < $1)",
+  "supportCardDescription": "Transferência direta para cartão (depende do banco e do país)",
+  "supportIbanDescription": "As taxas dependem do seu banco",
+  "supportNowpaymentsDescription": "Mais métodos de pagamento (taxas e mínimos podem variar).",
+  "supportTonDescription": "Toque no botão para abrir no Tonkeeper ou escaneie o QR code com qualquer carteira TON",
+
+
+
+  "showQr_pt": "Mostrar QR",
+  "hideQr_pt": "Ocultar QR",
+
+  "summaryMaxBlocks": "Blocos de resumo",
+  "summaryMaxBlocksDesc": "Mais blocos — melhor memória de longo prazo, maior consumo de tokens"
 }

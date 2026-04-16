@@ -356,6 +356,8 @@
   "collapsePanel": "Collapse",
   "expandPanel": "Expand",
 
+  "chooseAvatarStyle": "Choose Avatar Style",
+
   "avatarStyleEveningDress": "Evening elegance",
   "avatarStyleSummerDress": "Summer walk",
   "avatarStyleOffice": "Office style",
@@ -370,7 +372,6 @@
   "walletAddressCopied": "Wallet address copy हो गया",
   "supportBoostyDescription": "Boosty creators को support करने का platform है। अगर आप इसे use करते हैं, तो वहाँ project को support कर सकते हैं।",
 
-  "supportLightningDescription": "Lightning Network के ज़रिए support करें — तेज़ और लगभग शून्य फीस। Lightning wallet चाहिए: Phoenix, Muun, Blink, Wallet of Satoshi.",
   "supportLightningDonateAmount": "${amount} donate करें",
   "@supportLightningDonateAmount": {
     "placeholders": {
@@ -384,19 +385,30 @@
   "supportLightningCopyInvoice": "Invoice copy करें",
   "supportLightningNoWallet": "कोई Lightning wallet नहीं मिला",
   "supportKofiTitle": "Ko-fi",
-  "supportKofiDescription": "Ko-fi के ज़रिए support करें — card और PayPal accept करता है। Min. $2.\nआपको «USouls AI» page पर redirect किया जाएगा — यह Uncensored Souls का official payment page है।",
   "supportKofi2": "Development support करें",
   "supportKofi5": "नए features जल्दी लाएं",
   "supportKofi10": "Updates तेज़ करें",
   "supportKofiButton": "Ko-fi पर support करें",
 
   "supportTonTitle": "TON",
-  "supportTonDescription": "Desktop: किसी भी TON wallet से QR scan करें। Mobile: TonKeeper app चाहिए।",
   "supportUsdtTitle": "USDT (TRC20)",
-  "supportUsdtDescription": "Crypto users के लिए। Fee ~$1–2.5.",
   "supportNowPaymentsTitle": "Payment service के through (NOWPayments)",
-  "supportNowpaymentsDescription": "ज़्यादा payment methods। Min. $10.80.",
-  "supportAdditionalTitle": "अन्य तरीके"
+  "supportAdditionalTitle": "अन्य तरीके",
+
+  "supportLightningDescription": "Lightning Network — तेज payments, near-zero fee.\nLightning wallet चाहिए (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Ko-fi के जरिए support करें — cards & PayPal. Minimum $2. Small fee (~3%).\nआपको «USouls AI» page पर redirect किया जाएगा — यह Uncensored Souls का official payment page है।",
+  "supportUsdtDescription": "No minimum amount. Low network fee (usually < $1)",
+  "supportCardDescription": "Direct card transfer (bank और country पर depend करता है)",
+  "supportIbanDescription": "Fees आपके bank पर depend करती हैं",
+  "supportNowpaymentsDescription": "More payment methods (fees और minimum vary कर सकते हैं).",
+  "supportTonDescription": "Button tap करें Tonkeeper खोलने के लिए, या QR code scan करें किसी भी TON wallet से",
+
+
+  "showQr_hi": "QR दिखाएं",
+  "hideQr_hi": "QR छुपाएं",
+
+  "summaryMaxBlocks": "Summary blocks",
+  "summaryMaxBlocksDesc": "ज़्यादा blocks — long-term memory बेहतर, token cost बढ़ेगा"
 
 
 

@@ -665,7 +665,10 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         label: context.l10n.erotic,
         icon: Icons.local_fire_department,
       ),
-      (value: 'nude', label: '18+', icon: Icons.whatshot),
+      (
+      value: 'nude',
+      label: '18+',
+      icon: Icons.whatshot),
     ];
 
     return Padding(

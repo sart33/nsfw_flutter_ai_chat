@@ -352,7 +352,6 @@
   "walletAddressCopied": "Адрес кошелька скопирован",
   "supportBoostyDescription" : "Boosty — это платформа для поддержки авторов, которая позволяет легко и быстро делать пожертвования.",
 
-  "supportLightningDescription": "Поддержка через Lightning Network — быстро, комиссия почти нулевая.\nНужен Lightning-кошелёк: Phoenix, Muun, Blink, Wallet of Satoshi.",
   "supportLightningError": "Ошибка: не удалось создать инвойс. Попробуйте снова.",
   "supportLightningCopied": "Инвойс скопирован в буфер обмена",
   "supportLightningScanOrOpen": "Отсканируйте QR-код или откройте в кошельке",
@@ -369,24 +368,33 @@
   "viaLightning": "через Lightning",
 
   "supportKofiTitle": "Ko-fi",
-  "supportKofiDescription": "Поддержка через Ko-fi — принимает карты и PayPal. Мин. $2.\nВы будете перенаправлены на страницу «USouls AI» — это официальная страница оплаты Uncensored Souls.",
   "supportKofi2": "Поддержать разработку",
   "supportKofi5": "Ускорить новый функционал",
   "supportKofi10": "Ускорить выход обновлений",
   "supportKofiButton": "Поддержка на Ko-fi",
 
   "supportTonTitle": "TON",
-  "supportTonDescription": "Десктоп: отсканируй QR любым TON-кошельком. Мобильный: нужен TonKeeper.",
   "supportUsdtTitle": "USDT (TRC20)",
-  "supportUsdtDescription": "Для тех, кто уже в крипте. Без минимальной суммы. Комиссия ~$1–2.5.",
 
   "supportNowPaymentsTitle": "Через платёжный сервис (NOWPayments)",
   "supportNowpaymentsTitle": "NOWPayments",
-  "supportNowpaymentsDescription": "Поддерживает больше способов оплаты. Мин. $10.80.",
   "supportAdditionalTitle": "Дополнительные способы",
 
+
+  "supportLightningDescription": "Lightning Network — быстрые платежи с почти нулевой комиссией.\nТребуется Lightning-кошелёк (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Поддержка через Ko-fi — карты и PayPal. Минимум $2. Небольшая комиссия (~3%).\nВы будете перенаправлены на страницу «USouls AI» — это официальная страница оплаты Uncensored Souls.",
+  "supportUsdtDescription": "Без минимальной суммы. Низкая комиссия сети (обычно < $1)",
+  "supportCardDescription": "Прямой перевод на карту (зависит от банка и страны)",
+  "supportIbanDescription": "Комиссии зависят от вашего банка",
+  "supportNowpaymentsDescription": "Дополнительные способы оплаты (комиссии и минимумы могут отличаться).",
+  "supportTonDescription": "Нажмите кнопку, чтобы открыть в Tonkeeper, или отсканируйте QR-код любым TON-кошельком",
+
+
   "showQr": "Показать QR",
-  "hideQr": "Скрыть QR"
+  "hideQr": "Скрыть QR",
+
+  "summaryMaxBlocks": "Блоков саммари",
+  "summaryMaxBlocksDesc": "Больше блоков — лучше память на давние события, выше расход токенов"
 
 }
 

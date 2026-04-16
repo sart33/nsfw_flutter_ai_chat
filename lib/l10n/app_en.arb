@@ -327,7 +327,6 @@
 
   "walletAddressCopied": "Wallet address copied to clipboard",
   "supportBoostyDescription" : "Boosty is a platform for supporting creators. If you use it, you can support the project there.",
-  "supportLightningDescription": "Support via Lightning Network — fast, near-zero fee payments.\nRequires a Lightning wallet: Phoenix, Muun, Blink, Wallet of Satoshi.",
 
   "supportLightningError": "Failed to create invoice. Try again.",
   "supportLightningCopied": "Invoice copied",
@@ -346,7 +345,6 @@
 
 
   "supportKofiTitle": "Ko-fi",
-  "supportKofiDescription": "Support via Ko-fi — accepts cards and PayPal. Min. $2.\nYou will be redirected to \"USouls AI\" — this is the official payment page for Uncensored Souls.",
 
   "supportKofi2": "Support development",
   "supportKofi5": "Speed up new features",
@@ -354,13 +352,22 @@
   "supportKofiButton": "Support on Ko-fi",
 
   "supportUsdtTitle": "USDT (TRC20)",
-  "supportUsdtDescription": "For those already in crypto. No minimum amount. Fee ~$1–2.5.",
   "supportNowPaymentsTitle": "Via payment service (NOWPayments)",
-  "supportNowpaymentsDescription": "More payment methods. Min. $10.80.",
   "supportAdditionalTitle": "Additional options",
 
+  "supportLightningDescription": "Lightning Network — fast, near-zero fee payments.\nRequires a Lightning wallet (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Support via Ko-fi — cards & PayPal. Minimum $2. Small processing fee (~3%).\nYou will be redirected to \"USouls AI\" — this is the official payment page for Uncensored Souls.",
+  "supportUsdtDescription": "No minimum amount. Low network fee (usually < $1)",
+  "supportCardDescription": "Direct card transfer (may vary by bank and country)",
+  "supportIbanDescription": "fees depend on your bank",
+  "supportNowpaymentsDescription": "More payment methods (fees and minimums may vary).",
+  "supportTonDescription": "Tap the button to open in Tonkeeper, or scan the QR code with any TON wallet",
+
   "showQr": "Show QR",
-  "hideQr": "Hide QR"
+  "hideQr": "Hide QR",
+
+  "summaryMaxBlocks": "Summary blocks",
+  "summaryMaxBlocksDesc": "More blocks mean better long-term memory but higher token usage"
 
 
 }

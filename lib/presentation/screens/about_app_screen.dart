@@ -1196,6 +1196,7 @@ class AboutAppContent extends StatelessWidget {
     return _buildSection(
       context.l10n.supportCardTitle,
       children: [
+        _buildParagraph(context.l10n.supportCardDescription),
         _buildBulletList([
           '${context.l10n.supportCardNumber} 4441 1110 8136 7306',
           '${context.l10n.supportCardName} GLIB IVANCHYK',
@@ -1208,6 +1209,7 @@ class AboutAppContent extends StatelessWidget {
     return _buildSection(
       context.l10n.supportIbanTitle,
       children: [
+        _buildParagraph(context.l10n.supportIbanDescription),
         _buildBulletList([
           '${context.l10n.supportIban} UA103220010000026209341508272',
           '${context.l10n.supportSwift} SWIFT/BIC: UNJSUAUKXXX',
@@ -1218,4 +1220,5 @@ class AboutAppContent extends StatelessWidget {
       ],
     );
   }
+
 }

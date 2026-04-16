@@ -201,8 +201,8 @@
 
   "costTitle": "💰 Costo",
   "costDescription": "La aplicación no tiene suscripción. Solo pagas por el uso de la API:",
-  "costChat": "Chat: ~0.5–1.5 centavos / hora",
-  "costImage": "Imágenes: ~0.5 centavos / generación",
+  "costChat": "Chat: ~0,5–1,5 centavos / hora",
+  "costImage": "Imágenes: ~0,5 centavos / generación",
   "costAverage": "Promedio: ~$2–3 al mes",
 
   "howToStartTitle": "🚀 Cómo empezar",
@@ -235,10 +235,6 @@
   "supportOption10": "$10 — apoyo fuerte",
 
   "supportCryptoTitle": "\uD83D\uDCB8 Criptomoneda",
-
-
-
-
 
   "supportCardTitle": "Tarjeta bancaria (USD)",
   "supportCardNumber": "Número de tarjeta:",
@@ -333,6 +329,9 @@
   "collapsePanel": "Contraer",
   "expandPanel": "Expandir",
 
+
+  "chooseAvatarStyle": "Elige el estilo de avatar",
+
   "avatarStyleEveningDress": "Elegancia nocturna",
   "avatarStyleSummerDress": "Paseo de verano",
   "avatarStyleOffice": "Estilo de oficina",
@@ -347,7 +346,6 @@
   "walletAddressCopied": "Dirección de cartera copiada",
   "supportBoostyDescription": "Boosty es una plataforma para apoyar a creadores. Si la usas, puedes apoyar el proyecto allí.",
 
-  "supportLightningDescription": "Apoya vía Lightning Network — pagos rápidos con comisión casi nula.\nNecesitas una cartera Lightning: Phoenix, Muun, Blink, Wallet of Satoshi.",
   "supportLightningDonateAmount": "Donar ${amount}",
   "@supportLightningDonateAmount": {
     "placeholders": {
@@ -365,14 +363,25 @@
   "supportKofi5": "Acelerar nuevas funciones",
   "supportKofi10": "Acelerar las actualizaciones",
   "supportKofiButton": "Apoyar en Ko-fi",
-  "supportKofiDescription": "Apoya vía Ko-fi — acepta tarjetas y PayPal. Mín. $2.\nSerás redirigido a «USouls AI» — esta es la página de pago oficial de Uncensored Souls.",
 
   "supportTonTitle": "TON",
-  "supportTonDescription": "Escritorio: escanea el QR con cualquier cartera TON. Móvil: requiere TonKeeper.",
   "supportUsdtTitle": "USDT (TRC20)",
-  "supportUsdtDescription": "Para quienes ya usan cripto. Sin monto mínimo. Comisión ~$1–2.5.",
-  "supportNowpaymentsDescription": "Admite más métodos de pago. Mín. $10.80.",
   "supportNowPaymentsTitle": "A través del servicio de pago (NOWPayments)",
-  "supportAdditionalTitle": "Additional options"
+  "supportAdditionalTitle": "Additional options",
+
+  "supportLightningDescription": "Lightning Network — pagos rápidos con comisión casi nula.\nRequiere una billetera Lightning (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Apoya vía Ko-fi — tarjetas y PayPal. Mínimo $2. Comisión pequeña (~3%).\nSerás redirigido a «USouls AI» — esta es la página de pago oficial de Uncensored Souls.",
+  "supportUsdtDescription": "Sin monto mínimo. Comisión de red baja (generalmente < $1)",
+  "supportCardDescription": "Transferencia directa a tarjeta (depende del banco y país)",
+  "supportIbanDescription": "Las comisiones dependen de tu banco",
+  "supportNowpaymentsDescription": "Más métodos de pago (las comisiones y mínimos pueden variar).",
+  "supportTonDescription": "Toca el botón para abrir en Tonkeeper o escanea el código QR con cualquier billetera TON",
+
+
+  "showQr_es": "Mostrar QR",
+  "hideQr_es": "Ocultar QR",
+
+  "summaryMaxBlocks": "Bloques de resumen",
+  "summaryMaxBlocksDesc": "Más bloques — mejor memoria a largo plazo, mayor consumo de tokens"
 }
 

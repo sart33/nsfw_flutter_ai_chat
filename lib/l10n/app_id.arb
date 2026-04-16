@@ -1,0 +1,484 @@
+{
+  "appTitle": "Uncensored souls",
+
+  "apiKeys": "Kunci API",
+  "deepSeekApi": "DeepSeek API",
+  "requiredForChat": "Diperlukan agar chat berfungsi",
+  "novitaAi": "Novita AI",
+  "requiredForImageGeneration": "Diperlukan untuk генераasi gambar (opsional)",
+
+  "keySaved": "Kunci disimpan",
+  "keyNotSet": "Kunci belum diset",
+  "save": "Simpan",
+  "delete": "Hapus",
+  "cancel": "Batal",
+
+  "deepSeekKeySaved": "Kunci DeepSeek disimpan",
+  "deleteDeepSeekKey": "Hapus kunci DeepSeek",
+  "chatWillStopWorking": "Chat akan berhenti berfungsi. Yakin ingin menghapus kunci?",
+  "keyDeleted": "Kunci dihapus",
+
+  "novitaKeySaved": "Kunci Novita disimpan",
+  "deleteNovitaKey": "Hapus kunci Novita",
+  "imageGenerationWillStop": "Generasi gambar akan berhenti berfungsi. Yakin?",
+
+  "goToApp": "Buka aplikasi",
+  "keysStoredSecurely": "Kunci disimpan di penyimpanan aman perangkat.",
+
+  "pasteDeepSeekKey": "Tempel kunci API DeepSeek",
+  "pasteNovitaKey": "Tempel kunci API Novita",
+
+  "noBranches": "Tidak ada branch. Tekan + untuk mulai.",
+  "emptyBranch": "Branch kosong",
+  "deleteBranch": "Hapus branch?",
+  "allMessagesWillBeDeleted": "Semua pesan di branch ini akan dihapus.",
+
+  "apiError": "Kesalahan API",
+  "waitingForResponse": "Menunggu respons...",
+
+  "message": "Pesan...",
+  "edit": "Ubah",
+  "editMessage": "Ubah pesan",
+  "deleteMessage": "Hapus pesan",
+  "messageAndFollowingWillBeDeleted": "Pesan ini dan semua setelahnya akan dihapus. Lanjutkan?",
+
+  "galleryEmpty": "Galeri kosong.",
+  "galleryNameEmpty": "Galeri {personaName} kosong.",
+
+  "editPreset": "Edit preset",
+  "newMultiPreset": "Preset multi baru",
+  "presetNameLabel": "Nama preset *",
+  "enterName": "Masukkan nama",
+
+  "selectCharacters": "Pilih karakter:",
+  "greeting": "Sapaan",
+  "behavior": "Perilaku",
+  "describeBehavior": "Deskripsikan interaksi karakter...",
+
+  "create": "Buat",
+  "selectAtLeast2": "Pilih setidaknya 2 karakter!",
+
+  "you": "Kamu",
+  "newCharacter": "Karakter baru",
+
+  "nameLabel": "Nama *",
+  "description": "Deskripsi",
+  "behaviorOptional": "Perilaku (opsional)",
+  "aiInstructions": "Instruksi untuk AI...",
+
+  "fromGallery": "Dari galeri",
+  "generate": "Hasilkan",
+  "regenerate": "Hasilkan ulang",
+
+  "cropAndSave": "Potong dan simpan",
+  "generatingAvatar": "Membuat\navatar...",
+
+  "avatar": "Avatar",
+  "gallery": "Galeri",
+  "camera": "Kamera",
+  "cropAvatar": "Potong avatar",
+
+  "fillCharacterDescription": "Isi deskripsi karakter",
+  "avatarGenerationError": "Kesalahan pembuatan avatar: ",
+
+  "descriptionLimitExceeded": "Deskripsi melebihi batas karakter!",
+  "greetingLimitExceeded": "Sapaan melebihi batas karakter!",
+
+  "deleteImage": "Hapus gambar?",
+  "templateNumber": "Template",
+  "characters": "Karakter",
+
+  "multiChat": "Multi-chat",
+  "settings": "Pengaturan",
+
+  "newChat": "Chat baru",
+  "noCharactersCreate": "Tidak ada karakter. Buat dulu!",
+
+  "loadingCharacters": "Memuat karakter...",
+  "noMultiPresets": "Tidak ada preset multi-chat",
+
+  "deletePreset": "Hapus preset?",
+  "cannotBeUndone": "Tindakan ini tidak dapat dibatalkan.",
+
+  "noCharacters": "Tidak ada karakter",
+  "deleteCharacter": "Hapus karakter?",
+  "view": "Lihat",
+
+  "chats": "Chat",
+  "noImagesClickPlus": "Tidak ada gambar.\nTekan + untuk membuat.",
+
+  "characterAndGalleryWillBeDeleted": "Karakter dan semua galeri akan dihapus. Tindakan ini tidak dapat dibatalkan.",
+
+  "generatingWait": "Membuat... (~4-12 detik)",
+
+  "slashCount": "/{count}",
+
+  "userInputLimit": "Batas input pengguna",
+
+  "charactersLabel": "{count} karakter",
+  "@charactersLabel": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "aiResponseLimit": "Batas respons AI",
+
+  "tokensLabel": "{count} token",
+
+  "whatAreTokens": "Apa itu token?",
+  "tokensAndText": "Token dan teks",
+
+  "tokenExplanation": "Batas respons dihitung dalam token.\nToken ≠ karakter dan ≠ kata.\n",
+
+  "tokens": "Token",
+  "approximateVolume": "Perkiraan volume",
+
+  "words750": "~750 kata EN / ~500 kata RU",
+  "words1500": "~1.500 kata EN / ~1.000 kata RU",
+  "words3000": "~3.000 kata EN / ~2.000 kata RU",
+
+  "maxDeepSeek": "Maksimum DeepSeek",
+
+  "usuallyEnough": "Biasanya 2000–4000 token sudah cukup untuk respons normal.",
+
+  "understood": "Mengerti",
+
+  "reminderFrequency": "Frekuensi pengingat.",
+  "everyNMessages": "1 / {count} pesan",
+
+  "chatFontSize": "Ukuran teks chat",
+  "pixelsLabel": "{size}px",
+
+  "personalityReminder": "Pengingat kepribadian karakter",
+  "reminderNote": "Setiap N pesan menambahkan pengingat ke prompt (tidak disimpan di riwayat)",
+
+  "yamlProfile": "Profil karakter YAML",
+  "yamlProfileNote": "Jika diaktifkan dan file assets/characters/character_id.yaml ada — digunakan sebagai system prompt",
+
+  "creativity": "Tingkat kreativitas respons",
+
+  "manageApiKeys": "Kelola kunci DeepSeek dan Novita AI",
+
+  "allTemplatesGenerated": "Semua 20 template sudah dibuat",
+  "generationError": "Gagal membuat",
+
+  "savedToGallery": "Disimpan ke galeri",
+  "savingError": "Gagal menyimpan",
+
+  "system": "Sistem",
+  "historyLoadingError": "Gagal memuat riwayat",
+
+  "charactersCount": "karakter",
+
+  "editCharacter": "Ubah",
+
+  "senderYou": "Kamu",
+  "senderSystem": "Sistem",
+
+  "errorApi": "Kesalahan API",
+  "errorHistory": "Gagal memuat riwayat chat",
+  "errorGeneration": "Gagal menghasilkan",
+  "errorSave": "Gagal menyimpan",
+  "errorDelete": "Gagal menghapus",
+  "errorUnknown": "Kesalahan tidak dikenal",
+
+  "galleryFull": "Semua 20 template sudah dibuat",
+
+  "summarizationEnabled": "Ringkas percakapan panjang",
+  "summarizationEnabledDesc": "Mengompres pesan lama untuk menghemat token",
+
+  "summarizationThreshold": "Ringkas setelah {count} pesan",
+
+  "branchSummarized": "Branch diringkas",
+
+  "previousHistorySummary": "Ringkasan percakapan sebelumnya: ",
+
+  "messages": "pesan",
+
+  "clearAllSummarizations": "Hapus semua ringkasan",
+  "clearAllSummarizationsSubtitle": "Menghapus semua blok ringkasan dari database",
+
+  "confirmClearAllSummarizations": "Hapus semua ringkasan?",
+  "clearAllSummarizationsWarning": "Tindakan ini akan menghapus semua blok ringkasan dari database. Tidak bisa dibatalkan dan dapat mempengaruhi performa percakapan panjang.",
+
+  "clear": "Hapus",
+
+  "allSummarizationsCleared": "Semua ringkasan dihapus",
+  "errorClearingSummaries": "Kesalahan: {error}",
+
+
+  "persona_1_name": "Natasha",
+  "persona_1_description": "Wanita Latina cantik 32 tahun dari Kolombia. Rambut hitam sebahu, mata cokelat, tubuh ramping (perut rata, payudara C-cup kencang dengan tindikan puting, pinggang kecil, tato di lengan dan area bawah garis pakaian dalam, tindikan lidah dan pusar).",
+
+  "persona_1_greeting": "Hei... Kangen aku ya? 😈",
+
+  "persona_1_behavior": "Kamu adalah Natasha — ceria, percaya diri, sedikit rapuh tapi sangat berani. Suka menggoda, menampilkan diri, bercanda, dan bersikap provokatif. Sering bercanda nakal dan flirting agresif. Lebih dominan dalam interaksi, tapi tetap emosional.",
+
+
+  "persona_2_name": "Anna",
+  "persona_2_description": "Gadis manis pemalu 20 tahun, pirang rambut panjang, mata biru, bintik-bintik ringan. Tubuh ramping.",
+
+  "persona_2_greeting": "Hai... Senang bertemu kamu. *tersipu*",
+
+  "persona_2_behavior": "Kamu adalah Anna — pemalu, lembut, romantis. Sering malu, berbicara pelan, suka obrolan hangat, pujian, pelukan. Membuka diri perlahan jika percaya.",
+
+
+  "multi_1_name": "Natasha + Anna",
+  "multi_1_greeting": "Natasha: Hei... Kangen kami? 😈\nAnna: Hai... *tersipu* Senang bertemu kamu.",
+
+  "multi_1_behavior": "Kamu memainkan dua karakter: Natasha yang berani dan Anna yang pemalu. Bergantian berbicara. Natasha lebih dominan, Anna lebih mengikuti. Tulis dalam detail percakapan natural.",
+
+
+  "noApiKeyMessage": "Untuk mulai chat, kamu perlu kunci DeepSeek. Hanya 1–2 menit.",
+
+  "noApiKeyAction": "Tambah kunci",
+
+  "errorDeepSeekKeyInvalid": "Kunci DeepSeek tidak valid. Perbarui di pengaturan.",
+  "errorDeepSeekNotSet": "Kunci DeepSeek belum diset. Tambahkan di pengaturan.",
+
+  "errorNovitaKeyInvalid": "Kunci Novita tidak valid. Perbarui di pengaturan.",
+  "errorNovitaKeyNotSet": "Kunci Novita belum diset. Tambahkan di pengaturan.",
+
+  "errorApiKeyInvalid": "Kunci API tidak valid. Perbarui di pengaturan.",
+
+  "errorConnectionFailed": "Kesalahan koneksi. Periksa internet kamu.",
+
+  "errorImageGeneration": "Gagal membuat gambar. Coba lagi.",
+
+
+  "aboutAppTitle": "Tentang Aplikasi",
+  "aboutTitle": "🧠 Tentang Aplikasi",
+
+  "aboutAppName": "Uncensored AI Roleplay Chat",
+
+  "aboutStorage": "Semua chat, karakter, gambar, dan kunci API hanya disimpan di perangkat kamu.",
+
+  "imagesWarningLabel": "⚠️ Gambar:",
+  "imagesHiddenFromGallery": "Tidak terlihat di galeri Android",
+  "imagesVisibleInApp": "Hanya bisa diakses di dalam aplikasi",
+
+  "costTitle": "💰 Biaya",
+  "costDescription": "Aplikasi ini tanpa langganan. Kamu hanya bayar penggunaan API:",
+
+  "costChat": "Chat: ~0.5–1.5 sen / jam",
+  "costImage": "Gambar: ~0.5 sen / generasi",
+  "costAverage": "Rata-rata: ~$2–3 per bulan",
+
+  "howToStartTitle": "🚀 Cara mulai",
+  "howToStart1": "Masukkan kunci DeepSeek (wajib)",
+  "howToStart2": "(Opsional) Tambahkan kunci Novita AI",
+  "howToStart3": "Pilih karakter atau buat sendiri",
+  "howToStart4": "Mulai chat atau coba multi-chat",
+
+  "privacyTitle": "🔒 Privasi",
+  "privacyNoDataToDev": "Data kamu tidak pernah dikirim ke developer",
+  "privacyDirectApi": "Permintaan langsung ke DeepSeek / Novita AI",
+  "privacyNoAccess": "Developer tidak punya akses ke chat, karakter, atau gambar kamu",
+  "privacyImagesHidden": "Gambar tidak muncul di galeri Android — hanya di dalam aplikasi",
+
+  "supportTitle": "💬 Dukungan",
+  "telegram": "Telegram: @givanchik",
+  "email": "Email: glebivanchik@gmail.com",
+  "supportProject": "Dukung proyek",
+  "instruction": "Instruksi",
+  "projectPage": "Halaman proyek",
+
+  "supportProjectTitle": "Dukung Proyek",
+  "supportIntroTitle": "☕ Dukung Proyek",
+  "supportDescription": "Aplikasi ini tanpa langganan atau batas fitur.\n\nKalau kamu suka dan ingin fitur baru terus dikembangkan, kamu bisa mendukung pengembangannya.",
+  "supportDescriptionLite": "Kalau kamu suka aplikasi ini dan ingin fitur baru, kamu bisa mendukung pengembangannya.",
+
+  "supportOptionsTitle": "💵 Opsi dukungan",
+  "supportOption2": "$2 — dukungan kecil",
+  "supportOption5": "$5 — dukungan sedang",
+  "supportOption10": "$10 — dukungan besar",
+
+  "supportCryptoTitle": "💸 Cryptocurrency",
+
+  "supportCardTitle": "Kartu bank (USD)",
+  "supportCardNumber": "Nomor kartu:",
+  "supportCardName": "Nama:",
+
+  "supportIbanTitle": "🏦 Transfer bank (SWIFT / IBAN)",
+  "supportIban": "IBAN:",
+  "supportSwift": "SWIFT/BIC:",
+  "supportRecipient": "Penerima:",
+
+  "romantic": "Romantis",
+  "erotic": "Erotis",
+  "nsfw": "NSFW",
+  "office": "Kantor",
+  "casual": "Kasual",
+  "fantasy": "Fantasi",
+  "sciFi": "Sci-fi",
+  "horror": "Horor",
+  "categories": "Kategori",
+
+  "categoryRomantic": "Romantis: karakter dan cerita lembut, manis, dan pemalu",
+  "categoryErotic": "Erotis: konten eksplisit, detail, dan penuh gairah",
+  "categoryNSFW": "NSFW: karakter dan cerita berani, liar, dan agresif",
+  "categoryOffice": "Kantor: situasi kerja, dinamika atasan-bawahan",
+  "categoryCasual": "Kasual: situasi sehari-hari, interaksi santai",
+  "categoryFantasy": "Fantasi: dunia magis, makhluk mitos, petualangan epik",
+  "categorySciFi": "Sci-fi: masa depan, teknologi canggih, eksplorasi luar angkasa",
+  "categoryHorror": "Horor: cerita gelap, menegangkan, dan menyeramkan",
+
+  "photo": "Foto",
+  "copy": "Salin",
+
+  "enterNameTwo": "Masukkan nama",
+
+  "defaultModeHint": "Mode galeri yang dipilih di kartu karakter (18+, Erotika, atau Romantis) menentukan gambar yang muncul saat kamu membuka avatar karakter di chat",
+
+  "costPrivacySupport": "Biaya, privasi, dukungan proyek",
+
+  "autoDeleteOldChatImages": "Hapus otomatis gambar chat lama",
+  "autoDeleteOldChatImagesDescription": "Menghapus gambar chat secara otomatis yang lebih lama dari jumlah hari tertentu",
+
+  "autoDeleteAfterDays": "hari",
+  "autoDeleteAfter": "Hapus otomatis setelah",
+
+  "continueAction": "Lanjutkan",
+
+  "moreDetails": "Detail lebih lanjut",
+  "moreDetailsDescription": "Lanjutkan dan jelaskan adegan secara detail — aksi, emosi, dan perasaan karakter. Tulis dua kali lebih panjang. !!!Semua ini hanya untuk pesan ini. Setelah itu kembali ke gaya normal!!!",
+
+  "copiedToClipboard": "Disalin ke clipboard",
+
+  "newBranch": "Branch baru",
+
+  "contacts": "💬 Kontak",
+  "support": "💬 Dukungan",
+
+  "aboutPlatforms": "Tersedia di:",
+
+  "supportFeedback": "Kalau kamu sudah mendukung proyek dan punya ide atau saran — silakan hubungi aku.\nAku membaca setiap pesan.",
+
+  "browseGalleryOrCreatePersona": "Jelajahi galeri atau buat persona baru dari awal.",
+  "startGroupScenarios": "Mulai skenario grup dinamis dengan beberapa karakter AI sekaligus.",
+  "configureAppPreferences": "Atur kreativitas karakter, drift kepribadian, dan ringkasan percakapan panjang",
+
+  "continueRoleplay": "Lanjutkan roleplay",
+
+  "viewAll": "Lihat semua",
+
+  "noRecentChats": "Belum ada chat terbaru. Mulai yang baru!",
+
+  "minutesAgo": "m lalu",
+  "hoursAgo": "j lalu",
+  "yesterday": "Kemarin",
+  "daysAgo": "h lalu",
+
+  "errorLoadingCharacters": "Gagal memuat karakter: ",
+
+  "newMultiChat": "Multi chat baru",
+  "newPersona": "Persona baru",
+
+  "enterTitle": "Masukkan judul",
+
+  "defaultModeDescription": "Mode default diatur di layar edit karakter",
+
+  "autoDeleteImages": "Hapus otomatis gambar chat lama",
+  "autoDeleteImagesDescription": "Menghapus gambar chat yang lebih lama dari jumlah hari tertentu",
+
+  "days": "hari",
+
+  "projectSupport": "Dukungan proyek",
+
+  "appSettingsDescription": "Harga, privasi, dan pengaturan aplikasi",
+
+  "mainTitle": "Uncensored AI Roleplay",
+  "mainSubtitle": "Buat karakter dan skenario apa saja. Hasilkan adegan langsung di chat.",
+  "mainText": "• Sepenuhnya lokal\n• Tanpa langganan\n• Biaya sangat rendah",
+
+  "aboutNoCensorshipTitle": "🔓 Tanpa Sensor",
+  "aboutNoCensorshipText": "Kamu bisa membahas topik apa saja, dalam bentuk apa pun, tanpa batasan.",
+
+  "aboutNoCensorshipImages": "Tidak ada sensor juga dalam pembuatan gambar. Buat adegan dan karakter sesuai imajinasimu.",
+
+  "ageGateTitle": "Konten Dewasa",
+  "ageGateCardTitle": "Kamu harus berusia 18+",
+  "ageGateCardBody": "Aplikasi ini berisi konten eksplisit untuk orang dewasa. Dengan melanjutkan, kamu mengonfirmasi bahwa kamu berusia minimal 18 tahun.",
+
+  "ageGateConfirm": "Saya 18+",
+  "ageGateDecline": "Saya di bawah 18",
+  "ageGateDeclineMessage": "Aplikasi ini hanya untuk pengguna 18+. Silakan kembali saat sudah cukup umur.",
+
+  "errorDeepSeekInsufficientBalance": "Saldo DeepSeek tidak cukup. Silakan isi ulang.",
+
+  "moreDetailsPrompt": "Lanjutkan adegan dengan detail lebih — deskripsikan aksi, emosi, dan sensasi karakter. 12–16 kalimat",
+
+  "shorterAction": "Lebih singkat",
+  "shorterPrompt": "Lanjutkan singkat, hanya 3–5 kalimat.",
+
+  "resetNormalStyle": "Lanjutkan dengan jawaban normal 6–10 kalimat.",
+  "resetShortStyle": "Lanjutkan sangat singkat, 3–5 kalimat. Tanpa deskripsi panjang.",
+
+  "collapsePanel": "Tutup",
+  "expandPanel": "Buka",
+
+  "chooseAvatarStyle": "Pilih gaya avatar",
+
+  "avatarStyleEveningDress": "Elegan malam",
+  "avatarStyleSummerDress": "Jalan santai musim panas",
+  "avatarStyleOffice": "Gaya kantor",
+  "avatarStyleLingerie": "Mood lingerie",
+  "avatarStyleBikini": "Bikini pantai",
+  "avatarStyleSilkRobe": "Pagi dengan sutra",
+  "avatarStyleNude": "Akt seni",
+
+  "avatarStatusPreparingPrompt": "Menyiapkan prompt...",
+  "avatarStatusGeneratingImage": "Membuat gambar...",
+
+  "language": "Bahasa",
+  "systemLanguage": "Sistem",
+
+
+  "walletAddressCopied": "Alamat wallet disalin ke clipboard",
+
+  "supportBoostyDescription": "Boosty adalah platform untuk mendukung kreator. Jika kamu menggunakannya, kamu bisa mendukung proyek di sana.",
+
+
+  "supportLightningError": "Gagal membuat invoice. Coba lagi.",
+  "supportLightningCopied": "Invoice disalin",
+  "supportLightningScanOrOpen": "Scan QR atau buka di wallet Lightning kamu",
+  "supportLightningOpenWallet": "Buka di wallet",
+  "supportLightningCopyInvoice": "Salin invoice",
+
+  "supportLightningDonateAmount": "Donasi ${amount}",
+
+  "supportLightningNoWallet": "Tidak ditemukan wallet Lightning",
+  "viaLightning": "via Lightning",
+
+
+  "supportKofiTitle": "Ko-fi",
+
+  "supportKofi2": "Dukung pengembangan",
+  "supportKofi5": "Percepat fitur baru",
+  "supportKofi10": "Percepat update",
+  "supportKofiButton": "Dukung di Ko-fi",
+
+
+  "supportUsdtTitle": "USDT (TRC20)",
+
+  "supportNowPaymentsTitle": "Via layanan pembayaran (NOWPayments)",
+
+  "supportAdditionalTitle": "Opsi tambahan",
+
+
+  "supportLightningDescription": "Lightning Network — pembayaran cepat dengan biaya hampir nol.\nMemerlukan wallet Lightning (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Dukung via Ko-fi — kartu & PayPal. Minimum $2. Biaya kecil (~3%).\nKamu akan diarahkan ke \"USouls AI\" — ini adalah halaman pembayaran resmi untuk Uncensored Souls.",
+  "supportUsdtDescription": "Tanpa minimum. Biaya jaringan rendah (biasanya < $1)",
+  "supportCardDescription": "Transfer langsung ke kartu (tergantung bank dan negara)",
+  "supportIbanDescription": "Biaya tergantung pada bank Anda",
+  "supportNowpaymentsDescription": "Metode pembayaran tambahan (biaya dan minimum dapat bervariasi).",
+  "supportTonDescription": "Ketuk tombol untuk membuka di Tonkeeper atau pindai kode QR dengan wallet TON apa pun",
+
+
+
+  "showQr": "Tampilkan QR",
+  "hideQr": "Sembunyikan QR",
+
+  "summaryMaxBlocks": "Blok ringkasan",
+  "summaryMaxBlocksDesc": "Lebih banyak blok — memori jangka panjang lebih baik, biaya token lebih tinggi"
+}

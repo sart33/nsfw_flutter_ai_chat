@@ -346,7 +346,6 @@
 
   "supportBoostyDescription" : "Boosty — платформа для підтримки творчих проектів.",
 
-  "supportLightningDescription": "Підтримка через Lightning Network — швидкі платежі з низькою комісією.\nПотрібен Lightning-гаманець: Phoenix, Muun, Blink, Wallet of Satoshi.\"",
   "supportLightningError": "Помилка: не вдалося створити інвойс. Спробуйте ще раз.",
   "supportLightningCopied": "Інвойс скопійовано у буфер обміну",
   "supportLightningScanOrOpen": "Відскануйте QR-код або відкрийте в гаманці",
@@ -363,23 +362,32 @@
   "viaLightning": "через Lightning",
 
   "supportKofiTitle": "Ko-fi",
-  "supportKofiDescription": "Підтримка через Ko-fi — приймає картки та PayPal. Мін. 2$.\nВи будете перенаправлені на сторінку USouls AI - це офіційна сторінка оплати Uncensored Souls.",
   "supportKofi2": "Підтримати розробку",
   "supportKofi5": "Прискорити новий функціонал",
   "supportKofi10": "Прискорити вихід оновлень",
   "supportKofiButton": "Підтримка на Ko-fi",
 
   "supportTonTitle": "TON",
-  "supportTonDescription": "Десктоп: відскануй QR будь-яким TON-гаманцем. Мобільний: потрібен TonKeeper.",
   "supportUsdtTitle": "USDT (TRC20)",
-  "supportUsdtDescription": "Для тих, хто вже у крипті. Без мінімальної суми. Комісія ~$1–2.5.",
 
   "supportNowPaymentsTitle": "Через платіжний сервіс (NOWPayments)",
   "supportNowpaymentsTitle": "NOWPayments",
-  "supportNowpaymentsDescription": "Підтримує більше способів оплати. Мін. $10.80.",
   "supportAdditionalTitle": "Додаткові способи",
 
+
+  "supportLightningDescription": "Lightning Network — швидкі платежі з майже нульовою комісією.\nПотрібен Lightning-гаманець (Phoenix, Muun, Blink, Wallet of Satoshi).",
+  "supportKofiDescription": "Підтримка через Ko-fi — картки та PayPal. Мінімум $2. Невелика комісія (~3%).\\nВи будете перенаправлені на сторінку USouls AI - це офіційна сторінка оплати Uncensored Souls.\"",
+  "supportUsdtDescription": "Без мінімальної суми. Низька комісія мережі (зазвичай < $1)",
+  "supportCardDescription": "Прямий переказ на картку (залежить від банку та країни)",
+  "supportIbanDescription": "Комісії залежать від вашого банку",
+  "supportNowpaymentsDescription": "Додаткові способи оплати (комісії та мінімуми можуть відрізнятися).",
+  "supportTonDescription": "Натисніть кнопку, щоб відкрити в Tonkeeper, або відскануйте QR-код будь-яким TON-гаманцем",
+
+
   "showQr": "Показати QR",
-  "hideQr": "Приховати QR"
+  "hideQr": "Приховати QR",
+
+  "summaryMaxBlocks": "Блоків саммарі",
+  "summaryMaxBlocksDesc": "Більше блоків - краще пам'ять на давні події, вища витрата токенів"
 
 }
