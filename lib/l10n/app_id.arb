@@ -299,9 +299,8 @@
   "supportCardNumber": "Nomor kartu:",
   "supportCardName": "Nama:",
 
-  "supportIbanTitle": "🏦 Transfer bank (SWIFT / IBAN)",
+  "supportIbanTitle": "🏦 Transfer bank (IBAN)",
   "supportIban": "IBAN:",
-  "supportSwift": "SWIFT/BIC:",
   "supportRecipient": "Penerima:",
 
   "romantic": "Romantis",

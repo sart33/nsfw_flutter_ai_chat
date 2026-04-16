@@ -240,9 +240,8 @@
   "supportCardNumber": "Número de tarjeta:",
   "supportCardName": "Nombre:",
 
-  "supportIbanTitle": "\uD83C\uDFE6 Transferencia bancaria (SWIFT / IBAN)",
+  "supportIbanTitle": "\uD83C\uDFE6 Transferencia bancaria (IBAN)",
   "supportIban": "IBAN:",
-  "supportSwift": "SWIFT/BIC:",
   "supportRecipient": "Beneficiario:",
 
   "romantic": "Romántico",

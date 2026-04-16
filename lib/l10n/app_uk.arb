@@ -240,9 +240,8 @@
   "supportCardNumber": "Номер картки:",
   "supportCardName": "Ім'я:",
 
-  "supportIbanTitle": "\uD83C\uDFE6 Банківський переказ (SWIFT / IBAN)",
+  "supportIbanTitle": "\uD83C\uDFE6 Банківський переказ (IBAN)",
   "supportIban": "IBAN:",
-  "supportSwift": "SWIFT/BIC:",
   "supportRecipient": "Отримувач:",
 
   "romantic": "Романтика",

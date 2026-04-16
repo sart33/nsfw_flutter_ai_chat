@@ -254,9 +254,8 @@
   "supportCardNumber": "Card number:",
   "supportCardName": "Name:",
 
-  "supportIbanTitle": "\uD83C\uDFE6 Bank transfer (SWIFT / IBAN)",
+  "supportIbanTitle": "\uD83C\uDFE6 Bank transfer (IBAN)",
   "supportIban": "IBAN:",
-  "supportSwift": "SWIFT/BIC:",
   "supportRecipient": "Recipient:",
 
   "romantic": "Romantic",

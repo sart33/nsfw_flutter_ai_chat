@@ -675,8 +675,7 @@ class AboutAppContent extends StatelessWidget {
                         _Divider(),
                         _buildWaysToSupportSectionTON(context),
                         _Divider(),
-                        _buildWaysToSupportSectionCard(context),
-                        _Divider(),
+
                         Center(
                           child: _buildParagraphBold(
                             context.l10n.supportAdditionalTitle,
@@ -684,8 +683,9 @@ class AboutAppContent extends StatelessWidget {
                         ),
                         _buildWaysToSupportSectionNOWPayments(context),
                         _Divider(),
-                        _buildWaysToSupportSectionIBAN(context),
+                        _buildWaysToSupportSectionCard(context),
                         _Divider(),
+                        _buildWaysToSupportSectionIBAN(context),
                         _Divider(),
                       ],
                     ),
@@ -1212,7 +1212,6 @@ class AboutAppContent extends StatelessWidget {
         _buildParagraph(context.l10n.supportIbanDescription),
         _buildBulletList([
           '${context.l10n.supportIban} UA103220010000026209341508272',
-          '${context.l10n.supportSwift} SWIFT/BIC: UNJSUAUKXXX',
           '${context.l10n.supportRecipient} IVANCHYK GLIB',
         ]),
 
