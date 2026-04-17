@@ -21,6 +21,7 @@ import 'package:nsfw_chat/presentation/screens/create_edit_persona_screen.dart';
 import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
+import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -284,6 +285,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     (route) => false,
               ),
             ),
+          IconButton(
+            icon: Icon(
+              Icons.favorite_border,
+              size: useDesktop ? 26 : 24,
+              color:  useDesktop ? AppTheme.primaryAccent : AppTheme.textSecondary,
+
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SupportProjectScreen()),
+              );
+            },
+          ),
+          if (useDesktop)
           IconButton(
             icon: const Icon(Icons.info_outline,
                 size: 26, color: AppTheme.textSecondary),

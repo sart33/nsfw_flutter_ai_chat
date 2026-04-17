@@ -7,6 +7,7 @@ import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'dart:io' show Platform;
 
 import '../../core/config/app_theme.dart';
+import '../screens/support_the_project_screen.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -64,19 +65,33 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
 
         IconButton(
-          icon: const Icon(
-            Icons.info_outline,
-            size: 26,
-            color: AppTheme.textSecondary,
+          icon: Icon(
+            Icons.favorite_border,
+            size: desktop ? 26 : 24,
+            color:  desktop ? AppTheme.primaryAccent : AppTheme.textSecondary,
+
           ),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => AboutAppScreen()),
+              MaterialPageRoute(builder: (_) => SupportProjectScreen()),
             );
           },
         ),
-
+        if (desktop)
+          IconButton(
+            icon: const Icon(
+              Icons.info_outline,
+              size: 26,
+              color: AppTheme.textSecondary,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AboutAppScreen()),
+              );
+            },
+          ),
         Padding(
           padding: const EdgeInsets.only(right: 8, left: 0),
           child: IconButton(

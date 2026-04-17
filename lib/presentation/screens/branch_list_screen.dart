@@ -13,6 +13,7 @@ import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:nsfw_chat/presentation/screens/chat_screen.dart';
 import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
+import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 
 import 'about_app_screen.dart';
@@ -94,13 +95,26 @@ class BranchListScreen extends ConsumerWidget {
               ),
             ),
           IconButton(
-            icon: const Icon(Icons.info_outline,
-                size: 26, color: AppTheme.textSecondary),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AboutAppScreen()),
+            icon: Icon(
+              Icons.favorite_border,
+              size: useDesktop ? 26 : 24,
+              color:  useDesktop ? AppTheme.primaryAccent : AppTheme.textSecondary,
+
             ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SupportProjectScreen()),
+              );
+            },
           ),
+          if (useDesktop)
+            IconButton(
+              icon: const Icon(Icons.info_outline,
+                  size: 26, color: AppTheme.textSecondary),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const AboutAppScreen())),
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: IconButton(
