@@ -14,7 +14,7 @@ import 'package:nsfw_chat/presentation/screens/persona_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/persona_card_home.dart';
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 
 import '../../data/repositories/branch_repository.dart';
 
@@ -390,12 +390,31 @@ class _DesktopRecentChatCard extends ConsumerWidget {
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(14)),
-                  child: AvatarWidget(
-                    imagePath: chat.avatarPath,
-                    assetPath: chat.avatarAssetPath,
-                    name: chat.personaName,
-                    size: double.infinity,
-                    // fit: BoxFit.cover,
+                  child: chat.avatarPath != null && chat.avatarPath!.isNotEmpty
+                      ? Image.file(
+                    File(chat.avatarPath!),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
+                      : chat.avatarAssetPath != null && chat.avatarAssetPath!.isNotEmpty
+                      ? Image.asset(
+                    chat.avatarAssetPath!,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
+                      : Container(
+                    color: AppTheme.userBubble,
+                    alignment: Alignment.center,
+                    child: Text(
+                      chat.personaName.isNotEmpty
+                          ? chat.personaName.characters.first.toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -1,88 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:nsfw_chat/main.dart'; // for scaffoldMessengerKey
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+import 'package:nsfw_chat/main.dart';
+
+import '../../domain/exceptions/app_exceptions.dart';
+import '../../l10n/app_localizations.dart';
+import '../../presentation/screens/api_keys_screen.dart';
+import '../config/app_theme.dart'; // for scaffoldMessengerKey
+
+
+// core/utils/app_snack_bar.dart
+
+// core/utils/app_snack_bar.dart
 
 class AppSnackBar {
-  AppSnackBar._();
-
-  static const _orange = Color(0xFFE65100);
-  static const _red = Color(0xFFB71C1C);
-
-  /// Shows error snackbar without context (uses GlobalKey).
-  /// Accepts a single message string (already localized via context.l10n).
-  static void showError(String message) {
-    scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        backgroundColor: _orange,
-        duration: const Duration(seconds: 6),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
+  static void show(
+      String message, {
+        bool isError = false,      // true = красный + 8 сек, false = оранжевый + 6 сек
+        bool withSettings = false, // true = кнопка Settings → ApiKeysScreen
+      }) {
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      backgroundColor: isError ? AppTheme.error : AppTheme.warning,
+      duration: Duration(seconds: isError ? 8 : 6),
+      content: Text(message, style: const TextStyle(color: Colors.white)),
+      action: withSettings
+          ? SnackBarAction(
+        label: navigatorKey.currentContext!.l10n.settings,
+        textColor: Colors.white,
+        onPressed: () => navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
         ),
-      ),
-    );
+      )
+          : null,
+    ));
   }
 
-  /// Shows critical error (red) snackbar.
-  /// Accepts a single message string (already localized via context.l10n).
-  static void showCritical(String message) {
-    scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        backgroundColor: _red,
-        duration: const Duration(seconds: 8),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    );
+  // success — отдельный метод, зелёный, 3 сек, без action
+  static void showSuccess(String message) {
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      backgroundColor: AppTheme.success,
+      duration: const Duration(seconds: 3),
+      content: Text(message, style: const TextStyle(color: Colors.white)),
+    ));
   }
 
-  /// Legacy method for backward compatibility with services that pass English/Russian messages.
-  /// [isRu] — pass true for Russian, false for English.
-  static void showErrorWithLang(String messageEn, String messageRu, {bool? isRu}) {
-    final lang = isRu ?? _isRussian();
-    scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        backgroundColor: _orange,
-        duration: const Duration(seconds: 6),
-        content: Text(
-          lang ? messageRu : messageEn,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    );
+  static void showPromptCleanerError(PromptCleanerException e, AppLocalizations l10n) {
+    final (msg, isError, withSettings) = switch (e.code) {
+      'key_not_set'          => (l10n.errorDeepSeekNotSet,              true,  true),
+      'key_invalid'          => (l10n.errorDeepSeekKeyInvalid,          true,  true),
+      'insufficient_balance' => (l10n.errorDeepSeekInsufficientBalance, true,  false),
+      'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
+      _                      => ('l10n.errorGeneric',                     false, false),
+    };
+    show(msg, isError: isError, withSettings: withSettings);
   }
 
-  /// Legacy method for backward compatibility with services that pass English/Russian messages.
-  /// [isRu] — pass true for Russian, false for English.
-  static void showCriticalWithLang(String messageEn, String messageRu, {bool? isRu}) {
-    final lang = isRu ?? _isRussian();
-    scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        backgroundColor: _red,
-        duration: const Duration(seconds: 8),
-        content: Text(
-          lang ? messageRu : messageEn,
-          style: const TextStyle(color: Colors.white),
-        ),
-
-      ),
-    );
+  static void showPersonaValidationError(PromptCleanerException e, AppLocalizations l10n) {
+    final (msg, isError, withSettings) = switch (e.code) {
+      'key_not_set'          => (l10n.personaNotValidatedKeyNotSet,     true, true),
+      'key_invalid'          => (l10n.personaNotValidatedKeyInvalid,    true, true),
+      'insufficient_balance' => (l10n.personaNotValidatedNoBalance,     false, false),
+      'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
+      _                      => (l10n.personaNotValidatedGeneric,       false, false),
+    };
+    show(msg, isError: isError, withSettings: withSettings);
   }
 
-  static bool isRussian() {
-    try {
-      final locale =
-          WidgetsBinding.instance.platformDispatcher.locale;
-      return locale.languageCode == 'ru';
-    } catch (_) {
-      return false;
-    }
+  static void showNovitaError(NovitaException e, AppLocalizations l10n) {
+    final (msg, isError, withSettings) = switch (e.message) {
+      'api_key_not_set'      => (l10n.errorNovitaKeyNotSet,            true,  true),
+      'api_key_invalid'      => (l10n.errorNovitaKeyInvalid,           true,  true),
+      'insufficient_balance' => (l10n.errorNovitaInsufficientBalance,  true,  false),
+      _                      => (l10n.errorImageGeneration,            false, false),
+    };
+    show(msg, isError: isError, withSettings: withSettings);
   }
-
-  static bool _isRussian() => isRussian();
 }

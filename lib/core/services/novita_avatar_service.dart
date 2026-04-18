@@ -52,10 +52,19 @@ class NovitaAvatarService {
       }),
       data: {'seed': seed, 'size': '512*768', 'prompt': prompt},
     );
-
-    if (submitResp.statusCode == 401 || submitResp.statusCode == 403) {
+debugPrint('[NovitaAvatarService] submit response: ${submitResp.statusCode} ${submitResp.data}');
+    if (submitResp.statusCode == 401) {
       throw NovitaException('api_key_invalid');
-    } else if (submitResp.statusCode != 200) {
+    }
+    if (submitResp.statusCode == 403) {
+      // Парсим reason из тела
+      final reason = submitResp.data?['reason'] as String? ?? '';
+      if (reason == 'NOT_ENOUGH_BALANCE') {
+        throw NovitaException('insufficient_balance');
+      }
+      throw NovitaException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
+    }
+    if (submitResp.statusCode != 200) {
       throw NovitaException('http_${submitResp.statusCode}');
     }
 

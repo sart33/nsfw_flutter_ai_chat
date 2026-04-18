@@ -75,8 +75,11 @@ class NovitaImageService {
           // 'negative_prompt': _negativePrompt,
         }),
       );
-      if (submitResponse.statusCode == 401 || submitResponse.statusCode == 403) {
+      final submitJson =
+      jsonDecode(submitResponse.body) as Map<String, dynamic>;
+      debugPrint('Novita API key error: ${submitResponse.statusCode} ${submitJson['reason']}');
 
+      if (submitResponse.statusCode == 401 || submitResponse.statusCode == 403) {
         throw NovitaException('api_key_invalid');
       } else if (submitResponse.statusCode < 200 || submitResponse.statusCode >= 300) {
 
@@ -84,8 +87,7 @@ class NovitaImageService {
       }
 
       // 3. Parse task_id
-      final submitJson =
-          jsonDecode(submitResponse.body) as Map<String, dynamic>;
+
       final taskId = submitJson['task_id'] as String?;
       if (taskId == null || taskId.isEmpty) {
 

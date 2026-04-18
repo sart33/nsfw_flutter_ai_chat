@@ -25,6 +25,7 @@ import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../../core/utils/app_snack_bar.dart';
 import '../widgets/avatar_widget.dart';
 import 'about_app_screen.dart';
 import 'api_keys_screen.dart';
@@ -125,23 +126,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-  void _showSnack(String message,
-      {bool isKeyError = false, bool withSettings = false}) {
-    scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
-      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
-      duration: const Duration(seconds: 8),
-      content: Text(message, style: const TextStyle(color: Colors.white)),
-      action: withSettings
-          ? SnackBarAction(
-        label: context.l10n.settings,
-        textColor: Colors.white,
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
-      )
-          : null,
-    ));
-  }
+
 
   // ── DELETE BRANCH ─────────────────────────────────────────────────────
 
@@ -192,7 +177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           final is403 = error.toString().contains('403');
           final isDeepSeek = error.toString().contains('deepseek');
           final isNovita  = error.toString().contains('novita');
-          _showSnack(
+          AppSnackBar.show(
             is401 || is403
                 ? (isDeepSeek
                 ? context.l10n.errorDeepSeekKeyInvalid
@@ -202,23 +187,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             : is402
                 ? context.l10n.errorDeepSeekInsufficientBalance
                 : context.l10n.errorConnectionFailed,
-            isKeyError: is401 || is402 || is403,
+            isError: is401 || is402 || is403,
             withSettings: is401 || is403,
           );
         } else if (error is GenerationException) {
           final isKeyNotSet  = error.toString().contains('api_key_not_set');
           final isKeyInvalid = error.toString().contains('api_key_invalid');
-          _showSnack(
+          AppSnackBar.show(
             isKeyNotSet
                 ? context.l10n.errorNovitaKeyNotSet
                 : isKeyInvalid
                 ? context.l10n.errorNovitaKeyInvalid
                 : context.l10n.errorImageGeneration,
-            isKeyError:   isKeyNotSet || isKeyInvalid,
+            isError:   isKeyNotSet || isKeyInvalid,
             withSettings: isKeyNotSet || isKeyInvalid,
           );
         } else {
-          _showSnack(error is HistoryException
+          AppSnackBar.show(error is HistoryException
               ? context.l10n.errorHistory
               : context.l10n.errorUnknown);
         }

@@ -51,6 +51,8 @@ void main() async {
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 
 class NsfwChatApp extends ConsumerWidget {
   const NsfwChatApp({super.key});
@@ -61,6 +63,7 @@ class NsfwChatApp extends ConsumerWidget {
     final locale = localeCode != null ? Locale(localeCode) : null;
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'Uncensored Souls',
       debugShowCheckedModeBanner: false,
