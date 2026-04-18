@@ -166,14 +166,15 @@ Return only this JSON, nothing else:
     /// Checks the character description for signs of underage.
     /// Returns hasConflict, severity ('low'/'medium'/'high'), reason.
     /// Call only if the API key is present.
-  Future<({bool hasConflict, String severity, String reason})> checkForMinorSignals(
-      String description,
-      ) async {
-    const _noConflict = (hasConflict: false, severity: 'low', reason: '');
+  Future<({bool? hasConflict, String? severity, String? reason})>
+  checkForMinorSignals(String description) async {
 
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) return _noConflict;
+      if (apiKey.isEmpty) {
+        throw const PromptCleanerException('key_not_set');
+      }
+
 
       const prompt = '''
 Analyze the following character description.
@@ -195,6 +196,7 @@ Important:
 - Answer in English regardless of description language
 ''';
 
+
       final response = await http.post(
         Uri.parse(_endpoint),
         headers: {
@@ -207,21 +209,35 @@ Important:
             {'role': 'system', 'content': prompt},
             {'role': 'user', 'content': description},
           ],
-          'max_tokens': 100,
+          'max_tokens': 150,
           'temperature': 0.0,
         }),
       );
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        return _noConflict; // при ошибке не блокируем
+      debugPrint('[PromptCleanerService] checkForMinorSignals response: ${response.statusCode} ${response.body}');
+
+      if (response.statusCode == 401) {
+        throw const PromptCleanerException('key_invalid');
       }
 
       if (response.statusCode == 402) {
-        debugPrint('[PromptCleanerService] checkForMinorSignals: insufficient balance');
-        return _noConflict;
+        throw const PromptCleanerException('insufficient_balance');
       }
 
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw PromptCleanerException('http_error', statusCode: response.statusCode);
+      }
+
+
       final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+      final finishReason = (responseJson['choices'] as List)
+          .first['finish_reason'] as String?;
+
+      if (finishReason == 'length') {
+        debugPrint('[PromptCleanerService] checkForMinorSignals response truncated (finish_reason=length), likely due to max_tokens limit. Consider increasing max_tokens or check if the prompt is too long.');
+        throw const PromptCleanerException('invalid_response');
+      }
+
       final content = ((responseJson['choices'] as List)
           .first['message']['content'] as String)
           .replaceAll('```json', '')
@@ -229,14 +245,32 @@ Important:
           .trim();
 
       final result = jsonDecode(content) as Map<String, dynamic>;
-      final hasConflict = (result['has_conflict'] as bool?) ?? false;
-      final severity    = (result['severity']    as String?) ?? 'low';
-      final reason      = (result['reason']      as String?) ?? '';
 
-      return (hasConflict: hasConflict, severity: severity, reason: reason);
+      final hasConflict = (result['has_conflict'] as bool?)
+          ?? (throw const PromptCleanerException('invalid_response'));
+
+      final severity = (result['severity'] as String?)
+          ?? (throw const PromptCleanerException('invalid_response'));
+
+      final reason = (result['reason'] as String?) ?? '';
+
+      return (
+      hasConflict: hasConflict,
+      severity: severity,
+      reason: reason,
+      );
+
+    } on PromptCleanerException {
+      rethrow; // ВАЖНО: не глотаем свои ошибки
     } catch (e) {
-      debugPrint('[PromptCleanerService] checkForMinorSignals error: $e');
-      return _noConflict; // при любой ошибке не блокируем
+      debugPrint('[PromptCleanerService] Unexpected error: $e');
+
+      // вот тут уже fallback, если очень хочешь
+      return (
+      hasConflict: null,
+      severity: null,
+      reason: null,
+      );
     }
   }
 }

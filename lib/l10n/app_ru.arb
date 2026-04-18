@@ -403,8 +403,12 @@
   "ageMustBe18": "Минимальный возраст — 18 лет",
   "personaDescriptionConflict": "Описание персонажа содержит противоречия возрасту (18+). Пожалуйста, отредактируйте описание.",
   "personaNotValidated": "Персонаж не прошёл проверку возраста. Подключите DeepSeek API для валидации.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older."
+  "personaDescriptionContainsWordsRelatedUnderage": "Описание содержит слова, связанные с несовершеннолетними персонажами.\nВсе персонажи в приложении должны быть 18+.",
 
+  "personaNotValidatedKeyNotSet": "Не удалось подтвердить возраст персонажа: ключ DeepSeek не установлен. Добавьте его в настройках.",
+  "personaNotValidatedKeyInvalid": "Не удалось подтвердить возраст персонажа: ключ DeepSeek недействителен. Обновите его в настройках.",
+  "personaNotValidatedNoBalance": "Не удалось подтвердить возраст персонажа: недостаточно средств на счёте DeepSeek. Пополните баланс.",
+  "personaNotValidatedGeneric": "Не удалось подтвердить возраст персонажа: проверка недоступна."
 }
 
 

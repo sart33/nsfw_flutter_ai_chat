@@ -384,5 +384,11 @@
 
   "ageLabel": "Idade",
   "ageMustBe18": "A idade mínima é 18 anos",
-  "personaDescriptionConflict": "A descrição do personagem contém contradições com a idade 18+. Por favor, edite a descrição."
+  "personaDescriptionConflict": "A descrição do personagem contém contradições com a idade 18+. Por favor, edite a descrição.",
+  "personaDescriptionContainsWordsRelatedUnderage": "A descrição contém palavras relacionadas a personagens menores de idade.\nTodos os personagens no aplicativo devem ter 18 anos ou mais.",
+
+  "personaNotValidatedKeyNotSet": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek não está configurada. Adicione-a nas configurações.",
+  "personaNotValidatedKeyInvalid": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek é inválida. Atualize-a nas configurações.",
+  "personaNotValidatedNoBalance": "Não foi possível verificar a idade do personagem: saldo insuficiente no DeepSeek. Recarregue o saldo.",
+  "personaNotValidatedGeneric": "Não foi possível verificar a idade do personagem: validação indisponível."
 }

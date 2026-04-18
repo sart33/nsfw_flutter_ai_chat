@@ -19,10 +19,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/factory/database_helper.dart';
+import '../../core/utils/app_snack_bar.dart';
 import '../../domain/exceptions/app_exceptions.dart';
 import '../../main.dart';
 import '../widgets/custom_app_bar_widget.dart';
-import 'api_keys_screen.dart';
 
 /// Create or edit a persona.
 class CreateEditPersonaScreen extends ConsumerStatefulWidget {
@@ -193,18 +193,24 @@ class _CreateEditPersonaScreenState
 
     // ── 1. Валидация поля возраста (бесплатно, мгновенно) ───────────────
     if (age < 18) {
-      _showSnack(context.l10n.ageMustBe18);
+      AppSnackBar.show(context.l10n.ageMustBe18, isError: true);
       return;
     }
 
     // ── 2. Проверка description через DeepSeek (если ключ есть) ─────────
     final apiKey = await AppConfig.getDeepSeekApiKey();
     if (apiKey.isNotEmpty) {
-      final check = await PromptCleanerService.instance
-          .checkForMinorSignals(_descCtrl.text.trim());
-      if (check.hasConflict && check.severity != 'low') {
+      try {
+        final check = await PromptCleanerService.instance
+            .checkForMinorSignals(_descCtrl.text.trim());
+        if (check.severity != 'low') {
+          if (!mounted) return;
+          AppSnackBar.show(context.l10n.personaDescriptionConflict);
+          return;
+        }
+      } on PromptCleanerException catch (e) {
         if (!mounted) return;
-        _showSnack(context.l10n.personaDescriptionConflict);
+        AppSnackBar.showPersonaValidationError(e, context.l10n);
         return;
       }
     }
@@ -287,30 +293,14 @@ class _CreateEditPersonaScreenState
       if (mounted) setState(() => _generatedAvatarPreviewPath = path);
     } on PromptCleanerException catch (e) {
       if (!mounted) return;
-      final isKeyError = e.code == 'key_not_set' || e.code == 'key_invalid';
-      final msg = switch (e.code) {
-        'key_not_set' => context.l10n.errorDeepSeekNotSet,
-        'key_invalid' => context.l10n.errorDeepSeekKeyInvalid,
-        'insufficient_balance' => context.l10n.errorDeepSeekInsufficientBalance,
-        'http_error' => 'DeepSeek error ${e.statusCode}',
-        _ => 'context.l10n.errorGeneric',
-      };
-      _showSnack(msg, isKeyError: isKeyError);
+      AppSnackBar.showPromptCleanerError(e, context.l10n);
     } on NovitaException catch (e) {
       debugPrint('[Avatar] style generation error: $e');
       if (!mounted) return;
-      final isKeyError =
-          e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
-      final msg = switch (e.message) {
-        'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
-        'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
-        'insufficient_balance' => context.l10n.errorNovitaInsufficientBalance,
-        _ => context.l10n.errorImageGeneration,
-      };
-      _showSnack(msg, isKeyError: isKeyError);
+      AppSnackBar.showNovitaError(e, context.l10n);
     } catch (e) {
-      debugPrint('[Avatar] style generation error: $e');
-      if (mounted) _showSnack(context.l10n.errorImageGeneration);
+      if (!mounted) return;
+      AppSnackBar.show(context.l10n.errorImageGeneration);
     } finally {
       if (mounted)
         setState(() {
@@ -366,18 +356,11 @@ class _CreateEditPersonaScreenState
       } on NovitaException catch (e) {
         debugPrint('[Avatar] style generation error: $e');
         if (!mounted) return;
-        final isKeyError =
-            e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
-        final msg = switch (e.message) {
-          'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
-          'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
-          'insufficient_balance' => context.l10n.errorNovitaInsufficientBalance,
-          _ => context.l10n.errorImageGeneration,
-        };
-        _showSnack(msg, isKeyError: isKeyError);
+        AppSnackBar.showNovitaError(e, context.l10n);
+
       } catch (e) {
         if (!mounted) return;
-        _showSnack(context.l10n.errorImageGeneration);
+        AppSnackBar.show(context.l10n.errorImageGeneration);
       } finally {
         if (mounted) setState(() => _isGeneratingAvatar = false);
       }
@@ -426,32 +409,7 @@ class _CreateEditPersonaScreenState
     super.dispose();
   }
 
-  void _showSnack(String msg, {bool isKeyError = false}) {
-    final messenger = scaffoldMessengerKey.currentState;
-    if (messenger == null) return;
-    final navigator = Navigator.of(context);
-    messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
-        duration: Duration(seconds: isKeyError ? 8 : 6),
-        content: Text(msg, style: const TextStyle(color: Colors.white)),
-        action:
-            isKeyError
-                ? SnackBarAction(
-                  label: context.l10n.settings,
-                  textColor: Colors.white,
-                  onPressed:
-                      () => navigator.push(
-                        MaterialPageRoute(
-                          builder: (_) => const ApiKeysScreen(),
-                        ),
-                      ),
-                )
-                : null,
-      ),
-    );
-  }
+
 
   // ── Shared InputDecoration ───────────────────────────────────────────────
 
@@ -1336,18 +1294,18 @@ class _CreateEditPersonaScreenState
     if (!_formKey.currentState!.validate()) return;
 
     if (_descCtrl.text.length > _descMax) {
-      _showSnack(context.l10n.descriptionLimitExceeded);
+      AppSnackBar.show(context.l10n.descriptionLimitExceeded);
       return;
     }
     if (_greetCtrl.text.length > _greetMax) {
-      _showSnack(context.l10n.greetingLimitExceeded);
+      AppSnackBar.show(context.l10n.greetingLimitExceeded);
       return;
     }
 
     final age = int.tryParse(_ageCtrl.text) ?? 18;
 
     setState(() => _isSaving = true);
-
+    final l10n = context.l10n;
     try {
       // Проверка описания через DeepSeek (только если ключ есть)
       final apiKey = await AppConfig.getDeepSeekApiKey();
@@ -1363,10 +1321,11 @@ class _CreateEditPersonaScreenState
         final check = await PromptCleanerService.instance.checkForMinorSignals(
           combinedText,
         );
-
-        if (check.hasConflict && check.severity != 'low') {
+      debugPrint('DeepSeek check result: $check');
+        if (check.severity != 'low') {
           if (!mounted) return;
-          _showSnack(context.l10n.personaDescriptionConflict);
+          AppSnackBar.show(
+              context.l10n.personaDescriptionConflict);
           // 'Описание персонажа содержит противоречия возрасту (18+). Пожалуйста, отредактируйте описание.'
           return;
         }
@@ -1375,7 +1334,7 @@ class _CreateEditPersonaScreenState
           _showValidationSuccess(); // отдельный метод чтобы не раздувать _showSnack
         }
       } else {
-        _showSnack(context.l10n.personaNotValidated);
+        AppSnackBar.show(context.l10n.personaNotValidated);
       }
       final persona =
           _isEdit
@@ -1412,38 +1371,14 @@ class _CreateEditPersonaScreenState
       PromptCleanerService.instance
           .cleanAndSave(entity.id, entity.description, entity.age)
           .catchError((e) {
-            if (e is PromptCleanerException) {
-              final messenger = scaffoldMessengerKey.currentState;
-              if (messenger == null) return;
-              switch (e.code) {
-                case 'key_not_set':
-                  // уже показали снекбар выше в else-ветке, повторно не нужно
-                  break;
-                case 'key_invalid':
-                  messenger.showSnackBar(
-                    SnackBar(
-                      backgroundColor: AppTheme.error,
-                      duration: const Duration(seconds: 8),
-                      content: Text(
-                        context.l10n.errorDeepSeekKeyInvalid,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  );
-                case 'http_error':
-                  messenger.showSnackBar(
-                    SnackBar(
-                      backgroundColor: AppTheme.warning,
-                      duration: const Duration(seconds: 6),
-                      content: Text(
-                        'DeepSeek error ${e.statusCode}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  );
-              }
-            }
-          });
+        if (e is PromptCleanerException) {
+          AppSnackBar.showPersonaValidationError(e, l10n);
+        }
+      });
+    } on PromptCleanerException catch (e) {
+      // ВОТ ЭТОГО У ТЕБЯ НЕТ
+      AppSnackBar.showPersonaValidationError(e, l10n);
+      return;
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

@@ -375,6 +375,10 @@
   "ageLabel": "Age",
   "ageMustBe18": "Minimum age is 18",
   "personaDescriptionConflict": "The character description contains contradictions with the 18+ age. Please edit the description.",
-  "personaNotValidated": "The character did not pass age verification. Please connect to the DeepSeek API for validation.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older."
+  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older.",
+
+  "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
+  "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
+  "personaNotValidatedNoBalance": "Unable to verify character age: insufficient DeepSeek balance. Please top up.",
+  "personaNotValidatedGeneric": "Unable to verify character age: validation unavailable."
 }

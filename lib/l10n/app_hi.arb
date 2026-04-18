@@ -412,9 +412,13 @@
 
   "ageLabel": "Age (उम्र)",
   "ageMustBe18": "Minimum age 18+ होना चाहिए",
-  "personaDescriptionConflict": "Character description में 18+ age के साथ conflict है. Please edit description."
+  "personaDescriptionConflict": "Character description में 18+ age के साथ conflict है. Please edit description.",
+  "personaDescriptionContainsWordsRelatedUnderage": "Description में underage characters से related words हैं.\nApp में सभी characters 18+ होने चाहिए.",
 
-
+  "personaNotValidatedKeyNotSet": "Character age verify नहीं हो सका: DeepSeek API key set नहीं है. Settings में add करें.",
+  "personaNotValidatedKeyInvalid": "Character age verify नहीं हो सका: DeepSeek API key invalid है. Settings में update करें.",
+  "personaNotValidatedNoBalance": "Character age verify नहीं हो सका: DeepSeek balance insufficient है. Balance top up करें.",
+  "personaNotValidatedGeneric": "Character age verify नहीं हो सका: validation available नहीं है."
 
 }
 
