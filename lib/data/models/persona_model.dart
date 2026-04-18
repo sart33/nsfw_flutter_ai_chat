@@ -11,6 +11,8 @@ class PersonaModel {
   final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
+  final int age; // NEW
+  final bool ageVerified; // NEW
 
   PersonaModel({
     String? id,
@@ -20,32 +22,38 @@ class PersonaModel {
     this.avatarPath,
     this.avatarAssetPath,
     this.behavior,
+    this.age = 18, // NEW
+    this.ageVerified = false, // NEW
     this.galleryMode = 'nude',
   }) : id = id ?? const Uuid().v4();
 
   // ── JSON serialisation ────────────────────────────────────────────────
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'greeting': greeting,
-        'avatar_path': avatarPath,
-        'avatar_asset_path': avatarAssetPath,
-        'behavior': behavior,
-        'gallery_mode': galleryMode,
-      };
+    'id': id,
+    'name': name,
+    'description': description,
+    'greeting': greeting,
+    'avatar_path': avatarPath,
+    'avatar_asset_path': avatarAssetPath,
+    'behavior': behavior,
+    'gallery_mode': galleryMode,
+    'age': age, // NEW
+    'age_verified': ageVerified ? 1 : 0, // NEW
+  };
 
   factory PersonaModel.fromMap(Map<String, dynamic> map) => PersonaModel(
-        id: map['id'] as String,
-        name: map['name'] as String,
-        description: map['description'] as String,
-        greeting: map['greeting'] as String,
-        avatarPath: map['avatar_path'] as String?,
-        avatarAssetPath: map['avatar_asset_path'] as String?,
-        behavior: map['behavior'] as String?,
-        galleryMode: (map['gallery_mode'] as String?) ?? 'nude',
-      );
+    id: map['id'] as String,
+    name: map['name'] as String,
+    description: map['description'] as String,
+    greeting: map['greeting'] as String,
+    avatarPath: map['avatar_path'] as String?,
+    avatarAssetPath: map['avatar_asset_path'] as String?,
+    behavior: map['behavior'] as String?,
+    galleryMode: (map['gallery_mode'] as String?) ?? 'nude',
+    age: (map['age'] as int?) ?? 18,                          // NEW
+    ageVerified: ((map['age_verified'] as int?) ?? 0) == 1,   // NEW
+  );
 
   String toJson() => jsonEncode(toMap());
 
@@ -61,15 +69,18 @@ class PersonaModel {
     String? avatarAssetPath,
     String? behavior,
     String? galleryMode,
-  }) =>
-      PersonaModel(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        description: description ?? this.description,
-        greeting: greeting ?? this.greeting,
-        avatarPath: avatarPath ?? this.avatarPath,
-        avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
-        behavior: behavior ?? this.behavior,
-        galleryMode: galleryMode ?? this.galleryMode,
-      );
+    int? age,
+    bool? ageVerified,
+  }) => PersonaModel(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description ?? this.description,
+    greeting: greeting ?? this.greeting,
+    avatarPath: avatarPath ?? this.avatarPath,
+    avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
+    behavior: behavior ?? this.behavior,
+    galleryMode: galleryMode ?? this.galleryMode,
+    age: age ?? this.age,
+    ageVerified: ageVerified ?? this.ageVerified,
+  );
 }

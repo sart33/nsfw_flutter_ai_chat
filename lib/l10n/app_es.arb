@@ -185,8 +185,11 @@
 
   "errorDeepSeekKeyInvalid": "La clave de DeepSeek no es válida. Por favor, actualízala en configuración.",
   "errorDeepSeekNotSet": "La clave de DeepSeek no está configurada. Por favor, añádela en configuración.",
+  "errorDeepSeekInsufficientBalance": "Saldo insuficiente en la cuenta de DeepSeek. Por favor, recarga.",
   "errorNovitaKeyInvalid": "La clave de Novita no es válida. Por favor, actualízala en configuración.",
   "errorNovitaKeyNotSet": "La clave de Novita no está configurada. Por favor, añádela en configuración.",
+  "errorNovitaInsufficientBalance": "Saldo insuficiente en la cuenta de Novita. Por favor, recarga.",
+
   "errorApiKeyInvalid": "La clave API no es válida. Por favor, actualízala en configuración.",
   "errorConnectionFailed": "Error de conexión. Verifica tu internet.",
   "errorImageGeneration": "Error al generar la imagen. Inténtalo de nuevo.",
@@ -317,7 +320,6 @@
   "ageGateDecline": "Soy menor de 18",
   "ageGateDeclineMessage": "Esta aplicación está destinada a usuarios mayores de 18 años. Por favor, vuelve cuando tengas la edad requerida.",
 
-  "errorDeepSeekInsufficientBalance": "Saldo insuficiente en la cuenta de DeepSeek. Por favor, recarga.",
 
   "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
   "shorterAction": "Shorter",
@@ -381,6 +383,10 @@
   "hideQr_es": "Ocultar QR",
 
   "summaryMaxBlocks": "Bloques de resumen",
-  "summaryMaxBlocksDesc": "Más bloques — mejor memoria a largo plazo, mayor consumo de tokens"
+  "summaryMaxBlocksDesc": "Más bloques — mejor memoria a largo plazo, mayor consumo de tokens",
+
+  "ageLabel": "Edad",
+  "ageMustBe18": "La edad mínima es 18 años",
+  "personaDescriptionConflict": "La descripción del personaje contiene contradicciones con la edad 18+. Por favor, edita la descripción."
 }
 

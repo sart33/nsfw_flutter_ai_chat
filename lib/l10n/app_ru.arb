@@ -188,8 +188,11 @@
 
   "errorDeepSeekKeyInvalid": "Ключ DeepSeek недействителен. Обновите его в настройках.",
   "errorDeepSeekNotSet": "Ключ DeepSeek не установлен. Добавьте его в настройках.",
+  "errorDeepSeekInsufficientBalance": "Недостаточно средств на счёте DeepSeek. Пополните баланс.",
   "errorNovitaKeyInvalid": "Ключ Novita недействителен. Обновите его в настройках.",
   "errorNovitaKeyNotSet": "Ключ Novita не установлен. Добавьте его в настройках.",
+  "errorNovitaInsufficientBalance": "Недостаточно средств на счёте Novita. Пополните баланс.",
+
   "errorApiKeyInvalid": "Ключ API недействителен. Обновите его в настройках.",
   "errorConnectionFailed": "Ошибка соединения. Проверьте интернет.",
   "errorImageGeneration": "Ошибка генерации изображения. Попробуйте снова.",
@@ -322,7 +325,6 @@
   "ageGateDecline": "Мне нет 18",
   "ageGateDeclineMessage": "Это приложение предназначено только для пользователей старше 18 лет.",
 
-  "errorDeepSeekInsufficientBalance": "Недостаточно средств на счёте DeepSeek. Пополните баланс.",
   "moreDetailsPrompt": "Продолжи сцену подробнее — опиши действия, эмоции и ощущения персонажей. 12-16 предложения.",
   "shorterAction": "Короче",
   "shorterPrompt": "Продолжи кратко, 3-5 предложения.",
@@ -393,7 +395,15 @@
   "hideQr": "Скрыть QR",
 
   "summaryMaxBlocks": "Блоков саммари",
-  "summaryMaxBlocksDesc": "Больше блоков — лучше память на давние события, выше расход токенов"
+  "summaryMaxBlocksDesc": "Больше блоков — лучше память на давние события, выше расход токенов",
+
+  "validatingPersona": "Валидация...",
+  "personaValidated": "Персонаж прошёл проверку",
+  "ageLabel": "Возраст",
+  "ageMustBe18": "Минимальный возраст — 18 лет",
+  "personaDescriptionConflict": "Описание персонажа содержит противоречия возрасту (18+). Пожалуйста, отредактируйте описание.",
+  "personaNotValidated": "Персонаж не прошёл проверку возраста. Подключите DeepSeek API для валидации.",
+  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older."
 
 }
 

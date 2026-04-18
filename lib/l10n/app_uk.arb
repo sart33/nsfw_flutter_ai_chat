@@ -187,8 +187,10 @@
 
   "errorDeepSeekKeyInvalid": "Ключ DeepSeek недійсний. Оновіть його в налаштуваннях.",
   "errorDeepSeekNotSet": "Ключ DeepSeek не встановлено. Додайте його в налаштуваннях.",
+  "errorDeepSeekInsufficientBalance": "Недостатньо коштів на рахунку DeepSeek. Поповніть баланс.",
   "errorNovitaKeyInvalid": "Ключ Novita недійсний. Оновіть його в налаштуваннях.",
   "errorNovitaKeyNotSet": "Ключ Novita не встановлено. Додайте його в налаштуваннях.",
+  "errorNovitaInsufficientBalance": "Недостатньо коштів на рахунку Novita. Поповніть баланс.",
   "errorApiKeyInvalid": "Ключ API недійсний. Оновіть його в налаштуваннях.",
   "errorConnectionFailed": "Помилка з'єднання. Перевірте інтернет.",
   "errorImageGeneration": "Помилка генерації зображення. Спробуйте ще раз.",
@@ -315,7 +317,6 @@
   "ageGateDecline": "Мені немає 18",
   "ageGateDeclineMessage": "Цей застосунок призначений лише для користувачів старше 18 років.",
 
-  "errorDeepSeekInsufficientBalance": "Недостатньо коштів на рахунку DeepSeek. Поповніть баланс.",
   "moreDetailsPrompt": "Продовжи сцену детальніше — опиши дії, емоції і відчуття персонажів. 12-16 речень.",
   "shorterAction": "Коротше",
   "shorterPrompt": "Продовжи коротко, 3-5 речень.",
@@ -387,6 +388,10 @@
   "hideQr": "Приховати QR",
 
   "summaryMaxBlocks": "Блоків саммарі",
-  "summaryMaxBlocksDesc": "Більше блоків - краще пам'ять на давні події, вища витрата токенів"
+  "summaryMaxBlocksDesc": "Більше блоків - краще пам'ять на давні події, вища витрата токенів",
+
+  "ageLabel": "Вік",
+  "ageMustBe18": "Мінімальний вік — 18 років",
+  "personaDescriptionConflict": "Опис персонажа містить суперечності віку (18+). Будь ласка, відредагуйте опис."
 
 }

@@ -6,26 +6,30 @@ class PersonaMapper {
   PersonaMapper._();
 
   static PersonaEntity toEntity(PersonaModel model) => PersonaEntity(
-        id: model.id,
-        name: model.name,
-        description: model.description,
-        greeting: model.greeting,
-        avatarPath: model.avatarPath,
-        avatarAssetPath: model.avatarAssetPath,
-        behavior: model.behavior,
-        galleryMode: model.galleryMode,
-      );
+    id: model.id,
+    name: model.name,
+    description: model.description,
+    greeting: model.greeting,
+    avatarPath: model.avatarPath,
+    avatarAssetPath: model.avatarAssetPath,
+    behavior: model.behavior,
+    galleryMode: model.galleryMode,
+    age: model.age,
+    ageVerified: model.ageVerified, // NEW
+  );
 
   static PersonaModel toModel(PersonaEntity entity) => PersonaModel(
-        id: entity.id,
-        name: entity.name,
-        description: entity.description,
-        greeting: entity.greeting,
-        avatarPath: entity.avatarPath,
-        avatarAssetPath: entity.avatarAssetPath,
-        behavior: entity.behavior,
-        galleryMode: entity.galleryMode,
-      );
+    id: entity.id,
+    name: entity.name,
+    description: entity.description,
+    greeting: entity.greeting,
+    avatarPath: entity.avatarPath,
+    avatarAssetPath: entity.avatarAssetPath,
+    behavior: entity.behavior,
+    galleryMode: entity.galleryMode,
+    age: entity.age,
+    ageVerified: entity.ageVerified, // NEW
+  );
 
   static List<PersonaEntity> toEntityList(List<PersonaModel> models) =>
       models.map(toEntity).toList();

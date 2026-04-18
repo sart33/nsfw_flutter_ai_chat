@@ -196,8 +196,11 @@
 
   "errorDeepSeekKeyInvalid": "DeepSeek key invalid है। कृपया settings में अपडेट करें।",
   "errorDeepSeekNotSet": "DeepSeek key सेट नहीं है। कृपया settings में जोड़ें।",
+  "errorDeepSeekInsufficientBalance": "DeepSeek account में balance कम है। कृपया recharge करें।",
   "errorNovitaKeyInvalid": "Novita key invalid है। कृपया settings में अपडेट करें।",
   "errorNovitaKeyNotSet": "Novita key सेट नहीं है। कृपया settings में जोड़ें।",
+  "errorNovitaInsufficientBalance": "Novita account में balance कम है। कृपया recharge करें।",
+
   "errorApiKeyInvalid": "API key invalid है। कृपया settings में अपडेट करें।",
   "errorConnectionFailed": "Connection error। अपनी internet चेक करें।",
   "errorImageGeneration": "Image generate करने में error आया। फिर से try करें।",
@@ -344,8 +347,6 @@
   "ageGateDecline": "मैं 18 से कम हूँ",
   "ageGateDeclineMessage": "यह app केवल 18+ users के लिए है। कृपया सही उम्र होने पर वापस आएं.",
 
-  "errorDeepSeekInsufficientBalance": "DeepSeek account में balance कम है। कृपया recharge करें।",
-
   "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
   "shorterAction": "Shorter",
   "shorterPrompt": "Continue briefly, 3-5 sentences only.",
@@ -407,7 +408,11 @@
   "hideQr_hi": "QR छुपाएं",
 
   "summaryMaxBlocks": "Summary blocks",
-  "summaryMaxBlocksDesc": "ज़्यादा blocks — long-term memory बेहतर, token cost बढ़ेगा"
+  "summaryMaxBlocksDesc": "ज़्यादा blocks — long-term memory बेहतर, token cost बढ़ेगा",
+
+  "ageLabel": "Age (उम्र)",
+  "ageMustBe18": "Minimum age 18+ होना चाहिए",
+  "personaDescriptionConflict": "Character description में 18+ age के साथ conflict है. Please edit description."
 
 
 

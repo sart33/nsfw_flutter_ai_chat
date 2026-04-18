@@ -35,7 +35,7 @@ class DatabaseHelper {
       final path = p.join(dbPath, 'chat_history.db');
       _db = await openDatabase(
         path,
-        version: 14,
+        version: 15,
         onCreate: (db, version) async {
           await _createAllTables(db);
         },
@@ -46,6 +46,14 @@ class DatabaseHelper {
           if (oldVersion < 14) {
             await db.execute(
               'ALTER TABLE messages ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0'
+            );
+          }
+          if (oldVersion < 15) {
+            await db.execute(
+                'ALTER TABLE personas ADD COLUMN age INTEGER NOT NULL DEFAULT 18'
+            );
+            await db.execute(
+                'ALTER TABLE personas ADD COLUMN age_verified INTEGER NOT NULL DEFAULT 0'
             );
           }
         },
@@ -139,19 +147,21 @@ class DatabaseHelper {
   ''');
 
     await db.execute('''
-    CREATE TABLE personas (
-      id               TEXT PRIMARY KEY,
-      name             TEXT NOT NULL,
-      description      TEXT NOT NULL,
-      greeting         TEXT NOT NULL,
-      avatar_path      TEXT,
-      avatar_asset_path TEXT,
-      behavior         TEXT,
-      gallery_mode     TEXT NOT NULL DEFAULT 'nude',
-      created_at       INTEGER NOT NULL,
-      updated_at       INTEGER NOT NULL
-    )
-  ''');
+  CREATE TABLE personas (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL,
+    description      TEXT NOT NULL,
+    greeting         TEXT NOT NULL,
+    avatar_path      TEXT,
+    avatar_asset_path TEXT,
+    behavior         TEXT,
+    gallery_mode     TEXT NOT NULL DEFAULT 'nude',
+    age              INTEGER NOT NULL DEFAULT 18,
+    age_verified     INTEGER NOT NULL DEFAULT 0,
+    created_at       INTEGER NOT NULL,
+    updated_at       INTEGER NOT NULL
+  )
+''');
 
     await _createMultiPresetsTable(db);
 
@@ -903,6 +913,8 @@ class DatabaseHelper {
         'avatar_asset_path': persona.avatarAssetPath,
         'behavior': persona.behavior,
         'gallery_mode': persona.galleryMode,
+        'age':          persona.age,
+        'age_verified': persona.ageVerified ? 1 : 0,
         'created_at': now,
         'updated_at': now,
       };
@@ -927,6 +939,8 @@ class DatabaseHelper {
         'avatar_asset_path': persona.avatarAssetPath,
         'behavior': persona.behavior,
         'gallery_mode': persona.galleryMode,
+        'age':          persona.age,
+        'age_verified': persona.ageVerified ? 1 : 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
       log('UPDATE personas WHERE id=${persona.id}, data: $data', name: 'DB_WRITE');
@@ -941,6 +955,16 @@ class DatabaseHelper {
       print('DatabaseHelper.updatePersona error: $e');
       rethrow;
     }
+  }
+
+  Future<void> setPersonaAgeVerified(String id, bool verified) async {
+    final db = await database;
+    await db.update(
+      'personas',
+      {'age_verified': verified ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   /// Deletes a persona by id.

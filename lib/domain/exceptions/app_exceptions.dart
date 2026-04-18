@@ -44,7 +44,12 @@ class DeleteException extends AppException {
 class SummarizationException extends AppException {
   const SummarizationException([super.technicalMessage]);
 }
-
+/// Thrown when the prompt cleaner service encounters an error, such as missing API key, invalid response, or HTTP failure.
+class PromptCleanerException implements Exception {
+  final String code; // 'key_not_set' | 'key_invalid' | 'http_error' | 'parse_error'
+  final int? statusCode;
+  const PromptCleanerException(this.code, {this.statusCode});
+}
 /// Thrown when a Novita AI generation task fails or times out.
 class NovitaException implements Exception {
   final String message;

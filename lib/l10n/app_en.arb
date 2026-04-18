@@ -177,8 +177,10 @@
   "noApiKeyAction": "Add key",
   "errorDeepSeekKeyInvalid": "DeepSeek key is invalid. Please update it in settings.",
   "errorDeepSeekNotSet": "DeepSeek key not set. Please add it in settings.",
+  "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
   "errorNovitaKeyInvalid": "Novita key is invalid. Please update it in settings.",
   "errorNovitaKeyNotSet": "Novita key not set. Please add it in settings.",
+  "errorNovitaInsufficientBalance": "Insufficient balance on Novita account. Please top up.",
   "errorApiKeyInvalid": "API key is invalid. Please update it in settings.",
   "errorConnectionFailed": "Connection error. Check your internet.",
   "errorImageGeneration": "Image generation failed. Please try again.",
@@ -298,7 +300,6 @@
   "ageGateConfirm": "I'm 18 or older",
   "ageGateDecline": "I'm under 18",
   "ageGateDeclineMessage": "This app is intended for users aged 18 and over. Please come back when you're of age.",
-  "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
   "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
   "shorterAction": "Shorter",
   "shorterPrompt": "Continue briefly, 3-5 sentences only.",
@@ -366,7 +367,14 @@
   "hideQr": "Hide QR",
 
   "summaryMaxBlocks": "Summary blocks",
-  "summaryMaxBlocksDesc": "More blocks mean better long-term memory but higher token usage"
+  "summaryMaxBlocksDesc": "More blocks mean better long-term memory but higher token usage",
 
 
+  "validatingPersona": "Validating...",
+  "personaValidated": "Character passed verification",
+  "ageLabel": "Age",
+  "ageMustBe18": "Minimum age is 18",
+  "personaDescriptionConflict": "The character description contains contradictions with the 18+ age. Please edit the description.",
+  "personaNotValidated": "The character did not pass age verification. Please connect to the DeepSeek API for validation.",
+  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older."
 }

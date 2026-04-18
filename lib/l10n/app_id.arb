@@ -235,9 +235,11 @@
 
   "errorDeepSeekKeyInvalid": "Kunci DeepSeek tidak valid. Perbarui di pengaturan.",
   "errorDeepSeekNotSet": "Kunci DeepSeek belum diset. Tambahkan di pengaturan.",
-
+  "errorDeepSeekInsufficientBalance": "Saldo DeepSeek tidak cukup. Silakan isi ulang.",
   "errorNovitaKeyInvalid": "Kunci Novita tidak valid. Perbarui di pengaturan.",
   "errorNovitaKeyNotSet": "Kunci Novita belum diset. Tambahkan di pengaturan.",
+  "errorNovitaInsufficientBalance": "Saldo Novita tidak cukup. Silakan isi ulang.",
+
 
   "errorApiKeyInvalid": "Kunci API tidak valid. Perbarui di pengaturan.",
 
@@ -403,8 +405,6 @@
   "ageGateDecline": "Saya di bawah 18",
   "ageGateDeclineMessage": "Aplikasi ini hanya untuk pengguna 18+. Silakan kembali saat sudah cukup umur.",
 
-  "errorDeepSeekInsufficientBalance": "Saldo DeepSeek tidak cukup. Silakan isi ulang.",
-
   "moreDetailsPrompt": "Lanjutkan adegan dengan detail lebih — deskripsikan aksi, emosi, dan sensasi karakter. 12–16 kalimat",
 
   "shorterAction": "Lebih singkat",
@@ -479,5 +479,9 @@
   "hideQr": "Sembunyikan QR",
 
   "summaryMaxBlocks": "Blok ringkasan",
-  "summaryMaxBlocksDesc": "Lebih banyak blok — memori jangka panjang lebih baik, biaya token lebih tinggi"
+  "summaryMaxBlocksDesc": "Lebih banyak blok — memori jangka panjang lebih baik, biaya token lebih tinggi",
+
+  "ageLabel": "Usia",
+  "ageMustBe18": "Usia minimum adalah 18 tahun",
+  "personaDescriptionConflict": "Deskripsi karakter bertentangan dengan usia 18+. Silakan perbaiki deskripsi."
 }

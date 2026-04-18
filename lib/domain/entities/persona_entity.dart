@@ -9,6 +9,8 @@ class PersonaEntity {
   final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
+  final int age;           // NEW
+  final bool ageVerified;  // NEW
 
   const PersonaEntity({
     required this.id,
@@ -19,6 +21,8 @@ class PersonaEntity {
     this.avatarAssetPath,
     this.behavior,
     required this.galleryMode,
+    this.age = 18,            // NEW
+    this.ageVerified = false, // NEW
   });
 
   PersonaEntity copyWith({
@@ -30,6 +34,8 @@ class PersonaEntity {
     String? avatarAssetPath,
     String? behavior,
     String? galleryMode,
+    int? age,
+    bool? ageVerified,
   }) =>
       PersonaEntity(
         id: id ?? this.id,
@@ -40,5 +46,7 @@ class PersonaEntity {
         avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
         behavior: behavior ?? this.behavior,
         galleryMode: galleryMode ?? this.galleryMode,
+        age: age ?? this.age,
+        ageVerified: ageVerified ?? this.ageVerified,
       );
 }

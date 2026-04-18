@@ -1,18 +1,18 @@
-import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
-import 'package:nsfw_chat/data/models/avatar_style_option_model.dart';
 import 'package:nsfw_chat/core/services/novita_avatar_service.dart';
 import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
 import 'package:nsfw_chat/core/utils/seed_utils.dart';
+import 'package:nsfw_chat/data/models/avatar_style_option_model.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,7 +23,6 @@ import '../../domain/exceptions/app_exceptions.dart';
 import '../../main.dart';
 import '../widgets/custom_app_bar_widget.dart';
 import 'api_keys_screen.dart';
-
 
 /// Create or edit a persona.
 class CreateEditPersonaScreen extends ConsumerStatefulWidget {
@@ -38,38 +37,41 @@ class CreateEditPersonaScreen extends ConsumerStatefulWidget {
 
 class _CreateEditPersonaScreenState
     extends ConsumerState<CreateEditPersonaScreen> {
-  final _formKey    = GlobalKey<FormState>();
-  final _nameCtrl   = TextEditingController();
-  final _descCtrl   = TextEditingController();
-  final _greetCtrl  = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  final _greetCtrl = TextEditingController();
   final _behaviorCtrl = TextEditingController();
 
   // --- Avatar style generation state ---
   String? _avatarPath;
-  bool    _isGeneratingAvatar  = false;
-  bool    _isCleaningPrompt    = false;   // отдельный флаг для DeepSeek фазы
+  bool _isGeneratingAvatar = false;
+  bool _isCleaningPrompt = false; // отдельный флаг для DeepSeek фазы
   String? _generatedAvatarPreviewPath;
-  String  _galleryMode = 'nude';
+  String _galleryMode = 'nude';
 
-  int?    _selectedTemplateId;
-  String? _cachedCleanedDescription;   // описание, которое уже было очищено
+  int? _selectedTemplateId;
+  String? _cachedCleanedDescription; // описание, которое уже было очищено
   String? _cachedCleanedLevel;
-  String? _lastSentDescription;        // то, что последний раз отправляли в DeepSeek
+  String? _lastSentDescription; // то, что последний раз отправляли в DeepSeek
 
   bool get _isDesktopPlatform =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+  final _ageCtrl = TextEditingController();
+  bool _isSaving = false; // block the button during testing
 
   // ── Style label (без l10n.getString — его не существует) ─────────────────
 
   String _getStyleLabel(BuildContext context, String nameKey) {
     return switch (nameKey) {
       'avatarStyleEveningDress' => context.l10n.avatarStyleEveningDress,
-      'avatarStyleSummerDress'  => context.l10n.avatarStyleSummerDress,
-      'avatarStyleOffice'       => context.l10n.avatarStyleOffice,
-      'avatarStyleLingerie'     => context.l10n.avatarStyleLingerie,
-      'avatarStyleBikini'       => context.l10n.avatarStyleBikini,
-      'avatarStyleSilkRobe'     => context.l10n.avatarStyleSilkRobe,
-      'avatarStyleNude'        =>  context.l10n.avatarStyleNude,
+      'avatarStyleSummerDress' => context.l10n.avatarStyleSummerDress,
+      'avatarStyleOffice' => context.l10n.avatarStyleOffice,
+      'avatarStyleLingerie' => context.l10n.avatarStyleLingerie,
+      'avatarStyleBikini' => context.l10n.avatarStyleBikini,
+      'avatarStyleSilkRobe' => context.l10n.avatarStyleSilkRobe,
+      'avatarStyleNude' => context.l10n.avatarStyleNude,
       _ => nameKey,
     };
   }
@@ -84,19 +86,17 @@ class _CreateEditPersonaScreenState
     if (_isDesktopPlatform && MediaQuery.of(ctx).size.width >= 600) {
       await showDialog<void>(
         context: ctx,
-        builder: (dialogCtx) => AlertDialog(
-          title: Text(title),
-          content: SizedBox(
-            width: 400,
-            child: _buildStyleGrid(dialogCtx),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogCtx),
-              child: Text(ctx.l10n.cancel),
+        builder:
+            (dialogCtx) => AlertDialog(
+              title: Text(title),
+              content: SizedBox(width: 400, child: _buildStyleGrid(dialogCtx)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: Text(ctx.l10n.cancel),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     } else {
       await showModalBottomSheet<void>(
@@ -105,27 +105,28 @@ class _CreateEditPersonaScreenState
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        builder: (sheetCtx) => SafeArea(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(sheetCtx).size.height * 0.75,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(title,
-                      style: Theme.of(sheetCtx).textTheme.titleMedium),
+        builder:
+            (sheetCtx) => SafeArea(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(sheetCtx).size.height * 0.75,
                 ),
-                Flexible(
-                  child: _buildStyleGrid(sheetCtx),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        title,
+                        style: Theme.of(sheetCtx).textTheme.titleMedium,
+                      ),
+                    ),
+                    Flexible(child: _buildStyleGrid(sheetCtx)),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
-          ),
-        ),
       );
     }
   }
@@ -142,7 +143,8 @@ class _CreateEditPersonaScreenState
         childAspectRatio: 0.85,
       ),
       itemCount: AvatarStyleOption.allOptions.length,
-      itemBuilder: (_, i) => _buildStyleCard(ctx, AvatarStyleOption.allOptions[i]),
+      itemBuilder:
+          (_, i) => _buildStyleCard(ctx, AvatarStyleOption.allOptions[i]),
     );
   }
 
@@ -160,8 +162,11 @@ class _CreateEditPersonaScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(option.icon, size: 32,
-                  color: Theme.of(ctx).colorScheme.primary),
+              Icon(
+                option.icon,
+                size: 32,
+                color: Theme.of(ctx).colorScheme.primary,
+              ),
               const SizedBox(height: 8),
               Text(
                 _getStyleLabel(ctx, option.nameKey),
@@ -183,7 +188,27 @@ class _CreateEditPersonaScreenState
     if (_isGeneratingAvatar) return;
 
     final description = _descCtrl.text.trim();
+    final age = int.tryParse(_ageCtrl.text.trim()) ?? 18;
     if (description.isEmpty) return;
+
+    // ── 1. Валидация поля возраста (бесплатно, мгновенно) ───────────────
+    if (age < 18) {
+      _showSnack(context.l10n.ageMustBe18);
+      return;
+    }
+
+    // ── 2. Проверка description через DeepSeek (если ключ есть) ─────────
+    final apiKey = await AppConfig.getDeepSeekApiKey();
+    if (apiKey.isNotEmpty) {
+      final check = await PromptCleanerService.instance
+          .checkForMinorSignals(_descCtrl.text.trim());
+      if (check.hasConflict && check.severity != 'low') {
+        if (!mounted) return;
+        _showSnack(context.l10n.personaDescriptionConflict);
+        return;
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────
 
     final personaId = widget.personaId ?? 'avatar_preview_temp';
 
@@ -194,55 +219,65 @@ class _CreateEditPersonaScreenState
 
     try {
       String cleaned;
+      // Проверяем: описание уже очищалось в этой сессии?
+      final needsClean = description != _lastSentDescription;
 
-      if (option.intimacyLevel == 'nsfw') {
-        // Для nude — берём description как есть, DeepSeek не нужен
-        cleaned = description;
-      } else {
-        // Проверяем: описание уже очищалось в этой сессии?
-        final needsClean = description != _lastSentDescription;
-
-        if (needsClean) {
-          // Фаза 1: DeepSeek
-          setState(() => _isCleaningPrompt = true);
-          await PromptCleanerService.instance.cleanAndSave(personaId, description);
-          setState(() {
-            _isCleaningPrompt = false;
-            _lastSentDescription = description;
-          });
-        }
-
-        // Читаем из БД
-        final prompts = await DatabaseHelper.instance.getPersonaPrompts(personaId);
-        cleaned = switch (option.intimacyLevel) {
-          'erotic'   => prompts?['erotic']   ?? description,
-          'romantic' => prompts?['romantic'] ?? description,
-          'office'   => prompts?['office']   ?? description,
-          _          => description,
-        };
+      if (needsClean) {
+        // Фаза 1: DeepSeek
+        setState(() => _isCleaningPrompt = true);
+        await PromptCleanerService.instance.cleanAndSave(
+          personaId,
+          description,
+          age,
+        );
+        setState(() {
+          _isCleaningPrompt = false;
+          _lastSentDescription = description;
+        });
       }
 
-      // Загружаем шаблон
-      final jsonStr = await DefaultAssetBundle.of(context)
-          .loadString('assets/json/image_templates.json');
-      final templates = jsonDecode(jsonStr) as List<dynamic>;
-      final template = templates.firstWhere(
-            (t) => (t as Map<String, dynamic>)['id'] == option.templateId,
-        orElse: () => throw Exception('Template ${option.templateId} not found'),
-      ) as Map<String, dynamic>;
+      // Читаем из БД
+      final prompts = await DatabaseHelper.instance.getPersonaPrompts(
+        personaId,
+      );
+      cleaned = switch (option.intimacyLevel) {
+        'erotic' => prompts?['erotic'] ?? description,
+        'romantic' => prompts?['romantic'] ?? description,
+        'office' => prompts?['office'] ?? description,
+        'nsfw' => prompts?['nsfw'] ?? description,
+        _ => description,
+      };
 
-      final finalPrompt = (template['prompt_template'] as String)
-          .replaceAll('{description}', cleaned);
+      // Загружаем шаблон
+      final jsonStr = await DefaultAssetBundle.of(
+        context,
+      ).loadString('assets/json/image_templates.json');
+      final templates = jsonDecode(jsonStr) as List<dynamic>;
+      final template =
+          templates.firstWhere(
+                (t) => (t as Map<String, dynamic>)['id'] == option.templateId,
+                orElse:
+                    () =>
+                        throw Exception(
+                          'Template ${option.templateId} not found',
+                        ),
+              )
+              as Map<String, dynamic>;
+
+      final finalPrompt = (template['prompt_template'] as String).replaceAll(
+        '{description}',
+        cleaned,
+      );
 
       // Кэшируем для регенерации
       setState(() {
-        _selectedTemplateId      = option.templateId;
+        _selectedTemplateId = option.templateId;
         _cachedCleanedDescription = cleaned;
-        _cachedCleanedLevel      = option.intimacyLevel;
+        _cachedCleanedLevel = option.intimacyLevel;
       });
 
       // Фаза 2: Novita
-      final dir  = await getApplicationDocumentsDirectory();
+      final dir = await getApplicationDocumentsDirectory();
       final path = await NovitaAvatarService.generateAvatarFromPrompt(
         finalPrompt,
         dir.path,
@@ -250,7 +285,17 @@ class _CreateEditPersonaScreenState
       );
 
       if (mounted) setState(() => _generatedAvatarPreviewPath = path);
-
+    } on PromptCleanerException catch (e) {
+      if (!mounted) return;
+      final isKeyError = e.code == 'key_not_set' || e.code == 'key_invalid';
+      final msg = switch (e.code) {
+        'key_not_set' => context.l10n.errorDeepSeekNotSet,
+        'key_invalid' => context.l10n.errorDeepSeekKeyInvalid,
+        'insufficient_balance' => context.l10n.errorDeepSeekInsufficientBalance,
+        'http_error' => 'DeepSeek error ${e.statusCode}',
+        _ => 'context.l10n.errorGeneric',
+      };
+      _showSnack(msg, isKeyError: isKeyError);
     } on NovitaException catch (e) {
       debugPrint('[Avatar] style generation error: $e');
       if (!mounted) return;
@@ -259,17 +304,19 @@ class _CreateEditPersonaScreenState
       final msg = switch (e.message) {
         'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
         'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
-        _                 => context.l10n.errorImageGeneration,
+        'insufficient_balance' => context.l10n.errorNovitaInsufficientBalance,
+        _ => context.l10n.errorImageGeneration,
       };
       _showSnack(msg, isKeyError: isKeyError);
     } catch (e) {
       debugPrint('[Avatar] style generation error: $e');
       if (mounted) _showSnack(context.l10n.errorImageGeneration);
     } finally {
-      if (mounted) setState(() {
-        _isGeneratingAvatar = false;
-        _isCleaningPrompt   = false;
-      });
+      if (mounted)
+        setState(() {
+          _isGeneratingAvatar = false;
+          _isCleaningPrompt = false;
+        });
     }
   }
 
@@ -287,18 +334,28 @@ class _CreateEditPersonaScreenState
       });
 
       try {
-        final jsonStr = await DefaultAssetBundle.of(context)
-            .loadString('assets/json/image_templates.json');
+        final jsonStr = await DefaultAssetBundle.of(
+          context,
+        ).loadString('assets/json/image_templates.json');
         final templates = jsonDecode(jsonStr) as List<dynamic>;
-        final template = templates.firstWhere(
-              (t) => (t as Map<String, dynamic>)['id'] == _selectedTemplateId,
-          orElse: () => throw Exception('Template $_selectedTemplateId not found'),
-        ) as Map<String, dynamic>;
+        final template =
+            templates.firstWhere(
+                  (t) =>
+                      (t as Map<String, dynamic>)['id'] == _selectedTemplateId,
+                  orElse:
+                      () =>
+                          throw Exception(
+                            'Template $_selectedTemplateId not found',
+                          ),
+                )
+                as Map<String, dynamic>;
 
-        final finalPrompt = (template['prompt_template'] as String)
-            .replaceAll('{description}', _cachedCleanedDescription!);
+        final finalPrompt = (template['prompt_template'] as String).replaceAll(
+          '{description}',
+          _cachedCleanedDescription!,
+        );
 
-        final dir  = await getApplicationDocumentsDirectory();
+        final dir = await getApplicationDocumentsDirectory();
         final path = await NovitaAvatarService.generateAvatarFromPrompt(
           finalPrompt,
           dir.path,
@@ -306,35 +363,33 @@ class _CreateEditPersonaScreenState
         );
 
         if (mounted) setState(() => _generatedAvatarPreviewPath = path);
-
       } on NovitaException catch (e) {
+        debugPrint('[Avatar] style generation error: $e');
         if (!mounted) return;
         final isKeyError =
             e.message == 'api_key_not_set' || e.message == 'api_key_invalid';
         final msg = switch (e.message) {
           'api_key_not_set' => context.l10n.errorNovitaKeyNotSet,
           'api_key_invalid' => context.l10n.errorNovitaKeyInvalid,
-          _                 => context.l10n.errorImageGeneration,
+          'insufficient_balance' => context.l10n.errorNovitaInsufficientBalance,
+          _ => context.l10n.errorImageGeneration,
         };
         _showSnack(msg, isKeyError: isKeyError);
       } catch (e) {
-        if (mounted) _showSnack(context.l10n.errorImageGeneration);
+        if (!mounted) return;
+        _showSnack(context.l10n.errorImageGeneration);
       } finally {
         if (mounted) setState(() => _isGeneratingAvatar = false);
       }
-
     } else {
       // Стиль ещё не выбран — показываем picker заново
       await showAvatarStylePicker(context);
     }
   }
 
-
-
-
   bool get _isEdit => widget.personaId != null;
 
-  static const int _descMax  = 4000;
+  static const int _descMax = 4000;
   static const int _greetMax = 200;
 
   @override
@@ -342,15 +397,17 @@ class _CreateEditPersonaScreenState
     super.initState();
     if (_isEdit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final persona =
-        ref.read(personaProvider.notifier).getById(widget.personaId!);
+        final persona = ref
+            .read(personaProvider.notifier)
+            .getById(widget.personaId!);
         if (persona != null) {
-          _nameCtrl.text    = persona.name;
-          _descCtrl.text    = persona.description;
-          _greetCtrl.text   = persona.greeting;
+          _nameCtrl.text = persona.name;
+          _descCtrl.text = persona.description;
+          _greetCtrl.text = persona.greeting;
           _behaviorCtrl.text = persona.behavior ?? '';
+          _ageCtrl.text = persona.age.toString();
           setState(() {
-            _avatarPath  = persona.avatarPath;
+            _avatarPath = persona.avatarPath;
             _galleryMode = persona.galleryMode;
           });
         }
@@ -364,6 +421,8 @@ class _CreateEditPersonaScreenState
     _descCtrl.dispose();
     _greetCtrl.dispose();
     _behaviorCtrl.dispose();
+    _ageCtrl.dispose();
+
     super.dispose();
   }
 
@@ -372,20 +431,26 @@ class _CreateEditPersonaScreenState
     if (messenger == null) return;
     final navigator = Navigator.of(context);
     messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
-      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
-      duration: Duration(seconds: isKeyError ? 8 : 6),
-      content: Text(msg, style: const TextStyle(color: Colors.white)),
-      action: isKeyError
-          ? SnackBarAction(
-        label: context.l10n.settings,
-        textColor: Colors.white,
-        onPressed: () => navigator.push(
-          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-        ),
-      )
-          : null,
-    ));
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
+        duration: Duration(seconds: isKeyError ? 8 : 6),
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+        action:
+            isKeyError
+                ? SnackBarAction(
+                  label: context.l10n.settings,
+                  textColor: Colors.white,
+                  onPressed:
+                      () => navigator.push(
+                        MaterialPageRoute(
+                          builder: (_) => const ApiKeysScreen(),
+                        ),
+                      ),
+                )
+                : null,
+      ),
+    );
   }
 
   // ── Shared InputDecoration ───────────────────────────────────────────────
@@ -412,9 +477,27 @@ class _CreateEditPersonaScreenState
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.red, width: 1.5),
       ),
-      contentPadding:
-      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
+  }
+
+  void _showValidationSuccess() {
+    scaffoldMessengerKey.currentState
+      ?..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        backgroundColor: AppTheme.success, // зелёный
+        duration: const Duration(seconds: 3),
+        content: Row(
+          children: [
+            const Icon(Icons.verified_outlined, color: AppTheme.textPrimary, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              context.l10n.personaValidated, // 'Персонаж прошёл проверку'
+              style: const TextStyle(color: AppTheme.textPrimary),
+            ),
+          ],
+        ),
+      ));
   }
 
   // ── Build ────────────────────────────────────────────────────────────────
@@ -422,17 +505,14 @@ class _CreateEditPersonaScreenState
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final useDesktop  = _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+    final useDesktop =
+        _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: _isEdit
-            ? context.l10n.editCharacter
-            : context.l10n.newCharacter,
+        title: _isEdit ? context.l10n.editCharacter : context.l10n.newCharacter,
       ),
-      body: useDesktop
-          ? _buildDesktopBody()
-          : _buildMobileBody(),
+      body: useDesktop ? _buildDesktopBody() : _buildMobileBody(),
     );
   }
 
@@ -456,11 +536,31 @@ class _CreateEditPersonaScreenState
               style: const TextStyle(color: AppTheme.textPrimary),
               decoration: _fieldDecoration(context.l10n.nameLabel),
               onChanged: (_) => setState(() {}),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? context.l10n.enterName
-                  : null,
+              validator:
+                  (v) =>
+                      (v == null || v.trim().isEmpty)
+                          ? context.l10n.enterName
+                          : null,
             ),
             const SizedBox(height: 24),
+
+            TextFormField(
+              controller: _ageCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              decoration: _fieldDecoration(context.l10n.ageLabel),
+              // 'Возраст'
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              validator: (v) {
+                final n = int.tryParse(v ?? '');
+                if (n == null || n < 18)
+                  return context
+                      .l10n
+                      .ageMustBe18; // 'Минимальный возраст — 18 лет'
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
 
             _buildCountedField(
               controller: _descCtrl,
@@ -482,15 +582,16 @@ class _CreateEditPersonaScreenState
               controller: _behaviorCtrl,
               style: const TextStyle(color: AppTheme.textPrimary),
               maxLines: 6,
-              decoration: _fieldDecoration(context.l10n.behaviorOptional)
-                  .copyWith(hintText: context.l10n.aiInstructions),
+              decoration: _fieldDecoration(
+                context.l10n.behaviorOptional,
+              ).copyWith(hintText: context.l10n.aiInstructions),
             ),
             const SizedBox(height: 24),
 
             SizedBox(
               height: 52,
               child: ElevatedButton(
-                onPressed: _isGeneratingAvatar ? null : _save,
+                onPressed: (_isGeneratingAvatar || _isSaving) ? null : _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.accentVivid,
                   foregroundColor: Colors.white,
@@ -500,7 +601,33 @@ class _CreateEditPersonaScreenState
                     borderRadius: BorderRadius.circular(32),
                   ),
                 ),
-                child: Text(
+                child: _isSaving
+                    ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.accentVividInputBorder,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      context.l10n.validatingPersona,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                )
+                    : Text(
                   _isEdit ? context.l10n.save : context.l10n.create,
                   style: const TextStyle(
                     fontSize: 16,
@@ -533,16 +660,11 @@ class _CreateEditPersonaScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Левая колонка: аватар ──────────────────────────────────
-                SizedBox(
-                  width: 280,
-                  child: _buildDesktopAvatarPanel(),
-                ),
+                SizedBox(width: 280, child: _buildDesktopAvatarPanel()),
                 const SizedBox(width: 20),
 
                 // ── Правая колонка: поля + кнопка ─────────────────────────
-                Expanded(
-                  child: _buildDesktopFormPanel(),
-                ),
+                Expanded(child: _buildDesktopFormPanel()),
               ],
             ),
           ),
@@ -582,24 +704,25 @@ class _CreateEditPersonaScreenState
           _buildActionButton(
             icon: Icons.auto_awesome,
             label: context.l10n.generate,
-            onPressed: (_isGeneratingAvatar ||
-                _nameCtrl.text.trim().isEmpty ||
-                _descCtrl.text.trim().isEmpty)
-                ? null
-                : () => showAvatarStylePicker(context),
+            onPressed:
+                (_isGeneratingAvatar ||
+                        _nameCtrl.text.trim().isEmpty ||
+                        _descCtrl.text.trim().isEmpty)
+                    ? null
+                    : () => showAvatarStylePicker(context),
             fullWidth: true,
           ),
 
           // Regenerate / Crop (только если есть сгенерированный превью)
-          if (_generatedAvatarPreviewPath != null &&
-              !_isGeneratingAvatar) ...[
+          if (_generatedAvatarPreviewPath != null && !_isGeneratingAvatar) ...[
             const SizedBox(height: 12),
             Column(
               children: [
                 _buildIconLabelButton(
                   icon: Icons.refresh,
                   label: context.l10n.regenerate,
-                  onPressed: _isGeneratingAvatar ? null : regenerateAvatarWithStyle,
+                  onPressed:
+                      _isGeneratingAvatar ? null : regenerateAvatarWithStyle,
                   isPrimary: false,
                 ),
                 const SizedBox(height: 12),
@@ -631,12 +754,30 @@ class _CreateEditPersonaScreenState
             style: const TextStyle(color: AppTheme.textPrimary),
             decoration: _fieldDecoration(context.l10n.nameLabel),
             onChanged: (_) => setState(() {}),
-            validator: (v) => (v == null || v.trim().isEmpty)
-                ? context.l10n.enterName
-                : null,
+            validator:
+                (v) =>
+                    (v == null || v.trim().isEmpty)
+                        ? context.l10n.enterName
+                        : null,
           ),
           const SizedBox(height: 20),
-
+          TextFormField(
+            controller: _ageCtrl,
+            style: const TextStyle(color: AppTheme.textPrimary),
+            decoration: _fieldDecoration(context.l10n.ageLabel),
+            // 'Возраст'
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            validator: (v) {
+              final n = int.tryParse(v ?? '');
+              if (n == null || n < 18)
+                return context
+                    .l10n
+                    .ageMustBe18; // 'Минимальный возраст — 18 лет'
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
           // Описание
           _buildCountedField(
             controller: _descCtrl,
@@ -660,8 +801,9 @@ class _CreateEditPersonaScreenState
             controller: _behaviorCtrl,
             style: const TextStyle(color: AppTheme.textPrimary),
             maxLines: 5,
-            decoration: _fieldDecoration(context.l10n.behaviorOptional)
-                .copyWith(hintText: context.l10n.aiInstructions),
+            decoration: _fieldDecoration(
+              context.l10n.behaviorOptional,
+            ).copyWith(hintText: context.l10n.aiInstructions),
           ),
           const SizedBox(height: 28),
 
@@ -671,7 +813,7 @@ class _CreateEditPersonaScreenState
               width: 260,
               height: 48,
               child: ElevatedButton(
-                onPressed: _isGeneratingAvatar ? null : _save,
+                onPressed: (_isGeneratingAvatar || _isSaving) ? null : _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.accentVivid,
                   foregroundColor: Colors.white,
@@ -681,7 +823,33 @@ class _CreateEditPersonaScreenState
                     borderRadius: BorderRadius.circular(32),
                   ),
                 ),
-                child: Text(
+                child: _isSaving
+                    ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.accentVividInputBorder, // оранжевый — идёт процесс
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      context.l10n.validatingPersona, // 'Валидация...'
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                )
+                    : Text(
                   _isEdit ? context.l10n.save : context.l10n.create,
                   style: const TextStyle(
                     fontSize: 15,
@@ -721,17 +889,17 @@ class _CreateEditPersonaScreenState
               child: _buildActionButton(
                 icon: Icons.auto_awesome,
                 label: context.l10n.generate,
-                onPressed: (_isGeneratingAvatar ||
-                    _nameCtrl.text.trim().isEmpty ||
-                    _descCtrl.text.trim().isEmpty)
-                    ? null
-                    : () => showAvatarStylePicker(context),
+                onPressed:
+                    (_isGeneratingAvatar ||
+                            _nameCtrl.text.trim().isEmpty ||
+                            _descCtrl.text.trim().isEmpty)
+                        ? null
+                        : () => showAvatarStylePicker(context),
               ),
             ),
           ],
         ),
-        if (_generatedAvatarPreviewPath != null &&
-            !_isGeneratingAvatar) ...[
+        if (_generatedAvatarPreviewPath != null && !_isGeneratingAvatar) ...[
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -773,12 +941,12 @@ class _CreateEditPersonaScreenState
     // Generation in progress
     if (_isGeneratingAvatar) {
       final isClean = _isCleaningPrompt;
-      final label = isClean
-          ? context.l10n.avatarStatusPreparingPrompt
-          : context.l10n.avatarStatusGeneratingImage;
-      final color = isClean
-          ? AppTheme.primaryAccent
-          : AppTheme.accentVividInputBorder;
+      final label =
+          isClean
+              ? context.l10n.avatarStatusPreparingPrompt
+              : context.l10n.avatarStatusGeneratingImage;
+      final color =
+          isClean ? AppTheme.primaryAccent : AppTheme.accentVividInputBorder;
 
       return Container(
         decoration: BoxDecoration(
@@ -824,44 +992,51 @@ class _CreateEditPersonaScreenState
 
     // Confirmed avatar
     final hasFile = _avatarPath != null && File(_avatarPath!).existsSync();
-    final persona = _isEdit
-        ? ref.read(personaProvider.notifier).getById(widget.personaId!)
-        : null;
+    final persona =
+        _isEdit
+            ? ref.read(personaProvider.notifier).getById(widget.personaId!)
+            : null;
     final assetPath = persona?.avatarAssetPath;
-    final hasAsset  = !hasFile && assetPath != null && assetPath.isNotEmpty;
+    final hasAsset = !hasFile && assetPath != null && assetPath.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: AppTheme.userBubble),
-        image: hasFile
-            ? DecorationImage(
-          image: FileImage(File(_avatarPath!)),
-          fit: BoxFit.cover,
-        )
-            : hasAsset
-            ? DecorationImage(
-          image: AssetImage(assetPath),
-          fit: BoxFit.cover,
-        )
-            : null,
+        image:
+            hasFile
+                ? DecorationImage(
+                  image: FileImage(File(_avatarPath!)),
+                  fit: BoxFit.cover,
+                )
+                : hasAsset
+                ? DecorationImage(
+                  image: AssetImage(assetPath),
+                  fit: BoxFit.cover,
+                )
+                : null,
       ),
-      child: (hasFile || hasAsset)
-          ? null
-          : Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.add_a_photo_outlined,
-              color: AppTheme.textSecondary),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.avatar,
-            style: const TextStyle(
-                color: AppTheme.textSecondary, fontSize: 12),
-          ),
-        ],
-      ),
+      child:
+          (hasFile || hasAsset)
+              ? null
+              : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.add_a_photo_outlined,
+                    color: AppTheme.textSecondary,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    context.l10n.avatar,
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
     );
   }
 
@@ -886,9 +1061,10 @@ class _CreateEditPersonaScreenState
           backgroundColor: AppTheme.cardBg,
           foregroundColor: Colors.white,
           side: BorderSide(
-            color: onPressed == null
-                ? AppTheme.cardBorder.withAlpha(80)
-                : AppTheme.cardBorder,
+            color:
+                onPressed == null
+                    ? AppTheme.cardBorder.withAlpha(80)
+                    : AppTheme.cardBorder,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
@@ -898,9 +1074,7 @@ class _CreateEditPersonaScreenState
       ),
     );
 
-    return fullWidth
-        ? SizedBox(width: double.infinity, child: btn)
-        : btn;
+    return fullWidth ? SizedBox(width: double.infinity, child: btn) : btn;
   }
 
   Widget _buildIconLabelButton({
@@ -912,49 +1086,56 @@ class _CreateEditPersonaScreenState
     return SizedBox(
       width: double.infinity,
       height: 44,
-      child: isPrimary
-          ? ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 18, color: Colors.white),
-        label: Text(
-          label,
-          maxLines: 1,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.accentVivid,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32),
-          ),
-        ),
-      )
-          : OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 18, color: Colors.white),
-        label: Text(
-          label, maxLines: 1,
-          style: const TextStyle(color: Colors.white, fontSize: 14, overflow: TextOverflow.ellipsis),
-        ),
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppTheme.cardBg,
-          foregroundColor: Colors.white,
-          side: BorderSide(
-            color: onPressed == null
-                ? AppTheme.cardBorder.withAlpha(80)
-                : AppTheme.cardBorder,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32),
-          ),
-        ),
-      ),
+      child:
+          isPrimary
+              ? ElevatedButton.icon(
+                onPressed: onPressed,
+                icon: Icon(icon, size: 18, color: Colors.white),
+                label: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentVivid,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                ),
+              )
+              : OutlinedButton.icon(
+                onPressed: onPressed,
+                icon: Icon(icon, size: 18, color: Colors.white),
+                label: Text(
+                  label,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppTheme.cardBg,
+                  foregroundColor: Colors.white,
+                  side: BorderSide(
+                    color:
+                        onPressed == null
+                            ? AppTheme.cardBorder.withAlpha(80)
+                            : AppTheme.cardBorder,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                ),
+              ),
     );
   }
 
@@ -974,7 +1155,6 @@ class _CreateEditPersonaScreenState
     });
   }
 
-
   Future<void> _pickFromGallery() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -982,34 +1162,42 @@ class _CreateEditPersonaScreenState
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library,
-                  color: AppTheme.textPrimary),
-              title: Text(ctx.l10n.gallery,
-                  style: const TextStyle(color: AppTheme.textPrimary)),
-              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+      builder:
+          (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.photo_library,
+                    color: AppTheme.textPrimary,
+                  ),
+                  title: Text(
+                    ctx.l10n.gallery,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                  ),
+                  onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                ),
+                if (!_isDesktopPlatform)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: AppTheme.textPrimary,
+                    ),
+                    title: Text(
+                      ctx.l10n.camera,
+                      style: const TextStyle(color: AppTheme.textPrimary),
+                    ),
+                    onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                  ),
+              ],
             ),
-            if (!_isDesktopPlatform)
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined,
-                  color: AppTheme.textPrimary),
-              title: Text(ctx.l10n.camera,
-                  style: const TextStyle(color: AppTheme.textPrimary)),
-              onTap: () => Navigator.pop(ctx, ImageSource.camera),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
     if (source == null) return;
 
     final picker = ImagePicker();
-    final picked =
-    await picker.pickImage(source: source, imageQuality: 85);
+    final picked = await picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
 
     final cropped = await ImageCropper().cropImage(
@@ -1033,8 +1221,6 @@ class _CreateEditPersonaScreenState
       });
     }
   }
-
-
 
   Future<void> _cropGeneratedAvatar() async {
     final previewPath = _generatedAvatarPreviewPath;
@@ -1091,7 +1277,7 @@ class _CreateEditPersonaScreenState
   }) {
     return StatefulBuilder(
       builder: (context, setInner) {
-        final len  = controller.text.length;
+        final len = controller.text.length;
         final over = len > maxChars;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1102,8 +1288,7 @@ class _CreateEditPersonaScreenState
               maxLines: maxLines,
               decoration: InputDecoration(
                 labelText: label,
-                labelStyle:
-                const TextStyle(color: AppTheme.textSecondary),
+                labelStyle: const TextStyle(color: AppTheme.textSecondary),
                 filled: true,
                 fillColor: AppTheme.background,
                 enabledBorder: OutlineInputBorder(
@@ -1121,7 +1306,9 @@ class _CreateEditPersonaScreenState
                   ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
+                  horizontal: 16,
+                  vertical: 14,
+                ),
               ),
               onChanged: (_) => setInner(() {}),
             ),
@@ -1144,54 +1331,121 @@ class _CreateEditPersonaScreenState
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
-  void _save() {
-    final persona = _isEdit
-        ? ref.read(personaProvider.notifier).getById(widget.personaId!)
-        : null;
+  Future<void> _save() async {
+    if (_isSaving || _isGeneratingAvatar) return;
     if (!_formKey.currentState!.validate()) return;
 
     if (_descCtrl.text.length > _descMax) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(context.l10n.descriptionLimitExceeded),
-        backgroundColor: AppTheme.error,
-      ));
+      _showSnack(context.l10n.descriptionLimitExceeded);
       return;
     }
     if (_greetCtrl.text.length > _greetMax) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(context.l10n.greetingLimitExceeded),
-        backgroundColor: AppTheme.error,
-      ));
+      _showSnack(context.l10n.greetingLimitExceeded);
       return;
     }
 
-    final entity = PersonaEntity(
-      id:             widget.personaId ?? const Uuid().v4(),
-      name:           _nameCtrl.text.trim(),
-      description:    _descCtrl.text.trim(),
-      greeting:       _greetCtrl.text.trim(),
-      avatarPath:     _avatarPath,
-      avatarAssetPath: persona?.avatarAssetPath,
-      behavior:       _behaviorCtrl.text.trim().isEmpty
-          ? null
-          : _behaviorCtrl.text.trim(),
-      galleryMode:    _galleryMode,
-    );
+    final age = int.tryParse(_ageCtrl.text) ?? 18;
 
-    final notifier = ref.read(personaProvider.notifier);
-    if (_isEdit) {
-      notifier.updatePersona(entity);
-    } else {
-      notifier.create(entity);
+    setState(() => _isSaving = true);
+
+    try {
+      // Проверка описания через DeepSeek (только если ключ есть)
+      final apiKey = await AppConfig.getDeepSeekApiKey();
+      bool ageVerified = false;
+
+      if (apiKey.isNotEmpty) {
+        final combinedText = [
+          _descCtrl.text.trim(),
+          _behaviorCtrl.text.trim(),
+          _greetCtrl.text.trim(),
+        ].where((s) => s.isNotEmpty).join('\n\n');
+
+        final check = await PromptCleanerService.instance.checkForMinorSignals(
+          combinedText,
+        );
+
+        if (check.hasConflict && check.severity != 'low') {
+          if (!mounted) return;
+          _showSnack(context.l10n.personaDescriptionConflict);
+          // 'Описание персонажа содержит противоречия возрасту (18+). Пожалуйста, отредактируйте описание.'
+          return;
+        }
+        ageVerified = true;
+        if (mounted) {
+          _showValidationSuccess(); // отдельный метод чтобы не раздувать _showSnack
+        }
+      } else {
+        _showSnack(context.l10n.personaNotValidated);
+      }
+      final persona =
+          _isEdit
+              ? ref.read(personaProvider.notifier).getById(widget.personaId!)
+              : null;
+      // Без ключа — сохраняем с ageVerified = false, проверим при старте чата
+
+      final entity = PersonaEntity(
+        id: widget.personaId ?? const Uuid().v4(),
+        name: _nameCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
+        greeting: _greetCtrl.text.trim(),
+        avatarPath: _avatarPath,
+        avatarAssetPath: persona?.avatarAssetPath,
+        behavior:
+            _behaviorCtrl.text.trim().isEmpty
+                ? null
+                : _behaviorCtrl.text.trim(),
+        galleryMode: _galleryMode,
+        age: age,
+        ageVerified: ageVerified,
+      );
+
+      final notifier = ref.read(personaProvider.notifier);
+      if (_isEdit) {
+        notifier.updatePersona(entity);
+      } else {
+        notifier.create(entity);
+      }
+
+      if (mounted) Navigator.pop(context, true);
+
+      // cleanAndSave запускаем после pop, ошибки показываем через корневой scaffoldMessengerKey
+      PromptCleanerService.instance
+          .cleanAndSave(entity.id, entity.description, entity.age)
+          .catchError((e) {
+            if (e is PromptCleanerException) {
+              final messenger = scaffoldMessengerKey.currentState;
+              if (messenger == null) return;
+              switch (e.code) {
+                case 'key_not_set':
+                  // уже показали снекбар выше в else-ветке, повторно не нужно
+                  break;
+                case 'key_invalid':
+                  messenger.showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppTheme.error,
+                      duration: const Duration(seconds: 8),
+                      content: Text(
+                        context.l10n.errorDeepSeekKeyInvalid,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  );
+                case 'http_error':
+                  messenger.showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppTheme.warning,
+                      duration: const Duration(seconds: 6),
+                      content: Text(
+                        'DeepSeek error ${e.statusCode}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  );
+              }
+            }
+          });
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-
-    unawaited(
-      PromptCleanerService.instance.cleanAndSave(
-        entity.id,
-        entity.description,
-      ),
-    );
-
-    Navigator.pop(context, true);
   }
 }
