@@ -418,7 +418,11 @@
   "personaNotValidatedKeyNotSet": "Character age verify नहीं हो सका: DeepSeek API key set नहीं है. Settings में add करें.",
   "personaNotValidatedKeyInvalid": "Character age verify नहीं हो सका: DeepSeek API key invalid है. Settings में update करें.",
   "personaNotValidatedNoBalance": "Character age verify नहीं हो सका: DeepSeek balance insufficient है. Balance top up करें.",
-  "personaNotValidatedGeneric": "Character age verify नहीं हो सका: validation available नहीं है."
+  "personaNotValidatedGeneric": "Character age verify नहीं हो सका: validation available नहीं है.",
+  "personaNotValidatedNetworkError": "Character age verify नहीं हो सका: network error. Internet connection check करें और फिर से try करें.",
+
+  "verifyingPersona": "Character verify हो रहा है...",
+  "preparingPrompts": "Prompts prepare हो रहे हैं..."
 
 }
 

@@ -8,10 +8,6 @@ import '../../presentation/screens/api_keys_screen.dart';
 import '../config/app_theme.dart'; // for scaffoldMessengerKey
 
 
-// core/utils/app_snack_bar.dart
-
-// core/utils/app_snack_bar.dart
-
 class AppSnackBar {
   static void show(
       String message, {
@@ -38,15 +34,35 @@ class AppSnackBar {
   }
 
   // success — отдельный метод, зелёный, 3 сек, без action
-  static void showSuccess(String message) {
+  // static void showSuccess(String message) {
+  //   final messenger = scaffoldMessengerKey.currentState;
+  //   if (messenger == null) return;
+  //   messenger.removeCurrentSnackBar();
+  //   messenger.showSnackBar(SnackBar(
+  //     backgroundColor: AppTheme.success,
+  //     duration: const Duration(seconds: 3),
+  //     content: Text(message, style: const TextStyle(color: Colors.white)),
+  //   ));
+  // }
+
+
+  static void showSuccess(String message, {bool isIcon = false}) {
     final messenger = scaffoldMessengerKey.currentState;
     if (messenger == null) return;
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      backgroundColor: AppTheme.success,
-      duration: const Duration(seconds: 3),
-      content: Text(message, style: const TextStyle(color: Colors.white)),
-    ));
+        backgroundColor: AppTheme.success, // зелёный
+        duration: const Duration(seconds: 3),
+        content: isIcon ? Row(
+          children: [
+             Icon(Icons.verified_outlined, color: AppTheme.textPrimary, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              message, style: const TextStyle(color: AppTheme.textPrimary),
+            ),
+          ],
+        ) : Text(message, style: const TextStyle(color: AppTheme.textPrimary))
+      ));
   }
 
   static void showPromptCleanerError(PromptCleanerException e, AppLocalizations l10n) {
@@ -65,6 +81,7 @@ class AppSnackBar {
       'key_not_set'          => (l10n.personaNotValidatedKeyNotSet,     true, true),
       'key_invalid'          => (l10n.personaNotValidatedKeyInvalid,    true, true),
       'insufficient_balance' => (l10n.personaNotValidatedNoBalance,     false, false),
+      'network_error'        => (l10n.personaNotValidatedNetworkError, false, false),
       'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
       _                      => (l10n.personaNotValidatedGeneric,       false, false),
     };

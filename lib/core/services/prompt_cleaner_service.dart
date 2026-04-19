@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
@@ -250,12 +251,11 @@ Important:
     } catch (e) {
       debugPrint('[PromptCleanerService] Unexpected error: $e');
 
-      // вот тут уже fallback, если очень хочешь
-      return (
-      hasConflict: null,
-      severity: null,
-      reason: null,
-      );
+      debugPrint('[PromptCleanerService] Unexpected error: $e');
+      if (e is SocketException || e is http.ClientException) {
+        throw const PromptCleanerException('network_error');
+      }
+      throw const PromptCleanerException('invalid_response');
+    }
     }
   }
-}

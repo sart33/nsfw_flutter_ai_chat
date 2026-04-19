@@ -390,5 +390,9 @@
   "personaNotValidatedKeyNotSet": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek não está configurada. Adicione-a nas configurações.",
   "personaNotValidatedKeyInvalid": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek é inválida. Atualize-a nas configurações.",
   "personaNotValidatedNoBalance": "Não foi possível verificar a idade do personagem: saldo insuficiente no DeepSeek. Recarregue o saldo.",
-  "personaNotValidatedGeneric": "Não foi possível verificar a idade do personagem: validação indisponível."
+  "personaNotValidatedGeneric": "Não foi possível verificar a idade do personagem: validação indisponível.",
+  "personaNotValidatedNetworkError": "Não foi possível verificar a idade do personagem: erro de conexão com a internet. Verifique sua conexão e tente novamente.",
+
+  "verifyingPersona": "Verificando personagem...",
+  "preparingPrompts": "Preparando prompts..."
 }

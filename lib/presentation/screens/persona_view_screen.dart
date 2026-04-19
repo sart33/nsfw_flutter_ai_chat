@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -15,8 +16,8 @@ import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/gallery_thumbnail_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/pending_image_widget.dart';
-import '../../main.dart';
-import 'api_keys_screen.dart';
+
+import '../../core/utils/app_snack_bar.dart';
 
 bool get _isDesktopPlatform =>
     Platform.isWindows || Platform.isMacOS || Platform.isLinux;
@@ -32,32 +33,6 @@ class PersonaViewScreen extends ConsumerStatefulWidget {
 }
 
 class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
-  void _showSnack(String msg, {bool isKeyError = false}) {
-    final messenger = scaffoldMessengerKey.currentState;
-    if (messenger == null) return;
-    final navigator = Navigator.of(context);
-    messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
-        duration: Duration(seconds: isKeyError ? 8 : 6),
-        content: Text(msg, style: const TextStyle(color: Colors.white)),
-        action:
-            isKeyError
-                ? SnackBarAction(
-                  label: context.l10n.settings,
-                  textColor: Colors.white,
-                  onPressed:
-                      () => navigator.push(
-                        MaterialPageRoute(
-                          builder: (_) => const ApiKeysScreen(),
-                        ),
-                      ),
-                )
-                : null,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,27 +74,40 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         final notifier = ref.read(galleryProvider(galleryKey).notifier);
 
         ref.listen<GalleryState>(galleryProvider(galleryKey), (prev, next) {
-          if (next.error != null && next.error != prev?.error) {
-            final isKeyError =
-                next.error is GenerationException &&
-                (next.error!.technicalMessage?.contains('api_key') ?? false);
+          if (next.error == null || next.error == prev?.error) return;
 
-            final msg = switch (next.error) {
-              GalleryFullException() => context.l10n.galleryFull,
-              GenerationException()
-                  when next.error!.technicalMessage == 'api_key_not_set' =>
-                context.l10n.errorNovitaKeyNotSet,
-              GenerationException()
-                  when next.error!.technicalMessage == 'api_key_invalid' =>
-                context.l10n.errorNovitaKeyInvalid,
-              GenerationException() => context.l10n.errorImageGeneration,
-              SaveException() => context.l10n.errorSave,
-              DeleteException() => context.l10n.errorDelete,
-              _ => context.l10n.errorUnknown,
-            };
-            _showSnack(msg, isKeyError: isKeyError);
-            ref.read(galleryProvider(galleryKey).notifier).clearError();
+          final l10n = context.l10n;
+
+          switch (next.error) {
+            case AgeVerificationException():
+              AppSnackBar.show(l10n.personaDescriptionConflict, isError: true);
+
+            case PromptCleanerGalleryException(:final cause):
+              AppSnackBar.showPersonaValidationError(cause, l10n);
+
+            case GalleryFullException():
+              AppSnackBar.show(l10n.galleryFull);
+
+            case GenerationException(technicalMessage: 'api_key_not_set'):
+              AppSnackBar.show(l10n.errorNovitaKeyNotSet, isError: true, withSettings: true);
+
+            case GenerationException(technicalMessage: 'api_key_invalid'):
+              AppSnackBar.show(l10n.errorNovitaKeyInvalid, isError: true, withSettings: true);
+
+            case GenerationException():
+              AppSnackBar.show(l10n.errorImageGeneration);
+
+            case SaveException():
+              AppSnackBar.show(l10n.errorSave);
+
+            case DeleteException():
+              AppSnackBar.show(l10n.errorDelete);
+
+            default:
+              AppSnackBar.show(l10n.errorUnknown);
           }
+
+          ref.read(galleryProvider(galleryKey).notifier).clearError();
         });
 
         final screenWidth = MediaQuery.of(context).size.width;
@@ -790,8 +778,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                     onTap:
                         state.isGenerating
                             ? null
-                            : () => notifier.generatePreview(
-                              currentPersona.description,
+                            : () => notifier.generatePreviewWithVerification(
+                              currentPersona,
+                              () {
+                                ref.invalidate(personaProvider);
+                                AppSnackBar.showSuccess(
+                                    context.l10n.personaValidated,
+                                    isIcon: true);
+                              }
                             ),
                     child: const Icon(
                       Icons.add_a_photo_outlined,
@@ -849,12 +843,22 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             child: Column(
               children: [
                 LinearProgressIndicator(
-                  color: AppTheme.accentVividInputBorder,
+                  color: switch (state.generatingPhase) {
+                    GeneratingPhase.verifying        => AppTheme.warning,
+                    GeneratingPhase.preparingPrompts => AppTheme.primaryAccent, // тоже оранжевый, ещё не генерируем
+                    GeneratingPhase.generating       => AppTheme.accentVividInputBorder,
+                    null                             => AppTheme.accentVividInputBorder,
+                  },
                   backgroundColor: AppTheme.surface,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  context.l10n.generatingWait,
+                  switch (state.generatingPhase) {
+                    GeneratingPhase.verifying        => context.l10n.verifyingPersona,
+                    GeneratingPhase.preparingPrompts => context.l10n.preparingPrompts,
+                    GeneratingPhase.generating       => context.l10n.generatingWait,
+                    null                             => context.l10n.generatingWait,
+                  },
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,

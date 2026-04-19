@@ -27,8 +27,10 @@ class GenerationException extends AppException {
 }
 
 /// Thrown when all 20 image templates have already been used for a persona.
-class GalleryFullException extends AppException {
+class GalleryFullException extends AppException implements GalleryException {
   const GalleryFullException() : super('All 20 templates already generated');
+  @override
+  String get technicalMessage => 'All 20 templates already generated';
 }
 
 /// Thrown when saving a generated image to the gallery fails.
@@ -56,4 +58,24 @@ class NovitaException implements Exception {
   const NovitaException(this.message);
   @override
   String toString() => 'NovitaException: $message';
+}
+
+/// Interface for gallery-related exceptions
+abstract interface class GalleryException implements Exception {
+  String get technicalMessage;
+}
+
+/// Thrown when age verification fails during gallery preview generation.
+class AgeVerificationException extends AppException implements GalleryException {
+  const AgeVerificationException() : super('age_verification_failed');
+  @override
+  String get technicalMessage => 'age_verification_failed';
+}
+
+/// Thrown when prompt cleaner service fails during gallery preview generation.
+class PromptCleanerGalleryException extends AppException implements GalleryException {
+  final PromptCleanerException cause;
+  PromptCleanerGalleryException(this.cause) : super(cause.code);
+  @override
+  String get technicalMessage => cause.code;
 }

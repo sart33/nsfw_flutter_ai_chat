@@ -20,7 +20,6 @@ import 'package:uuid/uuid.dart';
 import '../../core/factory/database_helper.dart';
 import '../../core/utils/app_snack_bar.dart';
 import '../../domain/exceptions/app_exceptions.dart';
-import '../../main.dart';
 import '../widgets/custom_app_bar_widget.dart';
 
 /// Create or edit a persona.
@@ -425,25 +424,6 @@ class _CreateEditPersonaScreenState
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
-  }
-
-  void _showValidationSuccess() {
-    scaffoldMessengerKey.currentState
-      ?..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        backgroundColor: AppTheme.success, // зелёный
-        duration: const Duration(seconds: 3),
-        content: Row(
-          children: [
-            const Icon(Icons.verified_outlined, color: AppTheme.textPrimary, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              context.l10n.personaValidated, // 'Персонаж прошёл проверку'
-              style: const TextStyle(color: AppTheme.textPrimary),
-            ),
-          ],
-        ),
-      ));
   }
 
   // ── Build ────────────────────────────────────────────────────────────────
@@ -1258,10 +1238,10 @@ class _CreateEditPersonaScreenState
 
     setState(() => _isSaving = true);
     final l10n = context.l10n;
+    bool ageVerified = false;
+
     try {
-      // Проверка описания через DeepSeek (только если ключ есть)
       final apiKey = await AppConfig.getDeepSeekApiKey();
-      bool ageVerified = false;
 
       if (apiKey.isNotEmpty) {
         final combinedText = [
@@ -1270,29 +1250,40 @@ class _CreateEditPersonaScreenState
           _greetCtrl.text.trim(),
         ].where((s) => s.isNotEmpty).join('\n\n');
 
-        final check = await PromptCleanerService.instance.checkForMinorSignals(
-          combinedText,
-        );
-      debugPrint('DeepSeek check result: $check');
-        if (check.severity != 'low') {
-          if (!mounted) return;
-          AppSnackBar.show(
-              context.l10n.personaDescriptionConflict);
-          // 'Описание персонажа содержит противоречия возрасту (18+). Пожалуйста, отредактируйте описание.'
-          return;
-        }
-        ageVerified = true;
-        if (mounted) {
-          _showValidationSuccess(); // отдельный метод чтобы не раздувать _showSnack
+        try {
+          final check = await PromptCleanerService.instance.checkForMinorSignals(
+            combinedText,
+          );
+
+          debugPrint('DeepSeek check result: $check');
+
+          if (check.hasConflict == null) {
+            // Сеть недоступна — предупреждаем, но не блокируем
+            AppSnackBar.show(l10n.personaNotValidatedNetworkError);
+            // ageVerified остаётся false, идём дальше
+          } else if (check.hasConflict == true && check.severity != 'low') {
+            // Реальный конфликт возраста — блокируем
+            if (!mounted) return;
+            AppSnackBar.show(l10n.personaDescriptionConflict);
+            return; // ← единственный случай когда не сохраняем
+          } else {
+            ageVerified = true;
+            if (mounted) AppSnackBar.showSuccess(l10n.personaValidated, isIcon: true);
+          }
+        } on PromptCleanerException catch (e) {
+          // 401, 402, сеть — показываем ошибку, но НЕ блокируем сохранение
+          AppSnackBar.showPersonaValidationError(e, l10n);
+          // ageVerified остаётся false, идём дальше
         }
       } else {
-        AppSnackBar.show(context.l10n.personaNotValidated);
+        AppSnackBar.show(l10n.personaNotValidated);
+        // ageVerified = false, идём дальше
       }
-      final persona =
-          _isEdit
-              ? ref.read(personaProvider.notifier).getById(widget.personaId!)
-              : null;
-      // Без ключа — сохраняем с ageVerified = false, проверим при старте чата
+
+      // --- Сохранение всегда доходит сюда, кроме реального конфликта ---
+      final persona = _isEdit
+          ? ref.read(personaProvider.notifier).getById(widget.personaId!)
+          : null;
 
       final entity = PersonaEntity(
         id: widget.personaId ?? const Uuid().v4(),
@@ -1301,10 +1292,9 @@ class _CreateEditPersonaScreenState
         greeting: _greetCtrl.text.trim(),
         avatarPath: _avatarPath,
         avatarAssetPath: persona?.avatarAssetPath,
-        behavior:
-            _behaviorCtrl.text.trim().isEmpty
-                ? null
-                : _behaviorCtrl.text.trim(),
+        behavior: _behaviorCtrl.text.trim().isEmpty
+            ? null
+            : _behaviorCtrl.text.trim(),
         galleryMode: _galleryMode,
         ageVerified: ageVerified,
       );
@@ -1318,7 +1308,6 @@ class _CreateEditPersonaScreenState
 
       if (mounted) Navigator.pop(context, true);
 
-      // cleanAndSave запускаем после pop, ошибки показываем через корневой scaffoldMessengerKey
       PromptCleanerService.instance
           .cleanAndSave(entity.id, entity.description)
           .catchError((e) {
@@ -1326,9 +1315,7 @@ class _CreateEditPersonaScreenState
           AppSnackBar.showPersonaValidationError(e, l10n);
         }
       });
-    } on PromptCleanerException catch (e) {
-      AppSnackBar.showPersonaValidationError(e, l10n);
-      return;
+
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

@@ -489,5 +489,9 @@
   "personaNotValidatedKeyNotSet": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek belum diatur. Tambahkan di pengaturan.",
   "personaNotValidatedKeyInvalid": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek tidak valid. Perbarui di pengaturan.",
   "personaNotValidatedNoBalance": "Tidak dapat memverifikasi usia karakter: saldo DeepSeek tidak mencukupi. Isi ulang saldo.",
-  "personaNotValidatedGeneric": "Tidak dapat memverifikasi usia karakter: validasi tidak tersedia."
+  "personaNotValidatedGeneric": "Tidak dapat memverifikasi usia karakter: validasi tidak tersedia.",
+  "personaNotValidatedNetworkError": "Tidak dapat memverifikasi usia karakter: terjadi masalah pada koneksi internet. Periksa koneksi Anda dan coba lagi.",
+
+  "verifyingPersona": "Memverifikasi karakter...",
+  "preparingPrompts": "Menyiapkan prompt..."
 }

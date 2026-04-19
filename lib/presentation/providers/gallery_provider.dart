@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nsfw_chat/core/services/novita_image_service.dart';
+import 'package:nsfw_chat/core/factory/database_helper.dart';
+import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
 import 'package:nsfw_chat/data/repositories/gallery_repository.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
+import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
+
+enum GeneratingPhase { verifying, preparingPrompts, generating }
 
 // ── State ──────────────────────────────────────────────────────────────────
 
@@ -17,6 +21,9 @@ class GalleryState {
   final AppException? error;
   final bool isLoaded;
   final String galleryMode;
+  final GeneratingPhase? generatingPhase; // null = не генерируем
+
+
 
   const GalleryState({
     this.images = const [],
@@ -26,6 +33,7 @@ class GalleryState {
     this.error,
     this.isLoaded = false,
     this.galleryMode = 'nude',
+    this.generatingPhase,
   });
 
   static const _absent = Object();
@@ -38,6 +46,8 @@ class GalleryState {
     Object? error = _absent,
     bool? isLoaded,
     Object? galleryMode = _absent,
+    Object? generatingPhase = _absent,
+
   }) {
     return GalleryState(
       images: images ?? this.images,
@@ -53,6 +63,9 @@ class GalleryState {
       galleryMode: identical(galleryMode, _absent)
           ? this.galleryMode
           : galleryMode as String,
+      generatingPhase: identical(generatingPhase, _absent)
+          ? this.generatingPhase
+          : generatingPhase as GeneratingPhase?,
     );
   }
 }
@@ -127,6 +140,80 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   }
 
+  // ── generatePreviewWithVerification ─────────────────────────────────────
+
+  Future<void> generatePreviewWithVerification(
+      PersonaEntity persona,
+      VoidCallback onVerified,
+      ) async {
+
+    if (persona.ageVerified) {
+      state = state.copyWith(
+        isGenerating: true,
+        pendingImagePath: null,
+        generatingPhase: GeneratingPhase.generating,
+      );
+      await generatePreview(persona.description);
+      return;
+    }
+
+    // Фаза 1: верификация
+    state = state.copyWith(
+      isGenerating: true,
+      pendingImagePath: null,
+      generatingPhase: GeneratingPhase.verifying,
+    );
+    try {
+      if (persona.ageVerified) {
+        await generatePreview(persona.description);
+        return;
+      }
+
+      final combinedText = [
+        persona.description,
+        persona.behavior,
+        persona.greeting,
+
+      ].join('\n\n');
+      final check = await PromptCleanerService.instance
+          .checkForMinorSignals(combinedText);
+
+      if (check.hasConflict == true && check.severity != 'low') {
+        state = state.copyWith(
+          isGenerating: false,
+          error: const AgeVerificationException(),
+        );
+        return;
+      }
+      await DatabaseHelper.instance.setPersonaAgeVerified(persona.id, true);
+      onVerified();
+
+
+      state = state.copyWith(generatingPhase: GeneratingPhase.preparingPrompts);
+
+      await PromptCleanerService.instance
+          .cleanAndSave(persona.id, persona.description);
+
+
+      state = state.copyWith(generatingPhase: GeneratingPhase.generating);
+
+      await generatePreview(persona.description);
+
+    } on PromptCleanerException catch (e) {
+      // network_error, key_invalid, 402 и т.д. — всё сюда
+      state = state.copyWith(
+        isGenerating: false,
+        generatingPhase: null,
+        error: PromptCleanerGalleryException(e),
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isGenerating: false,
+        generatingPhase: null,
+        error: GenerationException(e.toString()),
+      );
+    }
+  }
   // ── confirmPending ──────────────────────────────────────────────────────
 
   Future<void> confirmPending(String personaId, String description) async {

@@ -50,7 +50,7 @@ class NovitaAvatarService {
         'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
       }),
-      data: {'seed': seed, 'size': '512*768', 'prompt': prompt},
+      data: {'seed': seed, 'size': '768*1024', 'prompt': prompt},
     );
 debugPrint('[NovitaAvatarService] submit response: ${submitResp.statusCode} ${submitResp.data}');
     if (submitResp.statusCode == 401) {

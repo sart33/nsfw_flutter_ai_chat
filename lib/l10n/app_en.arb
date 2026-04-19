@@ -380,5 +380,9 @@
   "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
   "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
   "personaNotValidatedNoBalance": "Unable to verify character age: insufficient DeepSeek balance. Please top up.",
-  "personaNotValidatedGeneric": "Unable to verify character age: validation unavailable."
+  "personaNotValidatedGeneric": "Unable to verify character age: validation unavailable.",
+  "personaNotValidatedNetworkError": "Unable to verify character age: network error. Please check your internet connection and try again.",
+
+  "verifyingPersona": "Verifying character...",
+  "preparingPrompts": "Preparing prompts..."
 }
