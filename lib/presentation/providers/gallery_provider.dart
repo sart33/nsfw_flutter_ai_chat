@@ -164,10 +164,6 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       generatingPhase: GeneratingPhase.verifying,
     );
     try {
-      if (persona.ageVerified) {
-        await generatePreview(persona.description);
-        return;
-      }
 
       final combinedText = [
         persona.description,
