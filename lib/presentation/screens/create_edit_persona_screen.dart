@@ -191,9 +191,12 @@ class _CreateEditPersonaScreenState
     final apiKey = await AppConfig.getDeepSeekApiKey();
     if (apiKey.isNotEmpty) {
       try {
-        final check = await PromptCleanerService.instance
-            .checkForMinorSignals(_descCtrl.text.trim());
-        if (check.severity != 'low') {
+        final check = await PromptCleanerService.instance.checkForMinorSignals(
+          _descCtrl.text.trim(),
+        );
+        debugPrint('[DeepSeek] check result: hasConflict=${check.hasConflict}, severity=${check.severity}');
+        if (check.hasConflict == true &&
+            (check.severity == 'high' || check.severity == 'medium')) {
           if (!mounted) return;
           AppSnackBar.show(context.l10n.personaDescriptionConflict);
           return;
@@ -346,7 +349,6 @@ class _CreateEditPersonaScreenState
         debugPrint('[Avatar] style generation error: $e');
         if (!mounted) return;
         AppSnackBar.showNovitaError(e, context.l10n);
-
       } catch (e) {
         if (!mounted) return;
         AppSnackBar.show(context.l10n.errorImageGeneration);
@@ -395,8 +397,6 @@ class _CreateEditPersonaScreenState
 
     super.dispose();
   }
-
-
 
   // ── Shared InputDecoration ───────────────────────────────────────────────
 
@@ -509,40 +509,41 @@ class _CreateEditPersonaScreenState
                     borderRadius: BorderRadius.circular(32),
                   ),
                 ),
-                child: _isSaving
-                    ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppTheme.accentVividInputBorder,
+                child:
+                    _isSaving
+                        ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppTheme.accentVividInputBorder,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              context.l10n.validatingPersona,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          ],
+                        )
+                        : Text(
+                          _isEdit ? context.l10n.save : context.l10n.create,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      context.l10n.validatingPersona,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ],
-                )
-                    : Text(
-                  _isEdit ? context.l10n.save : context.l10n.create,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
-                  ),
-                ),
               ),
             ),
           ],
@@ -715,40 +716,42 @@ class _CreateEditPersonaScreenState
                     borderRadius: BorderRadius.circular(32),
                   ),
                 ),
-                child: _isSaving
-                    ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppTheme.accentVividInputBorder, // оранжевый — идёт процесс
+                child:
+                    _isSaving
+                        ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppTheme
+                                      .accentVividInputBorder, // оранжевый — идёт процесс
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              context.l10n.validatingPersona, // 'Валидация...'
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          ],
+                        )
+                        : Text(
+                          _isEdit ? context.l10n.save : context.l10n.create,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      context.l10n.validatingPersona, // 'Валидация...'
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ],
-                )
-                    : Text(
-                  _isEdit ? context.l10n.save : context.l10n.create,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
-                  ),
-                ),
               ),
             ),
           ),
@@ -1251,24 +1254,21 @@ class _CreateEditPersonaScreenState
         ].where((s) => s.isNotEmpty).join('\n\n');
 
         try {
-          final check = await PromptCleanerService.instance.checkForMinorSignals(
-            combinedText,
-          );
+          final check = await PromptCleanerService.instance
+              .checkForMinorSignals(combinedText);
 
           debugPrint('DeepSeek check result: $check');
 
-          if (check.hasConflict == null) {
-            // Сеть недоступна — предупреждаем, но не блокируем
-            AppSnackBar.show(l10n.personaNotValidatedNetworkError);
-            // ageVerified остаётся false, идём дальше
-          } else if (check.hasConflict == true && check.severity != 'low') {
+          if (check.hasConflict == true &&
+              (check.severity == 'high' || check.severity == 'medium')) {
             // Реальный конфликт возраста — блокируем
             if (!mounted) return;
             AppSnackBar.show(l10n.personaDescriptionConflict);
             return; // ← единственный случай когда не сохраняем
           } else {
             ageVerified = true;
-            if (mounted) AppSnackBar.showSuccess(l10n.personaValidated, isIcon: true);
+            if (mounted)
+              AppSnackBar.showSuccess(l10n.personaValidated, isIcon: true);
           }
         } on PromptCleanerException catch (e) {
           // 401, 402, сеть — показываем ошибку, но НЕ блокируем сохранение
@@ -1281,9 +1281,10 @@ class _CreateEditPersonaScreenState
       }
 
       // --- Сохранение всегда доходит сюда, кроме реального конфликта ---
-      final persona = _isEdit
-          ? ref.read(personaProvider.notifier).getById(widget.personaId!)
-          : null;
+      final persona =
+          _isEdit
+              ? ref.read(personaProvider.notifier).getById(widget.personaId!)
+              : null;
 
       final entity = PersonaEntity(
         id: widget.personaId ?? const Uuid().v4(),
@@ -1292,9 +1293,10 @@ class _CreateEditPersonaScreenState
         greeting: _greetCtrl.text.trim(),
         avatarPath: _avatarPath,
         avatarAssetPath: persona?.avatarAssetPath,
-        behavior: _behaviorCtrl.text.trim().isEmpty
-            ? null
-            : _behaviorCtrl.text.trim(),
+        behavior:
+            _behaviorCtrl.text.trim().isEmpty
+                ? null
+                : _behaviorCtrl.text.trim(),
         galleryMode: _galleryMode,
         ageVerified: ageVerified,
       );
@@ -1311,11 +1313,10 @@ class _CreateEditPersonaScreenState
       PromptCleanerService.instance
           .cleanAndSave(entity.id, entity.description)
           .catchError((e) {
-        if (e is PromptCleanerException) {
-          AppSnackBar.showPersonaValidationError(e, l10n);
-        }
-      });
-
+            if (e is PromptCleanerException) {
+              AppSnackBar.showPersonaValidationError(e, l10n);
+            }
+          });
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

@@ -178,7 +178,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final check = await PromptCleanerService.instance
           .checkForMinorSignals(combinedText);
 
-      if (check.hasConflict == true && check.severity != 'low') {
+      if (check.hasConflict == true &&
+          (check.severity == 'high' || check.severity == 'medium')) {
         state = state.copyWith(
           isGenerating: false,
           error: const AgeVerificationException(),

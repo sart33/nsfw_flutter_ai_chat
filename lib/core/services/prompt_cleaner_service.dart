@@ -152,7 +152,7 @@ Return only this JSON, nothing else:
     /// Checks the character description for signs of underage.
     /// Returns hasConflict, severity ('low'/'medium'/'high'), reason.
     /// Call only if the API key is present.
-  Future<({bool? hasConflict, String? severity, String? reason})>
+  Future<({bool hasConflict, String? severity, String reason})>
   checkForMinorSignals(String description) async {
 
     try {
@@ -235,8 +235,7 @@ Important:
       final hasConflict = (result['has_conflict'] as bool?)
           ?? (throw const PromptCleanerException('invalid_response'));
 
-      final severity = (result['severity'] as String?)
-          ?? (throw const PromptCleanerException('invalid_response'));
+      final severity = result['severity'] as String?;
 
       final reason = (result['reason'] as String?) ?? '';
 
