@@ -14,7 +14,6 @@ class PersonaMapper {
     avatarAssetPath: model.avatarAssetPath,
     behavior: model.behavior,
     galleryMode: model.galleryMode,
-    age: model.age,
     ageVerified: model.ageVerified, // NEW
   );
 
@@ -27,7 +26,6 @@ class PersonaMapper {
     avatarAssetPath: entity.avatarAssetPath,
     behavior: entity.behavior,
     galleryMode: entity.galleryMode,
-    age: entity.age,
     ageVerified: entity.ageVerified, // NEW
   );
 

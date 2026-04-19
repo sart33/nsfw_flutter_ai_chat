@@ -35,27 +35,12 @@ class DatabaseHelper {
       final path = p.join(dbPath, 'chat_history.db');
       _db = await openDatabase(
         path,
-        version: 15,
+        version: 16,
         onCreate: (db, version) async {
           await _createAllTables(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
-          if (oldVersion < 13) {
-            await _createMultiPresetsTable(db);
-          }
-          if (oldVersion < 14) {
-            await db.execute(
-              'ALTER TABLE messages ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0'
-            );
-          }
-          if (oldVersion < 15) {
-            await db.execute(
-                'ALTER TABLE personas ADD COLUMN age INTEGER NOT NULL DEFAULT 18'
-            );
-            await db.execute(
-                'ALTER TABLE personas ADD COLUMN age_verified INTEGER NOT NULL DEFAULT 0'
-            );
-          }
+
         },
       );
       await _db!.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
@@ -156,14 +141,23 @@ class DatabaseHelper {
     avatar_asset_path TEXT,
     behavior         TEXT,
     gallery_mode     TEXT NOT NULL DEFAULT 'nude',
-    age              INTEGER NOT NULL DEFAULT 18,
     age_verified     INTEGER NOT NULL DEFAULT 0,
     created_at       INTEGER NOT NULL,
     updated_at       INTEGER NOT NULL
   )
 ''');
 
-    await _createMultiPresetsTable(db);
+    await db.execute('''
+    CREATE TABLE multi_presets (
+      id           TEXT PRIMARY KEY,
+      name         TEXT NOT NULL,
+      persona_ids  TEXT NOT NULL,
+      greeting     TEXT NOT NULL,
+      behavior     TEXT NOT NULL,
+      created_at   INTEGER NOT NULL,
+      updated_at   INTEGER NOT NULL
+    )
+  ''');
 
     await db.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)');
@@ -913,7 +907,6 @@ class DatabaseHelper {
         'avatar_asset_path': persona.avatarAssetPath,
         'behavior': persona.behavior,
         'gallery_mode': persona.galleryMode,
-        'age':          persona.age,
         'age_verified': persona.ageVerified ? 1 : 0,
         'created_at': now,
         'updated_at': now,
@@ -939,7 +932,6 @@ class DatabaseHelper {
         'avatar_asset_path': persona.avatarAssetPath,
         'behavior': persona.behavior,
         'gallery_mode': persona.galleryMode,
-        'age':          persona.age,
         'age_verified': persona.ageVerified ? 1 : 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
@@ -982,19 +974,6 @@ class DatabaseHelper {
 
   // ── MULTI PRESETS ───────────────────────────────────────────────────────
 
-  Future<void> _createMultiPresetsTable(Database db) async {
-    await db.execute('''
-    CREATE TABLE multi_presets (
-      id           TEXT PRIMARY KEY,
-      name         TEXT NOT NULL,
-      persona_ids  TEXT NOT NULL,
-      greeting     TEXT NOT NULL,
-      behavior     TEXT NOT NULL,
-      created_at   INTEGER NOT NULL,
-      updated_at   INTEGER NOT NULL
-    )
-  ''');
-  }
 
   /// Returns all multi-presets from the database.
   Future<List<Map<String, dynamic>>> getAllMultiPresets() async {

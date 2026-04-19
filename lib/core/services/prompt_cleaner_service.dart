@@ -17,27 +17,15 @@ class PromptCleanerService {
   // nude is NOT requested — caller copies raw description.
   // beach is NOT requested — caller copies erotic result.
   // romantic2 is NOT requested — caller copies office result.
-  static String _buildPrompt(String description, int age) => '''
+  static String _buildPrompt(String description) => '''
 You are a prompt cleaner for AI image generation.
 Given a character description (may be in any language),
 return 3 cleaned versions as a single JSON object.
 No explanation, no markdown, only raw JSON.
 
-The character's age is: $age years old.
-
-Age handling rules (apply to ALL variants):
-- If the description already contains an age mention, replace it with "$age years old" (or "$age-year-old" if used as adjective)
-- If the description does NOT contain an age, insert "$age-year-old" before the first mention of hair color, eye color, or hairstyle
-- Do NOT add the word "woman" or "man" — keep the original gender phrasing if present
-
 Rules:
 
-nsfw:
-- apply age handling only
-- keep everything else exactly as-is
-
 erotic:
-- apply age handling
 - remove nipples and all adjectives directly before them
 - remove all genital mentions
 - remove all genital piercings
@@ -50,7 +38,6 @@ erotic:
 - append "properly dressed" at the end
 
 romantic:
-- apply age handling
 - remove all breast mentions including size and adjectives
 - remove all nipple mentions with adjectives
 - remove all piercings everywhere
@@ -62,7 +49,6 @@ romantic:
 - append "properly dressed" at the end
 
 office:
-- apply age handling
 - same as romantic
 - remove all tattoo mentions entirely
 - remove any mentions of fetish clothing, BDSM elements, or sexualized accessories (e.g. straps, harnesses, chokers, latex, corsets used in sexual context)
@@ -77,14 +63,14 @@ Input:
 "$description"
 
 Return only this JSON, nothing else:
-{"nsfw":"...","erotic":"...","romantic":"...","office":"..."}
+{"erotic":"...","romantic":"...","office":"..."}
 ''';
 
   /// Calls DeepSeek, parses result, saves to DB.
   /// nsfw = raw description (no cleaning needed)
   /// beach = copy of erotic
   /// romantic2 = copy of office
-  Future<void> cleanAndSave(String personaId, String description, int age) async {
+  Future<void> cleanAndSave(String personaId, String description) async {
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
         debugPrint('[PromptCleanerService] DeepSeek API key is not set, skipping.');
@@ -108,7 +94,7 @@ Return only this JSON, nothing else:
           'messages': [
             {
               'role': 'user',
-              'content': _buildPrompt(description, age),
+              'content': _buildPrompt(description),
             }
           ],
           'max_tokens': 1500,
@@ -139,15 +125,14 @@ Return only this JSON, nothing else:
 
       final Map<String, dynamic> result =
           jsonDecode(cleaned) as Map<String, dynamic>;
-      final nsfw     = (result['nsfw']     as String?) ?? description;
       final erotic   = (result['erotic']   as String?) ?? description;
       final romantic = (result['romantic'] as String?) ?? description;
       final office   = (result['office']   as String?) ?? description;
-      debugPrint('[PromptCleanerService] cleanAndSave personaId=$personaId age=$age');
+      debugPrint('[PromptCleanerService] cleanAndSave personaId=$personaId');
 
       await DatabaseHelper.instance.upsertPersonaPrompts(
         personaId:  personaId,
-        nsfw:       nsfw,   // raw, no cleaning
+        nsfw:       description,   // raw, no cleaning
         erotic:     erotic,
         beach:      erotic,        // copy of erotic
         romantic:   romantic,

@@ -11,7 +11,6 @@ class PersonaModel {
   final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
-  final int age; // NEW
   final bool ageVerified; // NEW
 
   PersonaModel({
@@ -22,7 +21,6 @@ class PersonaModel {
     this.avatarPath,
     this.avatarAssetPath,
     this.behavior,
-    this.age = 18, // NEW
     this.ageVerified = false, // NEW
     this.galleryMode = 'nude',
   }) : id = id ?? const Uuid().v4();
@@ -38,7 +36,6 @@ class PersonaModel {
     'avatar_asset_path': avatarAssetPath,
     'behavior': behavior,
     'gallery_mode': galleryMode,
-    'age': age, // NEW
     'age_verified': ageVerified ? 1 : 0, // NEW
   };
 
@@ -51,7 +48,6 @@ class PersonaModel {
     avatarAssetPath: map['avatar_asset_path'] as String?,
     behavior: map['behavior'] as String?,
     galleryMode: (map['gallery_mode'] as String?) ?? 'nude',
-    age: (map['age'] as int?) ?? 18,                          // NEW
     ageVerified: ((map['age_verified'] as int?) ?? 0) == 1,   // NEW
   );
 
@@ -69,7 +65,6 @@ class PersonaModel {
     String? avatarAssetPath,
     String? behavior,
     String? galleryMode,
-    int? age,
     bool? ageVerified,
   }) => PersonaModel(
     id: id ?? this.id,
@@ -80,7 +75,6 @@ class PersonaModel {
     avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
     behavior: behavior ?? this.behavior,
     galleryMode: galleryMode ?? this.galleryMode,
-    age: age ?? this.age,
     ageVerified: ageVerified ?? this.ageVerified,
   );
 }

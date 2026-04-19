@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -58,7 +57,6 @@ class _CreateEditPersonaScreenState
   bool get _isDesktopPlatform =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
-  final _ageCtrl = TextEditingController();
   bool _isSaving = false; // block the button during testing
 
   // ── Style label (без l10n.getString — его не существует) ─────────────────
@@ -188,14 +186,7 @@ class _CreateEditPersonaScreenState
     if (_isGeneratingAvatar) return;
 
     final description = _descCtrl.text.trim();
-    final age = int.tryParse(_ageCtrl.text.trim()) ?? 18;
     if (description.isEmpty) return;
-
-    // ── 1. Валидация поля возраста (бесплатно, мгновенно) ───────────────
-    if (age < 18) {
-      AppSnackBar.show(context.l10n.ageMustBe18, isError: true);
-      return;
-    }
 
     // ── 2. Проверка description через DeepSeek (если ключ есть) ─────────
     final apiKey = await AppConfig.getDeepSeekApiKey();
@@ -234,7 +225,6 @@ class _CreateEditPersonaScreenState
         await PromptCleanerService.instance.cleanAndSave(
           personaId,
           description,
-          age,
         );
         setState(() {
           _isCleaningPrompt = false;
@@ -388,7 +378,6 @@ class _CreateEditPersonaScreenState
           _descCtrl.text = persona.description;
           _greetCtrl.text = persona.greeting;
           _behaviorCtrl.text = persona.behavior ?? '';
-          _ageCtrl.text = persona.age.toString();
           setState(() {
             _avatarPath = persona.avatarPath;
             _galleryMode = persona.galleryMode;
@@ -404,7 +393,6 @@ class _CreateEditPersonaScreenState
     _descCtrl.dispose();
     _greetCtrl.dispose();
     _behaviorCtrl.dispose();
-    _ageCtrl.dispose();
 
     super.dispose();
   }
@@ -501,24 +489,6 @@ class _CreateEditPersonaScreenState
                           : null,
             ),
             const SizedBox(height: 24),
-
-            TextFormField(
-              controller: _ageCtrl,
-              style: const TextStyle(color: AppTheme.textPrimary),
-              decoration: _fieldDecoration(context.l10n.ageLabel),
-              // 'Возраст'
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (v) {
-                final n = int.tryParse(v ?? '');
-                if (n == null || n < 18)
-                  return context
-                      .l10n
-                      .ageMustBe18; // 'Минимальный возраст — 18 лет'
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
 
             _buildCountedField(
               controller: _descCtrl,
@@ -719,23 +689,7 @@ class _CreateEditPersonaScreenState
                         : null,
           ),
           const SizedBox(height: 20),
-          TextFormField(
-            controller: _ageCtrl,
-            style: const TextStyle(color: AppTheme.textPrimary),
-            decoration: _fieldDecoration(context.l10n.ageLabel),
-            // 'Возраст'
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            validator: (v) {
-              final n = int.tryParse(v ?? '');
-              if (n == null || n < 18)
-                return context
-                    .l10n
-                    .ageMustBe18; // 'Минимальный возраст — 18 лет'
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
+
           // Описание
           _buildCountedField(
             controller: _descCtrl,
@@ -1302,8 +1256,6 @@ class _CreateEditPersonaScreenState
       return;
     }
 
-    final age = int.tryParse(_ageCtrl.text) ?? 18;
-
     setState(() => _isSaving = true);
     final l10n = context.l10n;
     try {
@@ -1354,7 +1306,6 @@ class _CreateEditPersonaScreenState
                 ? null
                 : _behaviorCtrl.text.trim(),
         galleryMode: _galleryMode,
-        age: age,
         ageVerified: ageVerified,
       );
 
@@ -1369,14 +1320,13 @@ class _CreateEditPersonaScreenState
 
       // cleanAndSave запускаем после pop, ошибки показываем через корневой scaffoldMessengerKey
       PromptCleanerService.instance
-          .cleanAndSave(entity.id, entity.description, entity.age)
+          .cleanAndSave(entity.id, entity.description)
           .catchError((e) {
         if (e is PromptCleanerException) {
           AppSnackBar.showPersonaValidationError(e, l10n);
         }
       });
     } on PromptCleanerException catch (e) {
-      // ВОТ ЭТОГО У ТЕБЯ НЕТ
       AppSnackBar.showPersonaValidationError(e, l10n);
       return;
     } finally {
