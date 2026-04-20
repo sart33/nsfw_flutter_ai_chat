@@ -79,3 +79,8 @@ class PromptCleanerGalleryException extends AppException implements GalleryExcep
   @override
   String get technicalMessage => cause.code;
 }
+
+class PromptCleanerChatException extends AppException {
+  final PromptCleanerException cause;
+  const PromptCleanerChatException(this.cause);
+}

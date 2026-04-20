@@ -55,11 +55,10 @@ class ChatScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
-  final _inputCtrl  = TextEditingController();
+  final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _initialized = false;
   bool _sidePanelCollapsed = false;
-
 
   PersonaEntity? _singlePersona;
   List<PersonaEntity> _multiPersonas = [];
@@ -78,20 +77,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _singlePersona =
           personas.where((p) => p.id == widget.entityId).firstOrNull;
     } else {
-      final preset = ref
-          .watch(multiPresetProvider)
-          .where((p) => p.id == widget.entityId)
-          .firstOrNull;
+      final preset =
+          ref
+              .watch(multiPresetProvider)
+              .where((p) => p.id == widget.entityId)
+              .firstOrNull;
       if (preset != null) {
         _multiPersonas =
             personas.where((p) => preset.personaIds.contains(p.id)).toList();
-        final trimmed = preset.behavior!
-            .trim()
-            .replaceFirst(RegExp(r'[,.]+$'), '')
-            .trim();
-        _multiBehavior = trimmed.isNotEmpty
-            ? '$trimmed. ${AppConfig.addToMultiChatBehavior}'
-            : AppConfig.addToMultiChatBehavior;
+        final trimmed =
+            preset.behavior!.trim().replaceFirst(RegExp(r'[,.]+$'), '').trim();
+        _multiBehavior =
+            trimmed.isNotEmpty
+                ? '$trimmed. ${AppConfig.addToMultiChatBehavior}'
+                : AppConfig.addToMultiChatBehavior;
       }
     }
   }
@@ -106,13 +105,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final notifier = ref.read(chatProvider(widget.branchId).notifier);
       if (!widget.isMulti && _singlePersona != null) {
         notifier.init(
-          greeting:    _singlePersona!.greeting,
-          personaId:   _singlePersona!.id,
+          greeting: _singlePersona!.greeting,
+          personaId: _singlePersona!.id,
           personaName: _singlePersona!.name,
-          isMulti:     false,
+          isMulti: false,
         );
+        // Start age verification for single persona if needed
+        if (!_singlePersona!.ageVerified) {
+          notifier.verifyPersonaIfNeeded(_singlePersona!);
+        }
       } else if (widget.isMulti) {
         notifier.init(greeting: widget.greeting, isMulti: true);
+        // Start age verification for each multi persona if needed
+        for (final persona in _multiPersonas) {
+          if (!persona.ageVerified) {
+            notifier.verifyPersonaIfNeeded(persona);
+          }
+        }
       } else {
         notifier.init();
       }
@@ -126,40 +135,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-
-
   // ── DELETE BRANCH ─────────────────────────────────────────────────────
 
   void _deleteBranch() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(context.l10n.deleteBranch,
-            style: const TextStyle(color: AppTheme.textPrimary)),
-        content: Text(context.l10n.allMessagesWillBeDeleted,
-            style: const TextStyle(color: AppTheme.textSecondary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(context.l10n.cancel,
-                style: const TextStyle(color: AppTheme.textSecondary)),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(
+              context.l10n.deleteBranch,
+              style: const TextStyle(color: AppTheme.textPrimary),
+            ),
+            content: Text(
+              context.l10n.allMessagesWillBeDeleted,
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  context.l10n.cancel,
+                  style: const TextStyle(color: AppTheme.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  context.l10n.delete,
+                  style: const TextStyle(color: AppTheme.warning),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.l10n.delete,
-                style: const TextStyle(color: AppTheme.warning)),
-          ),
-        ],
-      ),
     );
     if (confirmed == true && mounted) {
-      final entityId = widget.isMulti
-          ? 'multi:${widget.entityId}'
-          : 'single:${widget.entityId}';
-      ref
-          .read(branchProvider(entityId).notifier)
-          .deleteBranch(widget.branchId);
+      final entityId =
+          widget.isMulti
+              ? 'multi:${widget.entityId}'
+              : 'single:${widget.entityId}';
+      ref.read(branchProvider(entityId).notifier).deleteBranch(widget.branchId);
       Navigator.pop(context);
     }
   }
@@ -176,22 +191,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           final is402 = error.toString().contains('402');
           final is403 = error.toString().contains('403');
           final isDeepSeek = error.toString().contains('deepseek');
-          final isNovita  = error.toString().contains('novita');
+          final isNovita = error.toString().contains('novita');
           AppSnackBar.show(
             is401 || is403
                 ? (isDeepSeek
-                ? context.l10n.errorDeepSeekKeyInvalid
-                : isNovita
-                ? context.l10n.errorNovitaKeyInvalid
-                : context.l10n.errorApiKeyInvalid)
-            : is402
+                    ? context.l10n.errorDeepSeekKeyInvalid
+                    : isNovita
+                    ? context.l10n.errorNovitaKeyInvalid
+                    : context.l10n.errorApiKeyInvalid)
+                : is402
                 ? context.l10n.errorDeepSeekInsufficientBalance
                 : context.l10n.errorConnectionFailed,
             isError: is401 || is402 || is403,
             withSettings: is401 || is403,
           );
         } else if (error is GenerationException) {
-          final isKeyNotSet  = error.toString().contains('api_key_not_set');
+          final isKeyNotSet = error.toString().contains('api_key_not_set');
           final isKeyInvalid = error.toString().contains('api_key_invalid');
           AppSnackBar.show(
             isKeyNotSet
@@ -199,27 +214,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 : isKeyInvalid
                 ? context.l10n.errorNovitaKeyInvalid
                 : context.l10n.errorImageGeneration,
-            isError:   isKeyNotSet || isKeyInvalid,
+            isError: isKeyNotSet || isKeyInvalid,
             withSettings: isKeyNotSet || isKeyInvalid,
           );
+        } else if (error is AgeVerificationException) {
+            AppSnackBar.show(context.l10n.personaDescriptionConflict, isError: true);
+        } else if (error is PromptCleanerChatException) {
+          AppSnackBar.showPersonaValidationError(error.cause, context.l10n);
         } else {
-          AppSnackBar.show(error is HistoryException
-              ? context.l10n.errorHistory
-              : context.l10n.errorUnknown);
+          AppSnackBar.show(
+            error is HistoryException
+                ? context.l10n.errorHistory
+                : context.l10n.errorUnknown,
+          );
         }
         ref.read(chatProvider(widget.branchId).notifier).clearError();
       }
     });
 
+    // Listen for verification success
+    ref.listen<ChatState>(chatProvider(widget.branchId), (prev, next) {
+      // Show success snackbar when verification completes successfully
+      if (prev?.isVerifying == true &&
+          next.isVerifying == false &&
+          next.verificationFailed == false &&
+          prev?.error == null &&
+          next.error == null) {
+        AppSnackBar.showSuccess(context.l10n.personaValidated, isIcon: true);
+      }
+    });
+
     final chatState = ref.watch(chatProvider(widget.branchId));
-    final settings  = ref.watch(settingsProvider);
+    final settings = ref.watch(settingsProvider);
     final screenWidth = MediaQuery.of(context).size.width;
-    final useDesktop  =
+    final useDesktop =
         _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
 
     if (_singlePersona != null) {
-      ref.watch(galleryProvider(
-          GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode)));
+      ref.watch(
+        galleryProvider(
+          GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode),
+        ),
+      );
     }
     for (final p in _multiPersonas) {
       ref.watch(galleryProvider(GalleryKey(p.id, p.galleryMode)));
@@ -228,7 +264,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _initIfNeeded();
 
     const whiteStyle = TextStyle(
-        color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.w400);
+      color: AppTheme.textPrimary,
+      fontSize: 20,
+      fontWeight: FontWeight.w400,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -236,46 +275,53 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.textPrimary),
         centerTitle: true,
-        title: !widget.isMulti && _singlePersona != null
-            ? GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  PersonaViewScreen(persona: _singlePersona!),
-            ),
-          ),
-          child: Text(widget.title, style: whiteStyle),
-        )
-            : Text(widget.title, style: whiteStyle),
+        title:
+            !widget.isMulti && _singlePersona != null
+                ? GestureDetector(
+                  onTap:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) =>
+                                  PersonaViewScreen(persona: _singlePersona!),
+                        ),
+                      ),
+                  child: Text(widget.title, style: whiteStyle),
+                )
+                : Text(widget.title, style: whiteStyle),
         actions: [
           // Удалить чат — только на мобайле (на десктопе кнопка в панели)
-           (!useDesktop)
-            ? IconButton(
-              icon: const Icon(Icons.delete_outline,
-                  size: 24, color: AppTheme.warning),
-              tooltip: context.l10n.deleteBranch,
-              onPressed: _deleteBranch,
-            ) :
-            IconButton(
-              icon: const Icon(
-                Icons.home_outlined,
-                size: 26,
-                color: AppTheme.textPrimary,
+          (!useDesktop)
+              ? IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 24,
+                  color: AppTheme.warning,
+                ),
+                tooltip: context.l10n.deleteBranch,
+                onPressed: _deleteBranch,
+              )
+              : IconButton(
+                icon: const Icon(
+                  Icons.home_outlined,
+                  size: 26,
+                  color: AppTheme.textPrimary,
+                ),
+                tooltip: 'Home',
+                onPressed:
+                    () => Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      (route) => false,
+                    ),
               ),
-              tooltip: 'Home',
-              onPressed: () => Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const HomeScreen()),
-                    (route) => false,
-              ),
-            ),
           IconButton(
             icon: Icon(
               Icons.favorite_border,
               size: useDesktop ? 26 : 24,
-              color:  useDesktop ? AppTheme.primaryAccent : AppTheme.textSecondary,
-
+              color:
+                  useDesktop ? AppTheme.primaryAccent : AppTheme.textSecondary,
             ),
             onPressed: () {
               Navigator.push(
@@ -285,26 +331,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             },
           ),
           if (useDesktop)
-          IconButton(
-            icon: const Icon(Icons.info_outline,
-                size: 26, color: AppTheme.textSecondary),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const AboutAppScreen())),
-          ),
+            IconButton(
+              icon: const Icon(
+                Icons.info_outline,
+                size: 26,
+                color: AppTheme.textSecondary,
+              ),
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AboutAppScreen()),
+                  ),
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: IconButton(
-              icon: const Icon(Icons.settings,
-                  size: 26, color: AppTheme.textPrimary),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen())),
+              icon: const Icon(
+                Icons.settings,
+                size: 26,
+                color: AppTheme.textPrimary,
+              ),
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
             ),
           ),
         ],
       ),
-      body: useDesktop
-          ? _buildDesktopBody(context, chatState, settings)
-          : _buildMobileBody(context, chatState, settings),
+      body:
+          useDesktop
+              ? _buildDesktopBody(context, chatState, settings)
+              : _buildMobileBody(context, chatState, settings),
     );
   }
 
@@ -313,7 +372,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildDesktopBody(
-      BuildContext context, ChatState chatState, SettingsState settings) {
+    BuildContext context,
+    ChatState chatState,
+    SettingsState settings,
+  ) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Align(
@@ -337,22 +399,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         duration: const Duration(milliseconds: 260),
                         curve: Curves.easeInOut,
                         alignment: Alignment.topCenter,
-                        child: _sidePanelCollapsed
-                            ? const SizedBox(width: 300, height: 0)
-                            : _buildDesktopSidePanel(context),
+                        child:
+                            _sidePanelCollapsed
+                                ? const SizedBox(width: 300, height: 0)
+                                : _buildDesktopSidePanel(context),
                       ),
                     ),
                     // Кнопка-стрелка прибита к низу
                     GestureDetector(
-                      onTap: () => setState(() => _sidePanelCollapsed = !_sidePanelCollapsed),
+                      onTap:
+                          () => setState(
+                            () => _sidePanelCollapsed = !_sidePanelCollapsed,
+                          ),
                       child: Container(
                         margin: const EdgeInsets.all(12),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.background,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: AppTheme.primaryAccent.withValues(alpha: 0.5)),
+                            color: AppTheme.primaryAccent.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -366,9 +438,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              _sidePanelCollapsed ? context.l10n.expandPanel : context.l10n.collapsePanel,
+                              _sidePanelCollapsed
+                                  ? context.l10n.expandPanel
+                                  : context.l10n.collapsePanel,
                               style: const TextStyle(
-                                  fontSize: 13, color: AppTheme.textPrimary),
+                                fontSize: 13,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -383,8 +459,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _buildChatContent(context, chatState, settings,
-                      showHeader: false),
+                  child: _buildChatContent(
+                    context,
+                    chatState,
+                    settings,
+                    showHeader: false,
+                  ),
                 ),
               ),
             ],
@@ -429,18 +509,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text(p.name,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  p.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 if (p.behavior != null && p.behavior!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(p.behavior!,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12)),
+                  Text(
+                    p.behavior!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 16),
                 SizedBox(
@@ -451,13 +538,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     icon: const Icon(Icons.visibility_outlined, size: 18),
                     label: Text(context.l10n.view),
-                    onPressed: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => PersonaViewScreen(persona: p))),
+                    onPressed:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PersonaViewScreen(persona: p),
+                          ),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -471,19 +563,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             foregroundColor: Colors.white,
                             side: const BorderSide(color: AppTheme.cardBorder),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                          icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: Text(context.l10n.editCharacter,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 13)),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CreateEditPersonaScreen(personaId: p.id),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          label: Text(
+                            context.l10n.editCharacter,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          onPressed:
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => CreateEditPersonaScreen(
+                                        personaId: p.id,
+                                      ),
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -496,7 +594,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           foregroundColor: AppTheme.warning,
                           side: const BorderSide(color: AppTheme.cardBorder),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           padding: EdgeInsets.zero,
                         ),
                         onPressed: _deleteBranch,
@@ -512,6 +611,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ],
     );
   }
+
   // ── MULTI: скролл-список карточек по каждому персонажу ───────────────
 
   Widget _buildMultiSidePanel(BuildContext context) {
@@ -536,8 +636,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     GestureDetector(
-                      onTap: () =>
-                          _openGalleryFromMultiAvatar(context, p.name),
+                      onTap: () => _openGalleryFromMultiAvatar(context, p.name),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: AspectRatio(
@@ -547,11 +646,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(p.name,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold)),
+                    Text(
+                      p.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 36,
@@ -561,14 +663,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         icon: const Icon(Icons.visibility_outlined, size: 16),
-                        label: Text(context.l10n.view,
-                            style: const TextStyle(fontSize: 13)),
-                        onPressed: () => Navigator.push(context,
-                            MaterialPageRoute(
-                                builder: (_) => PersonaViewScreen(persona: p))),
+                        label: Text(
+                          context.l10n.view,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        onPressed:
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PersonaViewScreen(persona: p),
+                              ),
+                            ),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -579,18 +688,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: AppTheme.cardBorder),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: Text(context.l10n.editCharacter,
-                            style: const TextStyle(fontSize: 13)),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                CreateEditPersonaScreen(personaId: p.id),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: Text(
+                          context.l10n.editCharacter,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        onPressed:
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => CreateEditPersonaScreen(
+                                      personaId: p.id,
+                                    ),
+                              ),
+                            ),
                       ),
                     ),
                     if (index < _multiPersonas.length - 1) ...[
@@ -612,40 +727,52 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 foregroundColor: AppTheme.warning,
                 side: const BorderSide(color: AppTheme.cardBorder),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               icon: const Icon(Icons.delete_outline, size: 18),
-              label: Text(context.l10n.deleteBranch,
-                  style: const TextStyle(fontSize: 13)),
+              label: Text(
+                context.l10n.deleteBranch,
+                style: const TextStyle(fontSize: 13),
+              ),
               onPressed: _deleteBranch,
             ),
           ),
         ),
       ],
     );
-  }  /// Общий виджет изображения аватара персонажа
+  }
+
+  /// Общий виджет изображения аватара персонажа
   Widget _buildAvatarImage(PersonaEntity p) {
-    final hasFile =
-        p.avatarPath != null && File(p.avatarPath!).existsSync();
-    final hasAsset =
-        p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
+    final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
+    final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
 
     if (hasFile) {
-      return Image.file(File(p.avatarPath!),
-          fit: BoxFit.cover, alignment: Alignment.topCenter);
+      return Image.file(
+        File(p.avatarPath!),
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
     }
     if (hasAsset) {
-      return Image.asset(p.avatarAssetPath!,
-          fit: BoxFit.cover, alignment: Alignment.topCenter);
+      return Image.asset(
+        p.avatarAssetPath!,
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
     }
     return Container(
       color: AppTheme.cardBg,
       child: Center(
-        child: Text(_initials(p.name),
-            style: const TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 36,
-                fontWeight: FontWeight.bold)),
+        child: Text(
+          _initials(p.name),
+          style: const TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -655,7 +782,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildMobileBody(
-      BuildContext context, ChatState chatState, SettingsState settings) {
+    BuildContext context,
+    ChatState chatState,
+    SettingsState settings,
+  ) {
     return _buildChatContent(context, chatState, settings);
   }
 
@@ -664,19 +794,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildChatContent(
-      BuildContext context, ChatState chatState, SettingsState settings,
-      {bool showHeader = true}) {
-    final inputLen   = _inputCtrl.text.length;
+    BuildContext context,
+    ChatState chatState,
+    SettingsState settings, {
+    bool showHeader = true,
+  }) {
+    final inputLen = _inputCtrl.text.length;
     final inputLimit = settings.userInputLimit;
-    final overLimit  = inputLen > inputLimit;
-    final canSend    = !overLimit &&
-        !chatState.isLoading &&
-        _inputCtrl.text.trim().isNotEmpty;
-    final lastAiIdx =
-    chatState.messages.lastIndexWhere((m) => !m.isUser);
+    final overLimit = inputLen > inputLimit;
+    final canSend =
+        !overLimit && !chatState.isLoading && _inputCtrl.text.trim().isNotEmpty;
+    final lastAiIdx = chatState.messages.lastIndexWhere((m) => !m.isUser);
     final screenWidth = MediaQuery.of(context).size.width;
-    final useDesktop  =
+    final useDesktop =
         _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+    final bool isVerifyingOrFailed =
+        chatState.isVerifying || chatState.verificationFailed;
     return Column(
       children: [
         // ── Messages ──────────────────────────────────────────────
@@ -685,15 +818,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             reverse: true,
             controller: _scrollCtrl,
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: chatState.messages.length +
-                (chatState.isLoading ? 1 : 0) +
-                1,
+            itemCount:
+                chatState.messages.length + (chatState.isLoading ? 1 : 0) + 1,
             itemBuilder: (context, index) {
               // Header item (bottom of reversed list = top of chat)
               if (index ==
-                  chatState.messages.length +
-                      (chatState.isLoading ? 1 : 0)) {
-                return showHeader ? _buildChatHeader() : const SizedBox.shrink();
+                  chatState.messages.length + (chatState.isLoading ? 1 : 0)) {
+                return showHeader
+                    ? _buildChatHeader()
+                    : const SizedBox.shrink();
               }
 
               // Loading indicator
@@ -714,51 +847,61 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               final msgIdx =
                   chatState.messages.length - 1 - (index - loadingOffset);
               final msg = chatState.messages[msgIdx];
-              if (msg.isQuickAction || msg.isHidden) return const SizedBox.shrink();
+              if (msg.isQuickAction || msg.isHidden)
+                return const SizedBox.shrink();
 
               String? avatarPath;
               String? avatarAssetPath;
               if (!msg.isUser && !widget.isMulti && _singlePersona != null) {
-                avatarPath      = _singlePersona!.avatarPath;
+                avatarPath = _singlePersona!.avatarPath;
                 avatarAssetPath = _singlePersona!.avatarAssetPath;
               } else if (!msg.isUser && widget.isMulti) {
-                final matched = _multiPersonas
-                    .where((p) => p.name == msg.senderName)
-                    .firstOrNull;
-                avatarPath      = matched?.avatarPath;
+                final matched =
+                    _multiPersonas
+                        .where((p) => p.name == msg.senderName)
+                        .firstOrNull;
+                avatarPath = matched?.avatarPath;
                 avatarAssetPath = matched?.avatarAssetPath;
               }
 
               final isLastAi = msgIdx == lastAiIdx && !chatState.isLoading;
 
               return ChatBubble(
-                isUser:          msg.isUser,
-                senderName:      msg.senderName,
-                content:         msg.content,
-                avatarPath:      avatarPath,
+                isUser: msg.isUser,
+                senderName: msg.senderName,
+                content: msg.content,
+                avatarPath: avatarPath,
                 avatarAssetPath: avatarAssetPath,
-                imageLocalPath:  msg.imageLocalPath,
-                onImageTap: msg.imageLocalPath != null
-                    ? () => _openImageFullscreen(context, msg.imageLocalPath!)
-                    : null,
-                onImageRegen: msg.imageLocalPath != null &&
-                    !chatState.isLoading &&
-                    isLastAi
-                    ? () => _regenSceneImage()
-                    : null,
-                chatFontSize:    settings.chatFontSize,
+                imageLocalPath: msg.imageLocalPath,
+                onImageTap:
+                    msg.imageLocalPath != null
+                        ? () =>
+                            _openImageFullscreen(context, msg.imageLocalPath!)
+                        : null,
+                onImageRegen:
+                    msg.imageLocalPath != null &&
+                            !chatState.isLoading &&
+                            isLastAi
+                        ? () => _regenSceneImage()
+                        : null,
+                chatFontSize: settings.chatFontSize,
                 showRegenButton: isLastAi,
-                onRegen:         isLastAi ? () => _regenLastAI(settings) : null,
-                onLongPress: () => _showMessageActions(
-                    context, msg.id, msg.content, msg.isUser, settings),
-                onAvatarTap: (!msg.isUser &&
-                    !widget.isMulti &&
-                    _singlePersona != null)
-                    ? () => _openGalleryFromAvatar(context)
-                    : (!msg.isUser && widget.isMulti)
-                    ? () => _openGalleryFromMultiAvatar(
-                    context, msg.senderName)
-                    : null,
+                onRegen: isLastAi ? () => _regenLastAI(settings) : null,
+                onLongPress:
+                    () => _showMessageActions(
+                      context,
+                      msg.id,
+                      msg.content,
+                      msg.isUser,
+                      settings,
+                    ),
+                onAvatarTap:
+                    (!msg.isUser && !widget.isMulti && _singlePersona != null)
+                        ? () => _openGalleryFromAvatar(context)
+                        : (!msg.isUser && widget.isMulti)
+                        ? () =>
+                            _openGalleryFromMultiAvatar(context, msg.senderName)
+                        : null,
               );
             },
           ),
@@ -767,8 +910,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         // ── Input area ─────────────────────────────────────────────
         Container(
           color: AppTheme.surface,
-          padding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -778,9 +920,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: Text(
                     '$inputLen / $inputLimit',
                     style: TextStyle(
-                      color: overLimit
-                          ? Colors.red
-                          : AppTheme.textSecondary,
+                      color: overLimit ? Colors.red : AppTheme.textSecondary,
                       fontSize: 11,
                     ),
                   ),
@@ -792,42 +932,61 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       children: [
                         _QuickActionButton(
                           label: context.l10n.continueAction,
-                          icon:  Icons.play_arrow,
-                          onTap: () => _sendQuick(
-                              context.l10n.continueAction, settings,
-                            quickActionType: QuickActionType.continueStory,
-                          ),
+                          icon: Icons.play_arrow,
+                          onTap:
+                              isVerifyingOrFailed
+                                  ? null
+                                  : () => _sendQuick(
+                                    context.l10n.continueAction,
+                                    settings,
+                                    quickActionType:
+                                        QuickActionType.continueStory,
+                                  ),
                         ),
                         const SizedBox(width: 8),
                         _QuickActionButton(
                           label: context.l10n.moreDetails,
-                          icon:  Icons.auto_stories,
-                          onTap: () => _sendQuick(
-                            context.l10n.moreDetailsPrompt,
-                            settings,
-                            quickActionType: QuickActionType.moreDetails,
-                            tokenOverride: (_maxTokens(settings) * 2).clamp(500, 2000),
-                            hiddenResetContent: context.l10n.resetNormalStyle,
-                          ),
+                          icon: Icons.auto_stories,
+                          onTap:
+                              isVerifyingOrFailed
+                                  ? null
+                                  : () => _sendQuick(
+                                    context.l10n.moreDetailsPrompt,
+                                    settings,
+                                    quickActionType:
+                                        QuickActionType.moreDetails,
+                                    tokenOverride: (_maxTokens(settings) * 2)
+                                        .clamp(500, 2000),
+                                    hiddenResetContent:
+                                        context.l10n.resetNormalStyle,
+                                  ),
                         ),
                         const SizedBox(width: 8),
                         if (useDesktop)
-                        _QuickActionButton(
+                          _QuickActionButton(
                             label: context.l10n.shorterAction,
-                            onTap: () => _sendQuick(
-                              context.l10n.shorterPrompt,
-                              settings,
-                              quickActionType: QuickActionType.shorter,
-                              tokenOverride: 150,
-                              hiddenResetContent: context.l10n.resetNormalStyle,
-                            ), icon: Icons.compress,
-                        ),
+                            onTap:
+                                isVerifyingOrFailed
+                                    ? null
+                                    : () => _sendQuick(
+                                      context.l10n.shorterPrompt,
+                                      settings,
+                                      quickActionType: QuickActionType.shorter,
+                                      tokenOverride: 150,
+                                      hiddenResetContent:
+                                          context.l10n.resetNormalStyle,
+                                    ),
+                            icon: Icons.compress,
+                          ),
                         const SizedBox(width: 8),
                         if (!widget.isMulti)
                           _QuickActionButton(
                             label: context.l10n.photo,
-                            icon:  Icons.camera_alt_outlined,
-                            onTap: () => _generateSceneImage(),
+                            icon: Icons.camera_alt_outlined,
+                            onTap:
+                                isVerifyingOrFailed
+                                    ? null
+                                    : () => _generateSceneImage(),
                           ),
                       ],
                     ),
@@ -837,35 +996,41 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     Expanded(
                       child: TextField(
                         controller: _inputCtrl,
-                        enabled:    !chatState.isLoading,
-                        style: const TextStyle(
-                            color: AppTheme.textPrimary),
+                        enabled: !chatState.isLoading && !isVerifyingOrFailed,
+                        style: const TextStyle(color: AppTheme.textPrimary),
                         maxLines: 4,
                         minLines: 1,
                         decoration: InputDecoration(
-                          hintText: chatState.isLoading
-                              ? context.l10n.waitingForResponse
-                              : context.l10n.message,
-                          filled:     true,
-                          fillColor:  AppTheme.background,
+                          hintText:
+                              chatState.isLoading
+                                  ? context.l10n.waitingForResponse
+                                  : context.l10n.message,
+                          filled: true,
+                          fillColor: AppTheme.background,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide: BorderSide.none,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                         ),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      onPressed: canSend ? () => _send(settings) : null,
+                      onPressed:
+                          canSend && !isVerifyingOrFailed
+                              ? () => _send(settings)
+                              : null,
                       icon: Icon(
                         Icons.send,
-                        color: canSend
-                            ? AppTheme.primaryAccent
-                            : AppTheme.textSecondary,
+                        color:
+                            canSend && !isVerifyingOrFailed
+                                ? AppTheme.primaryAccent
+                                : AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -880,35 +1045,96 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Шапка чата (аватар + имя) — одинакова для мобайла и десктопа
   Widget _buildChatHeader() {
+    final chatState = ref.watch(chatProvider(widget.branchId));
     if (!widget.isMulti && _singlePersona != null) {
       return GestureDetector(
-        onTap:      () => _openGalleryFromAvatar(context),
-        onLongPress: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => PersonaViewScreen(persona: _singlePersona!)),
-        ),
+        onTap: () => _openGalleryFromAvatar(context),
+        onLongPress:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PersonaViewScreen(persona: _singlePersona!),
+              ),
+            ),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
+              // Verification status indicator
+              if (chatState.isVerifying || chatState.verificationFailed)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        chatState.verificationFailed
+                            ? AppTheme.error.withValues(alpha: 0.15)
+                            : AppTheme.primaryAccent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color:
+                          chatState.verificationFailed
+                              ? AppTheme.error.withValues(alpha: 0.3)
+                              : AppTheme.primaryAccent.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (chatState.isVerifying)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.primaryAccent,
+                          ),
+                        ),
+                      if (chatState.verificationFailed)
+                        const Icon(
+                          Icons.warning_amber,
+                          size: 16,
+                          color: AppTheme.error,
+                        ),
+                      const SizedBox(width: 8),
+                      Text(
+                        chatState.isVerifying
+                            ? context.l10n.verifyingPersona
+                            : context.l10n.personaDescriptionConflict,
+                        style: TextStyle(
+                          color:
+                              chatState.verificationFailed
+                                  ? AppTheme.error
+                                  : AppTheme.primaryAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(25),
                 child: AvatarWidget(
-                  imagePath:  _singlePersona!.avatarPath,
-                  assetPath:  _singlePersona!.avatarAssetPath,
-                  name:       _singlePersona!.name,
-                  size:       150,
+                  imagePath: _singlePersona!.avatarPath,
+                  assetPath: _singlePersona!.avatarAssetPath,
+                  name: _singlePersona!.name,
+                  size: 150,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 _singlePersona!.name,
                 style: const TextStyle(
-                    color:      AppTheme.textPrimary,
-                    fontSize:   18,
-                    fontWeight: FontWeight.w700),
+                  color: AppTheme.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 4),
               Padding(
@@ -917,12 +1143,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   _singlePersona!.description.length > 100
                       ? '${_singlePersona!.description.substring(0, 100)}…'
                       : _singlePersona!.description,
-                  textAlign:    TextAlign.center,
-                  maxLines:     2,
-                  overflow:     TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      color:    AppTheme.textSecondary,
-                      fontSize: 13),
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -939,47 +1166,53 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: _multiPersonas.take(3).map((p) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: GestureDetector(
-                    onTap: () =>
-                        _openGalleryFromMultiAvatar(context, p.name),
-                    onLongPress: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => PersonaViewScreen(persona: p)),
-                    ),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(30),
-                          child: AvatarWidget(
-                            imagePath: p.avatarPath,
-                            assetPath: p.avatarAssetPath,
-                            name:      p.name,
-                            size:      80,
-                          ),
+              children:
+                  _multiPersonas.take(3).map((p) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: GestureDetector(
+                        onTap:
+                            () => _openGalleryFromMultiAvatar(context, p.name),
+                        onLongPress:
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PersonaViewScreen(persona: p),
+                              ),
+                            ),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: AvatarWidget(
+                                imagePath: p.avatarPath,
+                                assetPath: p.avatarAssetPath,
+                                name: p.name,
+                                size: 80,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              p.name,
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          p.name,
-                          style: const TextStyle(
-                              color:      AppTheme.textPrimary,
-                              fontSize:   13,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+                      ),
+                    );
+                  }).toList(),
             ),
             const SizedBox(height: 12),
             Text(
               widget.title,
               style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 13),
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -998,31 +1231,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _inputCtrl.clear();
     setState(() {});
 
-    final tokens   = _maxTokens(settings);
+    final tokens = _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
     if (!widget.isMulti && _singlePersona != null) {
       notifier.sendMessage(
-          content: content,
-          persona: _singlePersona!,
-          maxTokens: tokens,
-          quickActionType: QuickActionType.none);
+        content: content,
+        persona: _singlePersona!,
+        maxTokens: tokens,
+        quickActionType: QuickActionType.none,
+      );
     } else if (widget.isMulti) {
       notifier.sendMultiMessage(
-          content:   content,
-          personas:  _multiPersonas,
-          behavior:  _multiBehavior,
-          maxTokens: tokens,
-          quickActionType: QuickActionType.none);
+        content: content,
+        personas: _multiPersonas,
+        behavior: _multiBehavior,
+        maxTokens: tokens,
+        quickActionType: QuickActionType.none,
+      );
     }
   }
 
   void _sendQuick(
-      String content,
-      SettingsState settings, {
-        QuickActionType quickActionType = QuickActionType.continueStory,
-        int? tokenOverride,
-        String? hiddenResetContent,
-      }) async {
+    String content,
+    SettingsState settings, {
+    QuickActionType quickActionType = QuickActionType.continueStory,
+    int? tokenOverride,
+    String? hiddenResetContent,
+  }) async {
     if (!await _ensureApiKey()) return;
     final tokens = tokenOverride ?? _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
@@ -1050,15 +1285,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _regenLastAI(SettingsState settings) {
-    final tokens   = _maxTokens(settings);
+    final tokens = _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
     if (!widget.isMulti && _singlePersona != null) {
       notifier.regenLastAI(persona: _singlePersona, maxTokens: tokens);
     } else if (widget.isMulti) {
       notifier.regenLastAI(
-          personas:  _multiPersonas,
-          behavior:  _multiBehavior,
-          maxTokens: tokens);
+        personas: _multiPersonas,
+        behavior: _multiBehavior,
+        maxTokens: tokens,
+      );
     }
   }
 
@@ -1069,17 +1305,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final navigator = Navigator.of(context);
     final errorText = context.l10n.errorDeepSeekNotSet;
     final settingsText = context.l10n.settings;
-    scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
-      backgroundColor: AppTheme.error,
-      content: Text(errorText, style: const TextStyle(color: Colors.white)),
-      action: SnackBarAction(
-        label: settingsText,
-        textColor: Colors.white,
-        onPressed: () => navigator.push(
-            MaterialPageRoute(builder: (_) => const ApiKeysScreen())),
+    scaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        backgroundColor: AppTheme.error,
+        content: Text(errorText, style: const TextStyle(color: Colors.white)),
+        action: SnackBarAction(
+          label: settingsText,
+          textColor: Colors.white,
+          onPressed:
+              () => navigator.push(
+                MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+              ),
+        ),
+        duration: const Duration(seconds: 8),
       ),
-      duration: const Duration(seconds: 8),
-    ));
+    );
     return false;
   }
 
@@ -1103,126 +1343,168 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         .generateSceneImage(persona: _singlePersona!, regen: true);
   }
 
-  void _showMessageActions(BuildContext context, String messageId,
-      String currentContent, bool isUser, SettingsState settings) {
+  void _showMessageActions(
+    BuildContext context,
+    String messageId,
+    String currentContent,
+    bool isUser,
+    SettingsState settings,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 4),
-              child: Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: AppTheme.textSecondary.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.copy, color: AppTheme.primaryAccent),
-              title: Text(context.l10n.copy,
-                  style: const TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                Clipboard.setData(ClipboardData(text: currentContent));
-                Fluttertoast.showToast(msg: context.l10n.copiedToClipboard);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit, color: AppTheme.primaryAccent),
-              title: Text(context.l10n.editCharacter,
-                  style: const TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showEditDialog(context, messageId, currentContent, settings);
-              },
-            ),
-            ListTile(
-              leading:
-              const Icon(Icons.delete, color: Colors.redAccent),
-              title: Text(context.l10n.delete,
-                  style: const TextStyle(color: Colors.redAccent)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showDeleteConfirm(context, messageId);
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      builder:
+          (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 4),
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.textSecondary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.copy,
+                    color: AppTheme.primaryAccent,
+                  ),
+                  title: Text(
+                    context.l10n.copy,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Clipboard.setData(ClipboardData(text: currentContent));
+                    Fluttertoast.showToast(msg: context.l10n.copiedToClipboard);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.edit,
+                    color: AppTheme.primaryAccent,
+                  ),
+                  title: Text(
+                    context.l10n.editCharacter,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showEditDialog(
+                      context,
+                      messageId,
+                      currentContent,
+                      settings,
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.redAccent),
+                  title: Text(
+                    context.l10n.delete,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showDeleteConfirm(context, messageId);
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
     );
   }
 
-  void _showEditDialog(BuildContext context, String messageId,
-      String currentContent, SettingsState settings) {
+  void _showEditDialog(
+    BuildContext context,
+    String messageId,
+    String currentContent,
+    SettingsState settings,
+  ) {
     final editCtrl = TextEditingController(text: currentContent);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(context.l10n.editMessage,
-            style: const TextStyle(
-                color: AppTheme.textPrimary, fontSize: 16)),
-        content: TextField(
-          controller: editCtrl,
-          style: const TextStyle(color: AppTheme.textPrimary),
-          maxLines: 8, minLines: 2,
-          decoration: InputDecoration(
-            filled: true, fillColor: AppTheme.background,
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(
+              context.l10n.editMessage,
+              style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16),
+            ),
+            content: TextField(
+              controller: editCtrl,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              maxLines: 8,
+              minLines: 2,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: AppTheme.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () {
+                  final newContent = editCtrl.text.trim();
+                  if (newContent.isEmpty) return;
+                  Navigator.pop(ctx);
+                  ref
+                      .read(chatProvider(widget.branchId).notifier)
+                      .editMessage(
+                        messageId: messageId,
+                        newContent: newContent,
+                        persona: !widget.isMulti ? _singlePersona : null,
+                        personas: widget.isMulti ? _multiPersonas : null,
+                        behavior: widget.isMulti ? _multiBehavior : null,
+                        maxTokens: _maxTokens(settings),
+                      );
+                },
+                child: Text(context.l10n.save),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(context.l10n.cancel)),
-          TextButton(
-            onPressed: () {
-              final newContent = editCtrl.text.trim();
-              if (newContent.isEmpty) return;
-              Navigator.pop(ctx);
-              ref.read(chatProvider(widget.branchId).notifier).editMessage(
-                messageId: messageId,
-                newContent: newContent,
-                persona:   !widget.isMulti ? _singlePersona : null,
-                personas:  widget.isMulti ? _multiPersonas : null,
-                behavior:  widget.isMulti ? _multiBehavior : null,
-                maxTokens: _maxTokens(settings),
-              );
-            },
-            child: Text(context.l10n.save),
-          ),
-        ],
-      ),
     );
   }
 
   void _openGalleryFromAvatar(BuildContext context) {
     if (_singlePersona == null) return;
-    final gs = ref.read(galleryProvider(
-        GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode)));
+    final gs = ref.read(
+      galleryProvider(
+        GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode),
+      ),
+    );
     if (gs.images.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => GalleryFullscreenScreen(
-            images:              gs.images,
-            initialIndex:        0,
-            personaDescription:  _singlePersona!.description,
-            personaId:           _singlePersona!.id,
-            galleryMode:         _singlePersona!.galleryMode,
-          ),
+          builder:
+              (_) => GalleryFullscreenScreen(
+                images: gs.images,
+                initialIndex: 0,
+                personaDescription: _singlePersona!.description,
+                personaId: _singlePersona!.id,
+                galleryMode: _singlePersona!.galleryMode,
+              ),
         ),
       );
     } else {
@@ -1230,29 +1512,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  void _openGalleryFromMultiAvatar(
-      BuildContext context, String senderName) {
+  void _openGalleryFromMultiAvatar(BuildContext context, String senderName) {
     final persona =
         _multiPersonas.where((p) => p.name == senderName).firstOrNull;
     if (persona == null) return;
     final gs = ref.read(
-        galleryProvider(GalleryKey(persona.id, persona.galleryMode)));
+      galleryProvider(GalleryKey(persona.id, persona.galleryMode)),
+    );
     if (gs.images.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => GalleryFullscreenScreen(
-            images:             gs.images,
-            initialIndex:       0,
-            personaDescription: persona.description,
-            personaId:          persona.id,
-            galleryMode:        persona.galleryMode,
-          ),
+          builder:
+              (_) => GalleryFullscreenScreen(
+                images: gs.images,
+                initialIndex: 0,
+                personaDescription: persona.description,
+                personaId: persona.id,
+                galleryMode: persona.galleryMode,
+              ),
         ),
       );
     } else {
-      Fluttertoast.showToast(
-          msg: context.l10n.galleryNameEmpty(persona.name));
+      Fluttertoast.showToast(msg: context.l10n.galleryNameEmpty(persona.name));
     }
   }
 
@@ -1260,21 +1542,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: const BackButton(color: Colors.white),
-          ),
-          body: PhotoView(
-            imageProvider: FileImage(File(imagePath)),
-            minScale: PhotoViewComputedScale.contained,
-            maxScale: PhotoViewComputedScale.covered * 4.0,
-            backgroundDecoration:
-            const BoxDecoration(color: Colors.black),
-          ),
-        ),
+        builder:
+            (_) => Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: const BackButton(color: Colors.white),
+              ),
+              body: PhotoView(
+                imageProvider: FileImage(File(imagePath)),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 4.0,
+                backgroundDecoration: const BoxDecoration(color: Colors.black),
+              ),
+            ),
       ),
     );
   }
@@ -1282,29 +1564,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _showDeleteConfirm(BuildContext context, String messageId) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(context.l10n.deleteMessage,
-            style: const TextStyle(
-                color: AppTheme.textPrimary, fontSize: 16)),
-        content: Text(context.l10n.messageAndFollowingWillBeDeleted,
-            style: const TextStyle(color: AppTheme.textSecondary)),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(context.l10n.cancel)),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref
-                  .read(chatProvider(widget.branchId).notifier)
-                  .deleteMessage(messageId);
-            },
-            child: Text(context.l10n.delete,
-                style: const TextStyle(color: Colors.redAccent)),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            title: Text(
+              context.l10n.deleteMessage,
+              style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16),
+            ),
+            content: Text(
+              context.l10n.messageAndFollowingWillBeDeleted,
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  ref
+                      .read(chatProvider(widget.branchId).notifier)
+                      .deleteMessage(messageId);
+                },
+                child: Text(
+                  context.l10n.delete,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -1322,7 +1611,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 class _QuickActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _QuickActionButton({
     required this.label,
@@ -1335,22 +1624,23 @@ class _QuickActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: AppTheme.background,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: AppTheme.primaryAccent.withValues(alpha: 0.3)),
+            color: AppTheme.primaryAccent.withValues(alpha: 0.3),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: AppTheme.primaryAccent),
             const SizedBox(width: 6),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 13, color: AppTheme.textPrimary)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+            ),
           ],
         ),
       ),

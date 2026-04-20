@@ -248,11 +248,13 @@ Important:
     } on PromptCleanerException {
       rethrow; // ВАЖНО: не глотаем свои ошибки
     } catch (e) {
-      debugPrint('[PromptCleanerService] Unexpected error: $e');
 
-      debugPrint('[PromptCleanerService] Unexpected error: $e');
+
       if (e is SocketException || e is http.ClientException) {
+        debugPrint('[PromptCleanerService] $e');
+
         throw const PromptCleanerException('network_error');
+
       }
       throw const PromptCleanerException('invalid_response');
     }

@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
 import 'package:nsfw_chat/core/enums/quick_action_type.dart';
+import 'package:nsfw_chat/core/factory/database_helper.dart';
+import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
 import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
 import 'package:nsfw_chat/core/services/chat_image_service.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
@@ -20,22 +22,30 @@ class ChatState {
   final List<ChatMessageModel> messages;
   final bool isLoading;
   final AppException? error;
+  final bool isVerifying;
+  final bool verificationFailed;
 
   const ChatState({
     this.messages = const [],
     this.isLoading = false,
     this.error,
+    this.isVerifying = false,
+    this.verificationFailed = false,
   });
 
   ChatState copyWith({
     List<ChatMessageModel>? messages,
     bool? isLoading,
     AppException? error,
+    bool? isVerifying,
+    bool? verificationFailed,
   }) =>
       ChatState(
         messages: messages ?? this.messages,
         isLoading: isLoading ?? this.isLoading,
         error: error,
+        isVerifying: isVerifying ?? this.isVerifying,
+        verificationFailed: verificationFailed ?? this.verificationFailed,
       );
 }
 
@@ -118,6 +128,62 @@ class ChatNotifier extends StateNotifier<ChatState> {
       state = state.copyWith(
         error: e is AppException ? e : HistoryException(e.toString()),
       );
+    }
+  }
+
+  // ── AGE VERIFICATION ───────────────────────────────────────────────────
+
+  /// Verifies persona age if needed. Runs in background, non-blocking UI.
+  /// If persona.ageVerified is true, returns immediately.
+  /// Otherwise: sets isVerifying: true, checks for minor signals,
+  /// and updates database on success.
+  Future<void> verifyPersonaIfNeeded(PersonaEntity persona) async {
+    // If already verified, do nothing
+    if (persona.ageVerified) {
+      return;
+    }
+
+    // Start verification
+    state = state.copyWith(isVerifying: true);
+
+    try {
+      // Combine description, behavior, and greeting
+      final combinedText = [
+        persona.description,
+        persona.behavior ?? '',
+        persona.greeting,
+      ].where((s) => s.isNotEmpty).join('\n\n');
+
+      // Check for minor signals
+      final result = await PromptCleanerService.instance
+          .checkForMinorSignals(combinedText);
+
+      // If conflict detected with high or medium severity, block sending
+      if (result.hasConflict && (result.severity == 'high' || result.severity == 'medium')) {
+        state = state.copyWith(
+          isVerifying: false,
+          verificationFailed: true,
+          error: const AgeVerificationException(),
+        );
+        return;
+      }
+
+      // No conflict or low severity - mark as verified
+      await DatabaseHelper.instance.setPersonaAgeVerified(persona.id, true);
+      state = state.copyWith(isVerifying: false);
+
+      // Fire-and-forget clean and save (background task)
+      PromptCleanerService.instance
+          .cleanAndSave(persona.id, persona.description)
+          .catchError((_) {});
+    } on PromptCleanerException catch (e) {
+      // Network errors or API issues are non-fatal - just stop verifying
+      state = state.copyWith(isVerifying: false,
+        error: PromptCleanerChatException(e), // новый тип — см. ниже
+      );
+    } catch (_) {
+      // Any other exception - non-fatal
+      state = state.copyWith(isVerifying: false);
     }
   }
 
