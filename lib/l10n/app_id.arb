@@ -493,5 +493,15 @@
   "personaNotValidatedNetworkError": "Tidak dapat memverifikasi usia karakter: terjadi masalah pada koneksi internet. Periksa koneksi Anda dan coba lagi.",
 
   "verifyingPersona": "Memverifikasi karakter...",
-  "preparingPrompts": "Menyiapkan prompt..."
+  "preparingPrompts": "Menyiapkan prompt...",
+
+  "personaAgeConflictHint": "Perbaiki deskripsi karakter (18+)",
+  "personaAgeConflictHintPlural": "Perbaiki deskripsi karakter (18+)",
+
+  "andMore": "dan {count} lainnya",
+  "@andMore": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 }

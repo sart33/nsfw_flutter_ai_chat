@@ -402,5 +402,15 @@
   "personaNotValidatedNetworkError": "Не вдалося підтвердити вік персонажа: проблема з інтернет-з’єднанням. Перевірте підключення та спробуйте знову.",
 
   "verifyingPersona": "Перевірка персонажа...",
-  "preparingPrompts": "Підготовка промптів..."
+  "preparingPrompts": "Підготовка промптів...",
+
+  "personaAgeConflictHint": "Виправте опис персонажа (18+)",
+  "personaAgeConflictHintPlural": "Виправте описи персонажів (18+)",
+
+  "andMore": "і ще {count}",
+  "@andMore": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 }

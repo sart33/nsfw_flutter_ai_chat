@@ -422,7 +422,17 @@
   "personaNotValidatedNetworkError": "Character age verify नहीं हो सका: network error. Internet connection check करें और फिर से try करें.",
 
   "verifyingPersona": "Character verify हो रहा है...",
-  "preparingPrompts": "Prompts prepare हो रहे हैं..."
+  "preparingPrompts": "Prompts prepare हो रहे हैं...",
+
+  "personaAgeConflictHint": "Character description ठीक करें (18+)",
+  "personaAgeConflictHintPlural": "Character descriptions ठीक करें (18+)",
+
+  "andMore": "और {count} और",
+  "@andMore": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 
 }
 

@@ -25,7 +25,10 @@ import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../../core/factory/database_helper.dart';
 import '../../core/utils/app_snack_bar.dart';
+import '../../data/models/persona_model.dart';
+import '../../domain/mappers/persona_mapper.dart';
 import '../widgets/avatar_widget.dart';
 import 'about_app_screen.dart';
 import 'api_keys_screen.dart';
@@ -54,15 +57,17 @@ class ChatScreen extends ConsumerStatefulWidget {
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _initialized = false;
+
   bool _sidePanelCollapsed = false;
 
   PersonaEntity? _singlePersona;
   List<PersonaEntity> _multiPersonas = [];
   String _multiBehavior = '';
+
 
   void _resolveEntities(WidgetRef ref) {
     final personasAsync = ref.watch(personaProvider);
@@ -129,12 +134,50 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _inputCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
   }
 
+
+  @override
+  @override
+  void didPopNext() {
+    ref.read(chatProvider(widget.branchId).notifier).resetVerification();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final notifier = ref.read(chatProvider(widget.branchId).notifier);
+      debugPrint('[ChatScreen] 1 ageVerified: ${notifier.toString()}');
+
+      if (!widget.isMulti) {
+        final map = await DatabaseHelper.instance.getPersonaById(widget.entityId);
+        if (!mounted || map == null) return;
+        final fresh = PersonaMapper.toEntity(PersonaModel.fromMap(map));
+        debugPrint('[ChatScreen] 2 ageVerified: ${fresh.ageVerified}');
+        if (!fresh.ageVerified) notifier.verifyPersonaIfNeeded(fresh);
+      } else {
+        final preset = ref.read(multiPresetProvider)
+            .where((p) => p.id == widget.entityId).firstOrNull;
+        if (preset == null) return;
+        for (final id in preset.personaIds) {
+          final map = await DatabaseHelper.instance.getPersonaById(id);
+          if (!mounted || map == null) continue;
+          final fresh = PersonaMapper.toEntity(PersonaModel.fromMap(map));
+          debugPrint('[ChatScreen] 2 ageVerified: ${fresh.ageVerified}');
+          if (!fresh.ageVerified) notifier.verifyPersonaIfNeeded(fresh);
+        }
+      }
+    });
+  }
   // ── DELETE BRANCH ─────────────────────────────────────────────────────
 
   void _deleteBranch() async {
@@ -218,7 +261,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             withSettings: isKeyNotSet || isKeyInvalid,
           );
         } else if (error is AgeVerificationException) {
+          // Show age conflict snackbar with failed personas list
+          final failedPersonas = next.failedPersonas;
+          if (failedPersonas.isNotEmpty) {
+            if (widget.isMulti) {
+              AppSnackBar.showAgeConflictMulti(context.l10n, next.failedPersonas);
+            } else {
+              AppSnackBar.showAgeConflictSingle(context.l10n, _singlePersona!.id);
+            }
+          } else {
             AppSnackBar.show(context.l10n.personaDescriptionConflict, isError: true);
+          }
         } else if (error is PromptCleanerChatException) {
           AppSnackBar.showPersonaValidationError(error.cause, context.l10n);
         } else {
@@ -847,8 +900,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               final msgIdx =
                   chatState.messages.length - 1 - (index - loadingOffset);
               final msg = chatState.messages[msgIdx];
-              if (msg.isQuickAction || msg.isHidden)
+              if (msg.isQuickAction || msg.isHidden) {
                 return const SizedBox.shrink();
+              }
 
               String? avatarPath;
               String? avatarAssetPath;
@@ -906,6 +960,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             },
           ),
         ),
+        if (chatState.isVerifying) ...[
+          LinearProgressIndicator(
+            backgroundColor: AppTheme.background,
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.warning),
+            minHeight: 2,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Center(
+              child: Text(
+                context.l10n.verifyingPersona,
+                style: const TextStyle(
+                  color: AppTheme.warning,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        ],
 
         // ── Input area ─────────────────────────────────────────────
         Container(
@@ -1002,9 +1075,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         minLines: 1,
                         decoration: InputDecoration(
                           hintText:
-                              chatState.isLoading
-                                  ? context.l10n.waitingForResponse
-                                  : context.l10n.message,
+                                chatState.isLoading
+                                    ? context.l10n.waitingForResponse
+                                    : chatState.verificationFailed
+                                        ? (chatState.failedPersonas.length == 1
+                                            ? context.l10n.personaAgeConflictHint
+                                            : context.l10n.personaAgeConflictHintPlural)
+                                        : context.l10n.message,
                           filled: true,
                           fillColor: AppTheme.background,
                           border: OutlineInputBorder(
@@ -1045,7 +1122,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Шапка чата (аватар + имя) — одинакова для мобайла и десктопа
   Widget _buildChatHeader() {
-    final chatState = ref.watch(chatProvider(widget.branchId));
     if (!widget.isMulti && _singlePersona != null) {
       return GestureDetector(
         onTap: () => _openGalleryFromAvatar(context),
@@ -1061,63 +1137,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
-              // Verification status indicator
-              if (chatState.isVerifying || chatState.verificationFailed)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        chatState.verificationFailed
-                            ? AppTheme.error.withValues(alpha: 0.15)
-                            : AppTheme.primaryAccent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color:
-                          chatState.verificationFailed
-                              ? AppTheme.error.withValues(alpha: 0.3)
-                              : AppTheme.primaryAccent.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (chatState.isVerifying)
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppTheme.primaryAccent,
-                          ),
-                        ),
-                      if (chatState.verificationFailed)
-                        const Icon(
-                          Icons.warning_amber,
-                          size: 16,
-                          color: AppTheme.error,
-                        ),
-                      const SizedBox(width: 8),
-                      Text(
-                        chatState.isVerifying
-                            ? context.l10n.verifyingPersona
-                            : context.l10n.personaDescriptionConflict,
-                        style: TextStyle(
-                          color:
-                              chatState.verificationFailed
-                                  ? AppTheme.error
-                                  : AppTheme.primaryAccent,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(25),
                 child: AvatarWidget(
@@ -1159,65 +1178,131 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
 
     if (widget.isMulti && _multiPersonas.isNotEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children:
-                  _multiPersonas.take(3).map((p) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: GestureDetector(
-                        onTap:
-                            () => _openGalleryFromMultiAvatar(context, p.name),
-                        onLongPress:
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PersonaViewScreen(persona: p),
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            children: [
+              // Verification status indicator for multi-persona
+              // if (chatState.isVerifying || chatState.verificationFailed)
+              //   Container(
+              //     margin: const EdgeInsets.only(bottom: 12),
+              //     padding: const EdgeInsets.symmetric(
+              //       horizontal: 16,
+              //       vertical: 10,
+              //     ),
+              //     decoration: BoxDecoration(
+              //       color:
+              //           chatState.verificationFailed
+              //               ? AppTheme.error.withValues(alpha: 0.15)
+              //               : AppTheme.primaryAccent.withValues(alpha: 0.15),
+              //       borderRadius: BorderRadius.circular(12),
+              //       border: Border.all(
+              //         color:
+              //             chatState.verificationFailed
+              //                 ? AppTheme.error.withValues(alpha: 0.3)
+              //                 : AppTheme.primaryAccent.withValues(alpha: 0.3),
+              //         width: 1,
+              //       ),
+              //     ),
+              //     child: Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: [
+              //         if (chatState.isVerifying)
+              //           const SizedBox(
+              //             width: 16,
+              //             height: 16,
+              //             child: CircularProgressIndicator(
+              //               strokeWidth: 2,
+              //               color: AppTheme.primaryAccent,
+              //             ),
+              //           ),
+              //         if (chatState.verificationFailed)
+              //           const Icon(
+              //             Icons.warning_amber,
+              //             size: 16,
+              //             color: AppTheme.error,
+              //           ),
+              //         const SizedBox(width: 8),
+              //         if (chatState.isVerifying)
+              //           Text(
+              //             context.l10n.verifyingPersona,
+              //             style: const TextStyle(
+              //               color: AppTheme.primaryAccent,
+              //               fontSize: 13,
+              //               fontWeight: FontWeight.w500,
+              //             ),
+              //           ),
+              //         if (chatState.verificationFailed)
+              //           Text(
+              //             chatState.failedPersonas.isEmpty
+              //                 ? context.l10n.personaDescriptionConflict
+              //                 : chatState.failedPersonas.take(3).map((p) => p.name).join(', ') +
+              //                     (chatState.failedPersonas.length > 3
+              //                         ? ' ${context.l10n.andMore(chatState.failedPersonas.length - 3)}'
+              //                         : ''),
+              //             style: const TextStyle(
+              //               color: Colors.red,
+              //               fontSize: 12,
+              //             ),
+              //           ),
+              //       ],
+              //     ),
+              //   ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children:
+                    _multiPersonas.take(3).map((p) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: GestureDetector(
+                          onTap:
+                              () => _openGalleryFromMultiAvatar(context, p.name),
+                          onLongPress:
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PersonaViewScreen(persona: p),
+                                ),
                               ),
-                            ),
-                        child: Column(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              child: AvatarWidget(
-                                imagePath: p.avatarPath,
-                                assetPath: p.avatarAssetPath,
-                                name: p.name,
-                                size: 80,
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: AvatarWidget(
+                                  imagePath: p.avatarPath,
+                                  assetPath: p.avatarAssetPath,
+                                  name: p.name,
+                                  size: 80,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              p.name,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                              const SizedBox(height: 6),
+                              Text(
+                                p.name,
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              widget.title,
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 13,
+                      );
+                    }).toList(),
               ),
-            ),
-          ],
-        ),
-      );
-    }
+              const SizedBox(height: 12),
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
 
     return const SizedBox.shrink();
   }

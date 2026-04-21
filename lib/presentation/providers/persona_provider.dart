@@ -49,6 +49,13 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
       );
     }
 
+  void markAgeVerified(String personaId) {
+    final current = state.valueOrNull ?? [];
+    state = AsyncValue.data([
+      for (final p in current)
+        if (p.id == personaId) p.copyWith(ageVerified: true) else p,
+    ]);
+  }
 
   /// Gets the current device locale for seeding.
   Future<Locale> _getDeviceLocale() async {

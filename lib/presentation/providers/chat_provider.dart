@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
@@ -22,30 +23,33 @@ class ChatState {
   final List<ChatMessageModel> messages;
   final bool isLoading;
   final AppException? error;
-  final bool isVerifying;
-  final bool verificationFailed;
+  final int verifyingCount;
+  final List<PersonaEntity> failedPersonas;
 
   const ChatState({
     this.messages = const [],
     this.isLoading = false,
     this.error,
-    this.isVerifying = false,
-    this.verificationFailed = false,
+    this.verifyingCount = 0,
+    this.failedPersonas = const [],
   });
+
+  bool get isVerifying => verifyingCount > 0;
+  bool get verificationFailed => failedPersonas.isNotEmpty;
 
   ChatState copyWith({
     List<ChatMessageModel>? messages,
     bool? isLoading,
     AppException? error,
-    bool? isVerifying,
-    bool? verificationFailed,
+    int? verifyingCount,
+    List<PersonaEntity>? failedPersonas,
   }) =>
       ChatState(
         messages: messages ?? this.messages,
         isLoading: isLoading ?? this.isLoading,
         error: error,
-        isVerifying: isVerifying ?? this.isVerifying,
-        verificationFailed: verificationFailed ?? this.verificationFailed,
+        verifyingCount: verifyingCount ?? this.verifyingCount,
+        failedPersonas: failedPersonas ?? this.failedPersonas,
       );
 }
 
@@ -54,17 +58,22 @@ class ChatNotifier extends StateNotifier<ChatState> {
   /// Lazily initialised after [init] — non-null after first call to init().
   ChatRepository? _chatRepo;
 
+
   /// Optional override used in tests. When provided, skips async creation.
   final ChatRepository? _chatRepoOverride;
 
   final BranchRepository _branchRepo;
   final String _branchId;
+  final Ref _ref; // добавить поле
+
 
   ChatNotifier({
     required String branchId,
+    required Ref ref,
     ChatRepository? chatRepo,
     BranchRepository? branchRepo,
-  })  : _branchId = branchId,
+  })  : _ref = ref,
+        _branchId = branchId,
         _chatRepoOverride = chatRepo,
         _branchRepo = branchRepo ?? BranchRepository(),
         super(const ChatState());
@@ -132,58 +141,69 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   // ── AGE VERIFICATION ───────────────────────────────────────────────────
-
+  void resetVerification() {
+    state = state.copyWith(failedPersonas: [], verifyingCount: 0);
+  }
   /// Verifies persona age if needed. Runs in background, non-blocking UI.
   /// If persona.ageVerified is true, returns immediately.
   /// Otherwise: sets isVerifying: true, checks for minor signals,
   /// and updates database on success.
-  Future<void> verifyPersonaIfNeeded(PersonaEntity persona) async {
-    // If already verified, do nothing
-    if (persona.ageVerified) {
-      return;
-    }
+  bool _disposed = false;
 
-    // Start verification
-    state = state.copyWith(isVerifying: true);
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  Future<void> verifyPersonaIfNeeded(PersonaEntity persona) async {
+    if (persona.ageVerified) return;
+    if (state.failedPersonas.any((p) => p.id == persona.id)) return;
+    if (_disposed) return;
+
+    state = state.copyWith(verifyingCount: state.verifyingCount + 1);
 
     try {
-      // Combine description, behavior, and greeting
       final combinedText = [
         persona.description,
         persona.behavior ?? '',
         persona.greeting,
       ].where((s) => s.isNotEmpty).join('\n\n');
 
-      // Check for minor signals
       final result = await PromptCleanerService.instance
           .checkForMinorSignals(combinedText);
 
-      // If conflict detected with high or medium severity, block sending
+      if (_disposed) return;
+
       if (result.hasConflict && (result.severity == 'high' || result.severity == 'medium')) {
         state = state.copyWith(
-          isVerifying: false,
-          verificationFailed: true,
+          verifyingCount: state.verifyingCount - 1,
+          failedPersonas: state.failedPersonas.any((p) => p.id == persona.id)
+              ? state.failedPersonas
+              : [...state.failedPersonas, persona],
           error: const AgeVerificationException(),
         );
         return;
       }
 
-      // No conflict or low severity - mark as verified
       await DatabaseHelper.instance.setPersonaAgeVerified(persona.id, true);
-      state = state.copyWith(isVerifying: false);
 
-      // Fire-and-forget clean and save (background task)
+      if (_disposed) return;
+      _ref.read(personaProvider.notifier).markAgeVerified(persona.id);
+      state = state.copyWith(verifyingCount: state.verifyingCount - 1);
+
       PromptCleanerService.instance
           .cleanAndSave(persona.id, persona.description)
           .catchError((_) {});
     } on PromptCleanerException catch (e) {
-      // Network errors or API issues are non-fatal - just stop verifying
-      state = state.copyWith(isVerifying: false,
-        error: PromptCleanerChatException(e), // новый тип — см. ниже
+      if (_disposed) return;
+      state = state.copyWith(
+        verifyingCount: state.verifyingCount - 1,
+        error: PromptCleanerChatException(e),
       );
     } catch (_) {
-      // Any other exception - non-fatal
-      state = state.copyWith(isVerifying: false);
+      if (_disposed) return;
+      state = state.copyWith(verifyingCount: state.verifyingCount - 1);
     }
   }
 
@@ -714,6 +734,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
 /// Family provider: one [ChatNotifier] per branchId.
 final chatProvider =
-    StateNotifierProvider.family<ChatNotifier, ChatState, String>(
-  (ref, branchId) => ChatNotifier(branchId: branchId),
+StateNotifierProvider.autoDispose.family<ChatNotifier, ChatState, String>(
+      (ref, branchId) => ChatNotifier(branchId: branchId, ref: ref),
 );

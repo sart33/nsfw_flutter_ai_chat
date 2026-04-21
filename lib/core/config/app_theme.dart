@@ -8,6 +8,10 @@ class AppTheme {
 
   static const double kContentMaxWidth = 960.0;
 
+  static const bodyStyle = TextStyle(
+    fontSize: 16,
+    color: AppTheme.textPrimary,
+  );
   // ── Colour palette ────────────────────────────────────────────────────
   static const Color background    = Color(0xFF000000);
   static const Color surface       = Color(0xFF111111);
@@ -29,6 +33,7 @@ class AppTheme {
   static const Color error         = Color(0xFFB71C1C);
   static const Color success       = Color(0xFF068733);
   static const Color warning       = Color(0xFFE65100);
+  static const Color textWarning       = Color(0xFFD97436);
 
   // ── Shared card decoration ────────────────────────────────────────────
   /// Используй для всех карточек на Settings / Home

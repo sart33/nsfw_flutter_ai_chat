@@ -397,6 +397,16 @@
   "personaNotValidatedNetworkError": "No se pudo verificar la edad del personaje: error de conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
 
   "verifyingPersona": "Verificando personaje...",
-  "preparingPrompts": "Preparando prompts..."
+  "preparingPrompts": "Preparando prompts...",
+
+  "personaAgeConflictHint": "Corrige la descripción del personaje (18+)",
+  "personaAgeConflictHintPlural": "Corrige las descripciones de los personajes (18+)",
+
+  "andMore": "y {count} más",
+  "@andMore": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 }
 

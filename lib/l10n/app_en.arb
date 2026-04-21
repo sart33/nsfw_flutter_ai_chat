@@ -384,5 +384,16 @@
   "personaNotValidatedNetworkError": "Unable to verify character age: network error. Please check your internet connection and try again.",
 
   "verifyingPersona": "Verifying character...",
-  "preparingPrompts": "Preparing prompts..."
+  "preparingPrompts": "Preparing prompts...",
+
+  "personaAgeConflictHint": "Fix character description (18+)",
+  "personaAgeConflictHintPlural": "Fix character descriptions (18+)",
+
+  "andMore": "and {count} more",
+  "@andMore": {
+    "placeholders": {
+      "count": {}
+    }
+  }
+
 }

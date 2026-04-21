@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/main.dart';
 
+import '../../domain/entities/persona_entity.dart';
 import '../../domain/exceptions/app_exceptions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../presentation/screens/api_keys_screen.dart';
+import '../../presentation/screens/create_edit_persona_screen.dart';
 import '../config/app_theme.dart'; // for scaffoldMessengerKey
 
 
@@ -20,11 +22,11 @@ class AppSnackBar {
     messenger.showSnackBar(SnackBar(
       backgroundColor: isError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isError ? 8 : 6),
-      content: Text(message, style: const TextStyle(color: Colors.white)),
+      content: Text(message, style: const TextStyle(color: AppTheme.textPrimary)),
       action: withSettings
           ? SnackBarAction(
         label: navigatorKey.currentContext!.l10n.settings,
-        textColor: Colors.white,
+        textColor: AppTheme.textPrimary,
         onPressed: () => navigatorKey.currentState?.push(
           MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
         ),
@@ -32,18 +34,6 @@ class AppSnackBar {
           : null,
     ));
   }
-
-  // success — отдельный метод, зелёный, 3 сек, без action
-  // static void showSuccess(String message) {
-  //   final messenger = scaffoldMessengerKey.currentState;
-  //   if (messenger == null) return;
-  //   messenger.removeCurrentSnackBar();
-  //   messenger.showSnackBar(SnackBar(
-  //     backgroundColor: AppTheme.success,
-  //     duration: const Duration(seconds: 3),
-  //     content: Text(message, style: const TextStyle(color: Colors.white)),
-  //   ));
-  // }
 
 
   static void showSuccess(String message, {bool isIcon = false}) {
@@ -96,5 +86,110 @@ class AppSnackBar {
       _                      => (l10n.errorImageGeneration,            false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
+  }
+
+
+
+  static void showAgeConflictSingle(AppLocalizations l10n, String personaId) {
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      backgroundColor: AppTheme.warning,
+      duration: const Duration(seconds: 15),
+      // action убираем совсем
+      content: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              l10n.personaDescriptionConflict,
+              style: AppTheme.bodyStyle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.textPrimary,
+              side: const BorderSide(color: AppTheme.textPrimary, width: 1.5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              messenger.removeCurrentSnackBar();
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => CreateEditPersonaScreen(personaId: personaId),
+                ),
+              );
+            },
+            child: Text(l10n.edit,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  static void showAgeConflictMulti(AppLocalizations l10n, List<PersonaEntity> failedPersonas) {
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+    final uniquePersonas = failedPersonas.fold<List<PersonaEntity>>([], (list, p) {
+      if (!list.any((x) => x.id == p.id)) list.add(p);
+      return list;
+    });
+    final names = uniquePersonas.take(3).map((p) => p.name).join(', ');
+    final suffix = uniquePersonas.length > 3
+        ? ' ${l10n.andMore(uniquePersonas.length - 3)}'
+        : '';
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      backgroundColor: AppTheme.warning,
+      duration: const Duration(seconds: 15),
+      content: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.personaDescriptionConflict,
+                    style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text('$names$suffix', style: AppTheme.bodyStyle),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.textPrimary,
+              side: const BorderSide(color: AppTheme.textPrimary, width: 1.5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              messenger.removeCurrentSnackBar();
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => CreateEditPersonaScreen(personaId: uniquePersonas.first.id),
+                ),
+              );
+            },
+            child: Text(l10n.edit,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    ));
   }
 }
