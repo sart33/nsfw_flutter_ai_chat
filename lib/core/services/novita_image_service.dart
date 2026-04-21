@@ -79,10 +79,18 @@ class NovitaImageService {
       jsonDecode(submitResponse.body) as Map<String, dynamic>;
       debugPrint('Novita API key error: ${submitResponse.statusCode} ${submitJson['reason']}');
 
-      if (submitResponse.statusCode == 401 || submitResponse.statusCode == 403) {
+      if (submitResponse.statusCode == 401) {
         throw NovitaException('api_key_invalid');
-      } else if (submitResponse.statusCode < 200 || submitResponse.statusCode >= 300) {
-
+      }
+      if (submitResponse.statusCode == 403) {
+        // Парсим reason из тела
+        final reason = submitJson['reason'] as String? ?? '';
+        if (reason == 'NOT_ENOUGH_BALANCE') {
+          throw NovitaException('insufficient_balance');
+        }
+        throw NovitaException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
+      }
+      if (submitResponse.statusCode != 200) {
         throw NovitaException('http_${submitResponse.statusCode}');
       }
 

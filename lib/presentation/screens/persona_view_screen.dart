@@ -80,7 +80,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
           switch (next.error) {
             case AgeVerificationException():
-              AppSnackBar.show(l10n.personaDescriptionConflict, isError: true);
+              AppSnackBar.showAgeConflictSingle(l10n, widget.persona.id);
 
             case PromptCleanerGalleryException(:final cause):
               AppSnackBar.showPersonaValidationError(cause, l10n);
@@ -93,6 +93,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
             case GenerationException(technicalMessage: 'api_key_invalid'):
               AppSnackBar.show(l10n.errorNovitaKeyInvalid, isError: true, withSettings: true);
+
+            case GenerationException(technicalMessage: 'insufficient_balance'):
+              AppSnackBar.show(l10n.errorNovitaInsufficientBalance, isError: true);
 
             case GenerationException():
               AppSnackBar.show(l10n.errorImageGeneration);
