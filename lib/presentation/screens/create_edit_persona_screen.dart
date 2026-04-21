@@ -43,6 +43,7 @@ class _CreateEditPersonaScreenState
 
   // --- Avatar style generation state ---
   String? _avatarPath;
+  bool _isCheckingAge = false;
   bool _isGeneratingAvatar = false;
   bool _isCleaningPrompt = false; // отдельный флаг для DeepSeek фазы
   String? _generatedAvatarPreviewPath;
@@ -187,14 +188,25 @@ class _CreateEditPersonaScreenState
     final description = _descCtrl.text.trim();
     if (description.isEmpty) return;
 
-    // ── 2. Проверка description через DeepSeek (если ключ есть) ─────────
-    final apiKey = await AppConfig.getDeepSeekApiKey();
-    if (apiKey.isNotEmpty) {
+    final personaId = widget.personaId ?? 'avatar_preview_temp';
+    final needsClean = description != _lastSentDescription;
+
+    if (needsClean) {
+      final apiKey = await AppConfig.getDeepSeekApiKey();
+      if (apiKey.isEmpty) {
+        // Ключа нет — дальше не идём, показываем ошибку
+        if (!mounted) return;
+        AppSnackBar.show(context.l10n.errorDeepSeekNotSet); // или твой existing ключ ошибки
+        return;
+      }
+      // Фаза 0: проверка возраста
+      setState(() {
+        _isGeneratingAvatar = true;
+        _isCheckingAge = true;
+      });
+
       try {
-        final check = await PromptCleanerService.instance.checkForMinorSignals(
-          _descCtrl.text.trim(),
-        );
-        debugPrint('[DeepSeek] check result: hasConflict=${check.hasConflict}, severity=${check.severity}');
+        final check = await PromptCleanerService.instance.checkForMinorSignals(description);
         if (check.hasConflict == true &&
             (check.severity == 'high' || check.severity == 'medium')) {
           if (!mounted) return;
@@ -205,16 +217,27 @@ class _CreateEditPersonaScreenState
         if (!mounted) return;
         AppSnackBar.showPersonaValidationError(e, context.l10n);
         return;
+      } finally {
+        if (mounted) setState(() => _isCheckingAge = false);
       }
+
+      // Фаза 1: очистка промптов
+      setState(() => _isCleaningPrompt = true);
+      try {
+        await PromptCleanerService.instance.cleanAndSave(personaId, description);
+        if (mounted) setState(() => _lastSentDescription = description);
+      } on PromptCleanerException catch (e) {
+        if (!mounted) return;
+        AppSnackBar.showPromptCleanerError(e, context.l10n);
+        return;
+      } finally {
+        if (mounted) setState(() => _isCleaningPrompt = false);
+      }
+
+    } else {
+      // description не менялся — сразу к Novita
+      setState(() => _isGeneratingAvatar = true);
     }
-    // ────────────────────────────────────────────────────────────────────
-
-    final personaId = widget.personaId ?? 'avatar_preview_temp';
-
-    setState(() {
-      _isGeneratingAvatar = true;
-      _isCleaningPrompt = false;
-    });
 
     try {
       String cleaned;
@@ -298,6 +321,7 @@ class _CreateEditPersonaScreenState
         setState(() {
           _isGeneratingAvatar = false;
           _isCleaningPrompt = false;
+          _isCheckingAge = false;
         });
     }
   }
@@ -835,13 +859,19 @@ class _CreateEditPersonaScreenState
   Widget _buildAvatarPreviewWidget({double radius = 0}) {
     // Generation in progress
     if (_isGeneratingAvatar) {
-      final isClean = _isCleaningPrompt;
-      final label =
-          isClean
-              ? context.l10n.avatarStatusPreparingPrompt
-              : context.l10n.avatarStatusGeneratingImage;
-      final color =
-          isClean ? AppTheme.primaryAccent : AppTheme.accentVividInputBorder;
+      final String label;
+      final Color color;
+
+      if (_isCheckingAge) {
+        label = context.l10n.avatarStatusCheckingAge; // новая строка локализации
+        color = AppTheme.warning; // оранжевый, как у тебя был
+      } else if (_isCleaningPrompt) {
+        label = context.l10n.avatarStatusPreparingPrompts;
+        color = AppTheme.primaryAccent;
+      } else {
+        label = context.l10n.avatarStatusGeneratingImage;
+        color = AppTheme.accentVividInputBorder;
+      }
 
       return Container(
         decoration: BoxDecoration(

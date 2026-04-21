@@ -335,7 +335,8 @@
   "avatarStyleSilkRobe": "Ранковий шовк",
   "avatarStyleNude": "Художнє ню",
 
-  "avatarStatusPreparingPrompt": "Підготовка промпту...",
+  "avatarStatusCheckingAge": "Перевірка віку...",
+  "avatarStatusPreparingPrompts": "Підготовка промптів...",
   "avatarStatusGeneratingImage": "Генерація зображення...",
 
   "language": "Мова",

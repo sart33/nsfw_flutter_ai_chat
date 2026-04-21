@@ -343,7 +343,8 @@
   "avatarStyleSilkRobe": "Утренний шелк",
   "avatarStyleNude": "Художественный ню",
 
-  "avatarStatusPreparingPrompt": "Подготовка промпта...",
+  "avatarStatusCheckingAge": "Проверка возраста...",
+  "avatarStatusPreparingPrompts": "Подготовка промптов...",
   "avatarStatusGeneratingImage": "Генерация изображения...",
 
   "language": "Язык",

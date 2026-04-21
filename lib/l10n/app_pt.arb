@@ -337,6 +337,10 @@
   "avatarStyleSilkRobe": "Seda matinal",
   "avatarStyleNude": "Nu artístico",
 
+  "avatarStatusCheckingAge": "Verificando idade...",
+  "avatarStatusPreparingPrompts": "Preparando prompts...",
+  "avatarStatusGeneratingImage": "Gerando imagem...",
+
   "language": "Idioma",
   "systemLanguage": "Sistema",
   "sendTon": "Enviar TON",

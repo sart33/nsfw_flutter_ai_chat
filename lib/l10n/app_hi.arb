@@ -366,6 +366,10 @@
   "avatarStyleSilkRobe": "Silk morning",
   "avatarStyleNude": "Art nude",
 
+  "avatarStatusCheckingAge": "Age check...",
+  "avatarStatusPreparingPrompts": "Preparing prompts...",
+  "avatarStatusGeneratingImage": "Generating image...",
+
   "language": "Language",
   "systemLanguage": "System",
   "sendTon": "TON भेजें",

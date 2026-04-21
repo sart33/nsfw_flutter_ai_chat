@@ -317,7 +317,8 @@
   "avatarStyleSilkRobe": "Silk Morning",
   "avatarStyleNude": "Art Nude",
 
-  "avatarStatusPreparingPrompt": "Preparing prompt...",
+  "avatarStatusCheckingAge": "Checking age...",
+  "avatarStatusPreparingPrompts": "Preparing prompts...",
   "avatarStatusGeneratingImage": "Generating image...",
 
   "language": "Language",

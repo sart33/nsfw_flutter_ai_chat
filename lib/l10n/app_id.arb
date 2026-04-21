@@ -426,8 +426,9 @@
   "avatarStyleSilkRobe": "Pagi dengan sutra",
   "avatarStyleNude": "Akt seni",
 
-  "avatarStatusPreparingPrompt": "Menyiapkan prompt...",
-  "avatarStatusGeneratingImage": "Membuat gambar...",
+  "avatarStatusCheckingAge": "Memeriksa usia...",
+  "avatarStatusPreparingPrompts": "Menyiapkan prompt...",
+  "avatarStatusGeneratingImage": "Menghasilkan gambar...",
 
   "language": "Bahasa",
   "systemLanguage": "Sistem",
