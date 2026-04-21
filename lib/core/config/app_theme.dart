@@ -34,6 +34,7 @@ class AppTheme {
   static const Color success       = Color(0xFF068733);
   static const Color warning       = Color(0xFFE65100);
   static const Color textWarning       = Color(0xFFD97436);
+  static const Color unVerified       = Color(0xFFD97436);
 
   // ── Shared card decoration ────────────────────────────────────────────
   /// Используй для всех карточек на Settings / Home

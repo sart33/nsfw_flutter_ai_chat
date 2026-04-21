@@ -409,7 +409,27 @@ class _DesktopPersonaCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
+// Бейдж невалидированного персонажа
+                  if (!persona.ageVerified)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Tooltip(
+                        message: context.l10n.ageNotVerified,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: AppTheme.unVerified,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
                   // Имя + описание поверх градиента
                   Positioned(
                     bottom: 10,
@@ -460,7 +480,7 @@ class _DesktopPersonaCard extends StatelessWidget {
                 _ActionBtn(
                   icon: Icons.visibility_outlined,
                   color: AppTheme.textSecondary,
-                  tooltip: 'Профиль',
+                  tooltip: context.l10n.profile,
                   onTap: onView,
                 ),
                 _VDivider(),
@@ -481,7 +501,7 @@ class _DesktopPersonaCard extends StatelessWidget {
                 _ActionBtn(
                   icon: Icons.delete_outline,
                   color: AppTheme.warning,
-                  tooltip: context.l10n.cancel,
+                  tooltip: context.l10n.delete,
                   onTap: onDelete,
                 ),
               ],

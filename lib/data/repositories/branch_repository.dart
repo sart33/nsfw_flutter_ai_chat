@@ -35,6 +35,7 @@ class BranchRepository {
         personaName: row['persona_name'] as String,
         avatarPath: row['avatar_path'] as String?,
         avatarAssetPath: row['avatar_asset_path'] as String?,
+        ageVerified: row['persona_age_verified'],
         preview: row['preview'] as String?,
         updatedAt: DateTime.fromMillisecondsSinceEpoch(updatedAtMs),
       );

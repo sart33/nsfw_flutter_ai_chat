@@ -204,7 +204,8 @@ class DatabaseHelper {
     
       p.name as persona_name,
       p.avatar_path,
-      p.avatar_asset_path
+      p.avatar_asset_path,
+      p.age_verified as persona_age_verified
     
     FROM branches b
     

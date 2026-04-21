@@ -325,36 +325,61 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         // Аватар — квадратная карточка с закруглёнными углами
         Padding(
           padding: const EdgeInsets.all(16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: AspectRatio(
-              aspectRatio: 9 / 13,
-              child:
+          child: AspectRatio(
+            aspectRatio: 9 / 13,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
                   hasFile
                       ? Image.file(
-                        File(p.avatarPath!),
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      )
+                    File(p.avatarPath!),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
                       : hasAsset
                       ? Image.asset(
-                        p.avatarAssetPath!,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      )
+                    p.avatarAssetPath!,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
                       : Container(
-                        color: AppTheme.cardBg,
-                        child: Center(
-                          child: Text(
-                            _initials(p.name),
-                            style: const TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                            ),
+                    color: AppTheme.cardBg,
+                    child: Center(
+                      child: Text(
+                        _initials(p.name),
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  if (!p.ageVerified)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Tooltip(
+                        message: context.l10n.ageNotVerified,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: AppTheme.unVerified,
+                            size: 20,
                           ),
                         ),
                       ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

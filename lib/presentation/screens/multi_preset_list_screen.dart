@@ -149,13 +149,28 @@ class MultiPresetListScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              preset.name,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    preset.name,
+                                    style: const TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (personas.any((p) => !p.ageVerified)) ...[
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: AppTheme.unVerified,
+                                    size: 20,
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -444,7 +459,33 @@ class _DesktopPresetCard extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: onChat,
-              child: _buildAvatarComposition(),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _buildAvatarComposition(),
+
+                  if (personas.any((p) => !p.ageVerified))
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Tooltip(
+                        message: context.l10n.ageNotVerified,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: AppTheme.unVerified,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
 
@@ -489,21 +530,21 @@ class _DesktopPresetCard extends StatelessWidget {
                 _ActionBtn(
                   icon:    Icons.chat_bubble_outline,
                   color:   AppTheme.primaryAccent,
-                  tooltip: 'Чат',
+                  tooltip: context.l10n.chats,
                   onTap:   onChat,
                 ),
                 _VDivider(),
                 _ActionBtn(
                   icon:    Icons.edit_outlined,
                   color:   AppTheme.textSecondary,
-                  tooltip: 'Редактировать',
+                  tooltip: context.l10n.edit,
                   onTap:   onEdit,
                 ),
                 _VDivider(),
                 _ActionBtn(
                   icon:    Icons.delete_outline,
                   color:   AppTheme.warning,
-                  tooltip: 'Удалить',
+                  tooltip: context.l10n.delete,
                   onTap:   onDelete,
                 ),
               ],

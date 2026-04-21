@@ -200,7 +200,8 @@ class _DesktopHomeBody extends ConsumerWidget {
                 const SizedBox(height: 32),
 
                 // ── Nav cards — 3 in a row ────────────────────
-                _DesktopNavCards(ref: ref),                const SizedBox(height: 40),
+                _DesktopNavCards(ref: ref),
+                const SizedBox(height: 40),
 
                 // ── Continue Roleplay ─────────────────────────
                 _SectionHeader(
@@ -388,33 +389,60 @@ class _DesktopRecentChatCard extends ConsumerWidget {
               // ── Avatar image fills top ────────────────────
               Expanded(
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(14)),
-                  child: chat.avatarPath != null && chat.avatarPath!.isNotEmpty
-                      ? Image.file(
-                    File(chat.avatarPath!),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  )
-                      : chat.avatarAssetPath != null && chat.avatarAssetPath!.isNotEmpty
-                      ? Image.asset(
-                    chat.avatarAssetPath!,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  )
-                      : Container(
-                    color: AppTheme.userBubble,
-                    alignment: Alignment.center,
-                    child: Text(
-                      chat.personaName.isNotEmpty
-                          ? chat.personaName.characters.first.toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // ── Изображение (всё что было внутри ClipRRect) ──
+                      chat.avatarPath != null && chat.avatarPath!.isNotEmpty
+                          ? Image.file(
+                        File(chat.avatarPath!),
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                          : chat.avatarAssetPath != null && chat.avatarAssetPath!.isNotEmpty
+                          ? Image.asset(
+                        chat.avatarAssetPath!,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                          : Container(
+                        color: AppTheme.userBubble,
+                        alignment: Alignment.center,
+                        child: Text(
+                          chat.personaName.isNotEmpty
+                              ? chat.personaName.characters.first.toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
+
+                      // ── Значок невалидированного персонажа ───────────
+                      if (chat.ageVerified == 0)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Tooltip(
+                            message: context.l10n.ageNotVerified,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.warning_amber_rounded,
+                                color: AppTheme.unVerified,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -767,23 +795,45 @@ class _RecentChatCard extends ConsumerWidget {
                         mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              chat.personaName,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: AppTheme.textPrimary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
+                          // Expanded(
+                          //   child: Text(
+                          //     chat.personaName,
+                          //     overflow: TextOverflow.ellipsis,
+                          //     style: const TextStyle(
+                          //         color: AppTheme.textPrimary,
+                          //         fontSize: 15,
+                          //         fontWeight: FontWeight.w700),
+                          //   ),
+                          //
+                          // ),
+            Expanded(
+              child: Text(
+                chat.personaName,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
                           Text(
                             _formatTime(context, chat.updatedAt),
                             style: const TextStyle(
                                 color: AppTheme.textSecondary,
                                 fontSize: 12),
+                            textAlign: TextAlign.right,
                           ),
+                          if (chat.ageVerified== 0) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppTheme.unVerified,
+                              size: 20,
+                            ),
+                          ],
+                          const SizedBox(width: 4),
                         ],
                       ),
                       const SizedBox(height: 4),

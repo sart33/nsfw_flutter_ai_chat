@@ -18,8 +18,8 @@ class PersonaCardHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shortDesc = persona.description.length > 40
-        ? '${persona.description.substring(0, 40)}…'
+    final shortDesc = persona.description.length > 50
+        ? '${persona.description.substring(0, 50)}…'
         : persona.description;
 
     return Padding(
@@ -30,7 +30,7 @@ class PersonaCardHome extends StatelessWidget {
           onTap: onTap,
           // borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.only(left: 14, top: 6, bottom: 6, right: 74),
+            padding: const EdgeInsets.only(left: 14, top: 6, bottom: 6, right: 54),
             child: Row(
               children: [
                 // Avatar — скруглённые углы чтобы вписывался в карточку
@@ -48,13 +48,29 @@ class PersonaCardHome extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        persona.name,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              persona.name,
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (!persona.ageVerified) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppTheme.unVerified,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10)
+                          ],
+                        ],
                       ),
                       // const SizedBox(height: 2),
                       Text(

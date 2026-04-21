@@ -395,6 +395,7 @@
     "placeholders": {
       "count": {}
     }
-  }
-
+  },
+  "profile": "Profile",
+  "ageNotVerified": "Age not verified"
 }

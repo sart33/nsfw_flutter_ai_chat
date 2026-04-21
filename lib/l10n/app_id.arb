@@ -504,5 +504,7 @@
     "placeholders": {
       "count": {}
     }
-  }
+  },
+  "profile": "Profil",
+  "ageNotVerified": "Usia belum diverifikasi"
 }

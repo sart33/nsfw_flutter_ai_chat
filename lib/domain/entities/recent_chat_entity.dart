@@ -5,6 +5,7 @@ class RecentChatEntity {
   final String personaName;
   final String? avatarPath;
   final String? avatarAssetPath;
+  final int ageVerified; // NEW: 'verified' or null
   final String? preview;
   final DateTime updatedAt;
 
@@ -15,6 +16,7 @@ class RecentChatEntity {
     required this.personaName,
     required this.avatarPath,
     required this.avatarAssetPath,
+    required this.ageVerified,
     required this.preview,
     required this.updatedAt,
   });

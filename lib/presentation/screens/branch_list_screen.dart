@@ -47,6 +47,8 @@ class BranchListScreen extends ConsumerWidget {
     final useDesktop    =
         _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
 
+
+
     const whiteStyle = TextStyle(
       color: AppTheme.textPrimary,
       fontSize: 20,
@@ -189,6 +191,7 @@ class BranchListScreen extends ConsumerWidget {
       List<MultiPresetEntity> presets,
       ) {
     final branches = ref.watch(branchProvider(entityId));
+    final branchPersonas = _branchPersonas(personas, presets);
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -233,13 +236,24 @@ class BranchListScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              _formatDateTime(branch.updatedAt),
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _formatDateTime(branch.updatedAt),
+                                    style: const TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (branchPersonas.any((p) => !p.ageVerified)) ...[
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.warning_amber_rounded, color: AppTheme.unVerified, size: 20),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -283,6 +297,7 @@ class BranchListScreen extends ConsumerWidget {
       List<MultiPresetEntity> presets,
       ) {
     final branches = ref.watch(branchProvider(entityId));
+    final branchPersonas = _branchPersonas(personas, presets);
 
     // Разбиваем ветки на две колонки: чётные — левая, нечётные — правая
     final leftBranches  = [for (int i = 0; i < branches.length; i += 2) branches[i]];
@@ -328,13 +343,31 @@ class BranchListScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _formatDateTime(branch.updatedAt),
-                          style: const TextStyle(
-                            color: AppTheme.textPrimary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _formatDateTime(branch.updatedAt),
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (branchPersonas.any((p) => !p.ageVerified)) ...[
+                              const SizedBox(width: 4),
+                              Tooltip(
+                                message: context.l10n.ageNotVerified,
+                                child: const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: AppTheme.unVerified,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -394,6 +427,29 @@ class BranchListScreen extends ConsumerWidget {
   }
 
   // ── Shared helpers ────────────────────────────────────────────────────────
+
+  List<PersonaEntity> _branchPersonas(
+      List<PersonaEntity> personas,
+      List<MultiPresetEntity> presets,
+      ) {
+    if (!isMulti) {
+      final personaId = entityId.startsWith('single:')
+          ? entityId.substring(7)
+          : entityId;
+      return personas.where((p) => p.id == personaId).toList();
+    } else {
+      final presetId = entityId.startsWith('multi:')
+          ? entityId.substring(6)
+          : entityId;
+      final preset = presets.where((p) => p.id == presetId).firstOrNull;
+      if (preset == null) return [];
+      return preset.personaIds
+          .map((id) => personas.where((p) => p.id == id).firstOrNull)
+          .where((p) => p != null)
+          .cast<PersonaEntity>()
+          .toList();
+    }
+  }
 
   Widget _buildAvatarArea(
       List<PersonaEntity> personas, List<MultiPresetEntity> presets) {

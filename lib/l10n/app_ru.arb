@@ -423,7 +423,9 @@
     "placeholders": {
       "count": {}
     }
-  }
+  },
+  "profile": "Профиль",
+  "ageNotVerified": "Возраст не подтверждён"
 }
 
 
