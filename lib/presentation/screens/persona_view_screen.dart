@@ -77,14 +77,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           if (next.error == null || next.error == prev?.error) return;
 
           final l10n = context.l10n;
-          debugPrint('Gallery error: ${next.error}');
+          debugPrint('Gallery error 1: ${next.error}');
           switch (next.error) {
-            case AgeVerificationException():
-              AppSnackBar.showAgeConflictSingle(l10n, widget.persona.id);
-
             case DeepSeekApiException():
               AppSnackBar.showPersonaValidationError(next.error as DeepSeekApiException, l10n);
-
+            case NetworkException():
+              AppSnackBar.show(l10n.networkError, isError: true);
+            case AgeVerificationException(:final reason):
+              AppSnackBar.showAgeConflictSingle(l10n, widget.persona.id, reason);
             case GalleryFullException():
               AppSnackBar.show(l10n.galleryFull);
 

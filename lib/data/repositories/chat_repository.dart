@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/factory/dio_factory.dart';
@@ -279,9 +280,13 @@ class ChatRepository {
 
       return content.trim();
     } catch (e) {
+      debugPrint('sendMessage error: $e');
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is DioException && e.type == DioExceptionType.connectionError) {
+        throw const NetworkException();
+      }
       if (e is DeepSeekApiException) rethrow;
-
-      if (e is SocketException) throw const DeepSeekApiException('network_error');
       throw const DeepSeekApiException('invalid_response');
   }
 }
@@ -395,8 +400,13 @@ class ChatRepository {
 
       return content.trim();
     } catch (e) {
+      debugPrint('sendMessage error: $e');
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is DioException && e.type == DioExceptionType.connectionError) {
+        throw const NetworkException();
+      }
       if (e is DeepSeekApiException) rethrow;
-      if (e is SocketException) throw const DeepSeekApiException('network_error');
       throw const DeepSeekApiException('invalid_response');
     }
   }

@@ -183,6 +183,8 @@
   "errorDeepSeekKeyInvalid": "A chave do DeepSeek é inválida. Atualize nas configurações.",
   "errorDeepSeekNotSet": "Chave do DeepSeek não definida. Adicione nas configurações.",
   "errorDeepSeekInsufficientBalance": "Saldo insuficiente na conta DeepSeek. Por favor, recarregue.",
+  "errorDeepseekServiceUnavailable": "O serviço do DeepSeek está temporariamente indisponível. Tente novamente mais tarde.",
+
   "errorNovitaKeyInvalid": "A chave do Novita é inválida. Atualize nas configurações.",
   "errorNovitaKeyNotSet": "Chave do Novita não definida. Adicione nas configurações.",
   "errorNovitaInsufficientBalance": "Saldo insuficiente na conta Novita. Por favor, recarregue.",
@@ -394,6 +396,7 @@
   "personaNotValidatedKeyNotSet": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek não está configurada. Adicione-a nas configurações.",
   "personaNotValidatedKeyInvalid": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek é inválida. Atualize-a nas configurações.",
   "personaNotValidatedNoBalance": "Não foi possível verificar a idade do personagem: saldo insuficiente no DeepSeek. Recarregue o saldo.",
+  "personaNotValidatedDeepseekUnavailable": "Não foi possível verificar a idade do personagem: o serviço do DeepSeek está temporariamente indisponível. Tente novamente mais tarde.",
   "personaNotValidatedGeneric": "Não foi possível verificar a idade do personagem: validação indisponível.",
   "personaNotValidatedNetworkError": "Não foi possível verificar a idade do personagem: erro de conexão com a internet. Verifique sua conexão e tente novamente.",
 
@@ -410,5 +413,6 @@
     }
   },
   "profile": "Perfil",
-  "ageNotVerified": "Idade não verificada"
+  "ageNotVerified": "Idade não verificada",
+  "personaAgeMissing": "Especifique a idade do personagem (por exemplo, \"28 anos\")."
 }

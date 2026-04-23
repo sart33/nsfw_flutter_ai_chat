@@ -180,7 +180,18 @@ class ChatNotifier extends StateNotifier<ChatState> {
           failedPersonas: state.failedPersonas.any((p) => p.id == persona.id)
               ? state.failedPersonas
               : [...state.failedPersonas, persona],
-          error: const AgeVerificationException(),
+          error: const AgeVerificationException(AgeCheckFailReason.conflict),
+        );
+        return;
+      }
+
+      if (!result.hasAge) {
+        state = state.copyWith(
+          verifyingCount: state.verifyingCount - 1,
+          failedPersonas: state.failedPersonas.any((p) => p.id == persona.id)
+              ? state.failedPersonas
+              : [...state.failedPersonas, persona],
+          error: const AgeVerificationException(AgeCheckFailReason.missing),
         );
         return;
       }
@@ -194,6 +205,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
       PromptCleanerService.instance
           .cleanAndSave(persona.id, persona.description)
           .catchError((_) {});
+    } on NetworkException catch (e) {
+      if (_disposed) return;
+      state = state.copyWith(
+        verifyingCount: state.verifyingCount - 1,
+        error: e,
+      );
     } on DeepSeekApiException catch (e) {
       if (_disposed) return;
       state = state.copyWith(
@@ -300,6 +317,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
           : reply;
       await _branchRepo.updatePreview(_branchId, previewText);
       await _branchRepo.touchTimestamp(_branchId);
+    } on NetworkException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
     } on DeepSeekApiException catch (e) {
       debugPrint('[ChatNotifier] DeepSeekApiException: $e');
       state = state.copyWith(
@@ -680,6 +702,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
       state = state.copyWith(
         messages: [...state.messages, imgMsg],
         isLoading: false,
+      );
+    } on NetworkException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
       );
     } on DeepSeekApiException catch (e) {
       state = state.copyWith(

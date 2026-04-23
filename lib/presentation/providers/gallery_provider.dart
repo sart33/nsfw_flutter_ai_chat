@@ -135,6 +135,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         pendingImagePath: data.tempPath,
         pendingTemplateId: data.templateId,
       );
+    } on NetworkException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
     } on GalleryFullException {
       state = state.copyWith(
         isGenerating: false,
@@ -188,7 +190,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           (check.severity == 'high' || check.severity == 'medium')) {
         state = state.copyWith(
           isGenerating: false,
-          error: const AgeVerificationException(),
+          error: const AgeVerificationException(AgeCheckFailReason.conflict),
+        );
+        return;
+      }
+      if (!check.hasAge) {
+        state = state.copyWith(
+          isGenerating: false,
+          error: const AgeVerificationException(AgeCheckFailReason.missing),
         );
         return;
       }
@@ -205,18 +214,21 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       state = state.copyWith(generatingPhase: GeneratingPhase.generating);
 
       await generatePreview(persona.description);
+
+    } on NetworkException catch (e) {
+      state = state.copyWith(isGenerating: false, generatingPhase: null, error: e);
     } on DeepSeekApiException catch (e) {
       // network_error, key_invalid, 402 и т.д. — всё сюда
       state = state.copyWith(
         isGenerating: false,
         generatingPhase: null,
-        error: DeepSeekApiException(e.toString()),
+        error: e,
       );
     } catch (e) {
       state = state.copyWith(
         isGenerating: false,
         generatingPhase: null,
-        error: DeepSeekApiException(e.toString()),
+        error: e,
       );
     }
   }
@@ -286,6 +298,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         isGenerating: false,
         error: const GalleryFullException(),
       );
+    } on NetworkException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
     } on NovitaApiException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
     } on DeepSeekApiException catch (e) {

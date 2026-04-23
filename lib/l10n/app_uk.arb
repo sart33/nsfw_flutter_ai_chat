@@ -188,6 +188,7 @@
   "errorDeepSeekKeyInvalid": "Ключ DeepSeek недійсний. Оновіть його в налаштуваннях.",
   "errorDeepSeekNotSet": "Ключ DeepSeek не встановлено. Додайте його в налаштуваннях.",
   "errorDeepSeekInsufficientBalance": "Недостатньо коштів на рахунку DeepSeek. Поповніть баланс.",
+  "errorDeepseekServiceUnavailable": "Сервіс DeepSeek тимчасово недоступний. Спробуйте пізніше.",
   "errorNovitaKeyInvalid": "Ключ Novita недійсний. Оновіть його в налаштуваннях.",
   "errorNovitaKeyNotSet": "Ключ Novita не встановлено. Додайте його в налаштуваннях.",
   "errorNovitaInsufficientBalance": "Недостатньо коштів на рахунку Novita. Поповніть баланс.",
@@ -399,6 +400,7 @@
   "personaNotValidatedKeyNotSet": "Не вдалося підтвердити вік персонажа: ключ DeepSeek не встановлено. Додайте його в налаштуваннях.",
   "personaNotValidatedKeyInvalid": "Не вдалося підтвердити вік персонажа: ключ DeepSeek недійсний. Оновіть його в налаштуваннях.",
   "personaNotValidatedNoBalance": "Не вдалося підтвердити вік персонажа: недостатньо коштів на рахунку DeepSeek. Поповніть баланс.",
+  "personaNotValidatedDeepseekUnavailable": "Не вдалося підтвердити вік персонажа: сервіс DeepSeek тимчасово недоступний. Спробуйте пізніше.",
   "personaNotValidatedGeneric": "Не вдалося підтвердити вік персонажа: перевірка недоступна.",
   "personaNotValidatedNetworkError": "Не вдалося підтвердити вік персонажа: проблема з інтернет-з’єднанням. Перевірте підключення та спробуйте знову.",
 
@@ -415,5 +417,6 @@
     }
   },
   "profile": "Профіль",
-  "ageNotVerified": "Вік не підтверджено"
+  "ageNotVerified": "Вік не підтверджено",
+  "personaAgeMissing": "Вкажіть вік персонажа (наприклад, \"28 років\")."
 }

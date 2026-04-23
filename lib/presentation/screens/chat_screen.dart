@@ -31,7 +31,6 @@ import '../../data/models/persona_model.dart';
 import '../../domain/mappers/persona_mapper.dart';
 import '../widgets/avatar_widget.dart';
 import 'about_app_screen.dart';
-import 'api_keys_screen.dart';
 import 'home_screen.dart';
 
 bool get _isDesktopPlatform =>
@@ -226,21 +225,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
       if (next.error != null && next.error != prev?.error) {
         final l10n = context.l10n;
         switch (next.error) {
+          case NetworkException():
+            AppSnackBar.show(l10n.networkError, isError: true);
           case DeepSeekApiException():
             AppSnackBar.showDeepSeekError(next.error! as DeepSeekApiException, l10n);
 
           case NovitaApiException():
             AppSnackBar.showNovitaError(next.error! as NovitaApiException, l10n);
 
-          case AgeVerificationException():
+          case AgeVerificationException(:final reason):
             final failedPersonas = next.failedPersonas;
-            if (failedPersonas.isNotEmpty) {
               widget.isMulti
-                  ? AppSnackBar.showAgeConflictMulti(l10n, failedPersonas)
-                  : AppSnackBar.showAgeConflictSingle(l10n, _singlePersona!.id);
-            } else {
-              AppSnackBar.show(l10n.personaDescriptionConflict, isError: true);
-            }
+                  ? AppSnackBar.showAgeConflictMulti(l10n, failedPersonas, reason)
+                  : AppSnackBar.showAgeConflictSingle(l10n, _singlePersona!.id, reason);
 
           case HistoryException():
             AppSnackBar.show(l10n.errorHistory);
@@ -1279,7 +1276,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   void _send(SettingsState settings) async {
     final content = _inputCtrl.text.trim();
     if (content.isEmpty) return;
-    if (!await _ensureApiKey()) return;
     _inputCtrl.clear();
     setState(() {});
 
@@ -1310,7 +1306,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     int? tokenOverride,
     String? hiddenResetContent,
   }) async {
-    if (!await _ensureApiKey()) return;
     final tokens = tokenOverride ?? _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
 
@@ -1348,31 +1343,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
         maxTokens: tokens,
       );
     }
-  }
-
-  Future<bool> _ensureApiKey() async {
-    final apiKey = await AppConfig.getDeepSeekApiKey();
-    if (apiKey.isNotEmpty) return true;
-    if (!mounted) return false;
-    final navigator = Navigator.of(context);
-    final errorText = context.l10n.errorDeepSeekNotSet;
-    final settingsText = context.l10n.settings;
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        backgroundColor: AppTheme.error,
-        content: Text(errorText, style: const TextStyle(color: Colors.white)),
-        action: SnackBarAction(
-          label: settingsText,
-          textColor: Colors.white,
-          onPressed:
-              () => navigator.push(
-                MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-              ),
-        ),
-        duration: const Duration(seconds: 8),
-      ),
-    );
-    return false;
   }
 
   void _generateSceneImage() async {

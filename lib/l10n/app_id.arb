@@ -236,6 +236,7 @@
   "errorDeepSeekKeyInvalid": "Kunci DeepSeek tidak valid. Perbarui di pengaturan.",
   "errorDeepSeekNotSet": "Kunci DeepSeek belum diset. Tambahkan di pengaturan.",
   "errorDeepSeekInsufficientBalance": "Saldo DeepSeek tidak cukup. Silakan isi ulang.",
+  "errorDeepseekServiceUnavailable": "Layanan DeepSeek sedang tidak tersedia untuk sementara. Coba lagi nanti.",
   "errorNovitaKeyInvalid": "Kunci Novita tidak valid. Perbarui di pengaturan.",
   "errorNovitaKeyNotSet": "Kunci Novita belum diset. Tambahkan di pengaturan.",
   "errorNovitaInsufficientBalance": "Saldo Novita tidak cukup. Silakan isi ulang.",
@@ -490,6 +491,7 @@
   "personaNotValidatedKeyNotSet": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek belum diatur. Tambahkan di pengaturan.",
   "personaNotValidatedKeyInvalid": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek tidak valid. Perbarui di pengaturan.",
   "personaNotValidatedNoBalance": "Tidak dapat memverifikasi usia karakter: saldo DeepSeek tidak mencukupi. Isi ulang saldo.",
+  "personaNotValidatedDeepseekUnavailable": "Tidak dapat memverifikasi usia karakter: layanan DeepSeek sedang tidak tersedia untuk sementara. Coba lagi nanti.",
   "personaNotValidatedGeneric": "Tidak dapat memverifikasi usia karakter: validasi tidak tersedia.",
   "personaNotValidatedNetworkError": "Tidak dapat memverifikasi usia karakter: terjadi masalah pada koneksi internet. Periksa koneksi Anda dan coba lagi.",
 
@@ -506,5 +508,6 @@
     }
   },
   "profile": "Profil",
-  "ageNotVerified": "Usia belum diverifikasi"
+  "ageNotVerified": "Usia belum diverifikasi",
+  "personaAgeMissing": "Tentukan usia karakter (misalnya, \"28 tahun\")."
 }

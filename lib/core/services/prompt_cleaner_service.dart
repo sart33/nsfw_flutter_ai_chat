@@ -144,6 +144,9 @@ Return only this JSON, nothing else:
         office:     office,
       );
     } catch (e) {
+        if (e is SocketException || e is http.ClientException) {
+          throw const NetworkException();
+        }
       debugPrint('[PromptCleanerService] Error: $e');
       throw const DeepSeekApiException('parse_error');
       // AppSnackBar.showErrorWithLang(
@@ -267,15 +270,11 @@ Important:
       );
 
     } catch (e) {
-
-      if (e is DeepSeekApiException) rethrow;
       if (e is SocketException || e is http.ClientException) {
-        debugPrint('[PromptCleanerService] $e');
-
-        throw const DeepSeekApiException('network_error');
-
+        throw const NetworkException();
       }
-      throw const DeepSeekApiException('invalid_response');
+      if (e is DeepSeekApiException) rethrow;
+     throw const DeepSeekApiException('invalid_response');
     }
     }
   }

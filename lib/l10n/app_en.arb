@@ -175,15 +175,19 @@
   "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail in English.",
   "noApiKeyMessage": "To start chatting, you need a DeepSeek API key. Takes 1–2 minutes.",
   "noApiKeyAction": "Add key",
+
   "errorDeepSeekKeyInvalid": "DeepSeek key is invalid. Please update it in settings.",
   "errorDeepSeekNotSet": "DeepSeek key not set. Please add it in settings.",
   "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
+  "errorDeepseekServiceUnavailable": "DeepSeek service is temporarily unavailable. Please try again later.",
   "errorNovitaKeyInvalid": "Novita key is invalid. Please update it in settings.",
   "errorNovitaKeyNotSet": "Novita key not set. Please add it in settings.",
   "errorNovitaInsufficientBalance": "Insufficient balance on Novita account. Please top up.",
+
   "errorApiKeyInvalid": "API key is invalid. Please update it in settings.",
   "errorConnectionFailed": "Connection error. Check your internet.",
   "errorImageGeneration": "Image generation failed. Please try again.",
+
   "aboutAppTitle": "About the App",
   "aboutTitle": "🧠 About the App",
   "aboutAppName": "Uncensored AI Roleplay Chat",
@@ -381,8 +385,10 @@
   "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
   "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
   "personaNotValidatedNoBalance": "Unable to verify character age: insufficient DeepSeek balance. Please top up.",
+  "personaNotValidatedDeepseekUnavailable": "Unable to verify character age: DeepSeek service is temporarily unavailable. Please try again later.",
   "personaNotValidatedGeneric": "Unable to verify character age: validation unavailable.",
   "personaNotValidatedNetworkError": "Unable to verify character age: network error. Please check your internet connection and try again.",
+  "networkError": "Network error.Please check your internet connection and try again.",
 
   "verifyingPersona": "Verifying character...",
   "preparingPrompts": "Preparing prompts...",
@@ -397,5 +403,6 @@
     }
   },
   "profile": "Profile",
-  "ageNotVerified": "Age not verified"
+  "ageNotVerified": "Age not verified",
+  "personaAgeMissing": "Please specify the character's age (e.g. \"28 years old\")."
 }

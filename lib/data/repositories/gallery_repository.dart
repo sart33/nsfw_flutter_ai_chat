@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
@@ -104,6 +105,9 @@ class GalleryRepository {
         tempPath: tempPath,
         templateId: selectedId,
       );
+    } on NetworkException catch (e) {
+      debugPrint('Network error during image generation: ${e.toString()}');
+      rethrow;
     } on GalleryFullException {
       rethrow; // провайдер поймает и покажет galleryFull
     } on NovitaApiException {
@@ -111,6 +115,9 @@ class GalleryRepository {
     } on DeepSeekApiException {
       rethrow; // если cleanAndSave кинул
     } catch (e) {
+      if (e is SocketException || e is http.ClientException) {
+        throw const NetworkException();
+      }
       throw SaveException(e.toString());
     }
   }
@@ -167,6 +174,9 @@ class GalleryRepository {
     } on DeepSeekApiException {
       rethrow; // если cleanAndSave кинул
     } catch (e) {
+      if (e is SocketException || e is http.ClientException) {
+        throw const NetworkException();
+      }
       throw SaveException(e.toString());
 
     }

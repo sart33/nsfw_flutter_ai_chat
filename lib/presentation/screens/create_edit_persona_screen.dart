@@ -196,7 +196,7 @@ class _CreateEditPersonaScreenState
       if (apiKey.isEmpty) {
         // Ключа нет — дальше не идём, показываем ошибку
         if (!mounted) return;
-        AppSnackBar.show(context.l10n.errorDeepSeekNotSet); // или твой existing ключ ошибки
+        AppSnackBar.show(context.l10n.errorDeepSeekNotSet, isError: true, withSettings: true); // или твой existing ключ ошибки
         return;
       }
       // Фаза 0: проверка возраста
@@ -222,7 +222,13 @@ class _CreateEditPersonaScreenState
           AppSnackBar.show(context.l10n.personaAgeMissing); // жёлтый/оранжевый
           return;
         }
+      } on NetworkException catch (_) {
+        _earlyExit = true;
+        if (!mounted) return;
+        AppSnackBar.show(context.l10n.networkError, isError: true);
+        return;
       } on DeepSeekApiException catch (e) {
+        _earlyExit = true;
         if (!mounted) return;
         AppSnackBar.showDeepSeekError(e, context.l10n);
         return;
@@ -257,22 +263,6 @@ class _CreateEditPersonaScreenState
 
     try {
       String cleaned;
-      // Проверяем: описание уже очищалось в этой сессии?
-      final needsClean = description != _lastSentDescription;
-
-      if (needsClean) {
-        // Фаза 1: DeepSeek
-        setState(() => _isCleaningPrompt = true);
-        await PromptCleanerService.instance.cleanAndSave(
-          personaId,
-          description,
-        );
-        setState(() {
-          _isCleaningPrompt = false;
-          _lastSentDescription = description;
-        });
-      }
-
       // Читаем из БД
       final prompts = await DatabaseHelper.instance.getPersonaPrompts(
         personaId,
@@ -322,6 +312,9 @@ class _CreateEditPersonaScreenState
       );
 
       if (mounted) setState(() => _generatedAvatarPreviewPath = path);
+    } on NetworkException catch (_) {
+      if (!mounted) return;
+      AppSnackBar.show(context.l10n.networkError, isError: true);
     } on DeepSeekApiException catch (e) {
       if (!mounted) return;
       AppSnackBar.showDeepSeekError(e, context.l10n);
@@ -1309,7 +1302,8 @@ class _CreateEditPersonaScreenState
               (check.severity == 'high' || check.severity == 'medium')) {
             // Реальный конфликт возраста — блокируем
             if (!mounted) return;
-            AppSnackBar.show(l10n.personaDescriptionConflict, isError: true); // красный
+            AppSnackBar.show(
+                l10n.personaDescriptionConflict); // красный
             return; // ← единственный случай когда не сохраняем
           } else {
             if (!check.hasAge) {
@@ -1322,12 +1316,16 @@ class _CreateEditPersonaScreenState
               AppSnackBar.showSuccess(l10n.personaValidated, isIcon: true);
             }
           }
+        }
+        on NetworkException catch (_) {
+          if (!mounted) return;
+          AppSnackBar.show(context.l10n.networkError, isError: true);
         } on DeepSeekApiException catch (e) {
           // 401, 402, сеть — показываем ошибку, но НЕ блокируем сохранение
           AppSnackBar.showPersonaValidationError(e, l10n);
           // ageVerified остаётся false, идём дальше
         }
-      } else {
+       } else {
         AppSnackBar.show(l10n.personaNotValidated);
         // ageVerified = false, идём дальше
       }
@@ -1366,6 +1364,9 @@ class _CreateEditPersonaScreenState
       PromptCleanerService.instance
           .cleanAndSave(entity.id, entity.description)
           .catchError((e) {
+        if (e is NetworkException) {
+          AppSnackBar.show(l10n.networkError, isError: true);
+        }
             if (e is DeepSeekApiException) {
               AppSnackBar.showPersonaValidationError(e, l10n);
             }

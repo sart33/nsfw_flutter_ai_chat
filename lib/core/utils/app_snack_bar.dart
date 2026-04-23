@@ -11,6 +11,9 @@ import '../config/app_theme.dart'; // for scaffoldMessengerKey
 
 
 class AppSnackBar {
+
+
+
   static void show(
       String message, {
         bool isError = false,      // true = красный + 8 сек, false = оранжевый + 6 сек
@@ -62,6 +65,7 @@ class AppSnackBar {
       'insufficient_balance' => (l10n.errorDeepSeekInsufficientBalance, true,  false),
       'service_unavailable'  => (l10n.errorDeepseekServiceUnavailable,  false, false),
       'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
+      'network_error'        => (l10n.networkError,                     false, false),
       _                      => ('l10n.errorGeneric',                   false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
@@ -92,12 +96,20 @@ class AppSnackBar {
 
 
 
-  static void showAgeConflictSingle(AppLocalizations l10n, String personaId) {
+  static void showAgeConflictSingle(
+      AppLocalizations l10n,
+      String personaId,
+      AgeCheckFailReason reason,  // ← добавили
+      ) {
     final messenger = scaffoldMessengerKey.currentState;
+    final context = navigatorKey.currentContext;
+    final isDesktop = context != null && MediaQuery.of(context).size.width >= 600;
     if (messenger == null) return;
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      backgroundColor: AppTheme.warning,
+      backgroundColor: reason == AgeCheckFailReason.missing
+      ? AppTheme.warning
+      : AppTheme.error, // красный для конфликтов
       duration: const Duration(seconds: 15),
       // action убираем совсем
       content: Row(
@@ -105,8 +117,10 @@ class AppSnackBar {
         children: [
           Expanded(
             child: Text(
-              l10n.personaDescriptionConflict,
-              style: AppTheme.bodyStyle,
+              reason == AgeCheckFailReason.missing
+                  ? l10n.personaAgeMissing      // жёлтый текст
+                  : l10n.personaDescriptionConflict,  // красный текст
+              style: TextStyle(fontSize: isDesktop ? 14 : 14, color: AppTheme.textPrimary, fontWeight: FontWeight.w600)
             ),
           ),
           const SizedBox(width: 8),
@@ -114,11 +128,13 @@ class AppSnackBar {
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.textPrimary,
               side: const BorderSide(color: AppTheme.textPrimary, width: 1.5),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: isDesktop
+                  ? const EdgeInsets.symmetric(horizontal: 24, vertical: 16)
+                  : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(isDesktop ? 32 : 16),
               ),
             ),
             onPressed: () {
@@ -130,15 +146,17 @@ class AppSnackBar {
               );
             },
             child: Text(l10n.edit,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                style: TextStyle(fontSize: isDesktop ? 14 : 13, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     ));
   }
 
-  static void showAgeConflictMulti(AppLocalizations l10n, List<PersonaEntity> failedPersonas) {
+  static void showAgeConflictMulti(AppLocalizations l10n, List<PersonaEntity> failedPersonas, AgeCheckFailReason reason) {
     final messenger = scaffoldMessengerKey.currentState;
+    final context = navigatorKey.currentContext;
+    final isDesktop = context != null && MediaQuery.of(context).size.width >= 600;
     if (messenger == null) return;
     final uniquePersonas = failedPersonas.fold<List<PersonaEntity>>([], (list, p) {
       if (!list.any((x) => x.id == p.id)) list.add(p);
@@ -150,7 +168,9 @@ class AppSnackBar {
         : '';
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      backgroundColor: AppTheme.warning,
+      backgroundColor: reason == AgeCheckFailReason.missing
+          ? AppTheme.warning
+          : AppTheme.error,
       duration: const Duration(seconds: 15),
       content: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -160,8 +180,16 @@ class AppSnackBar {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.personaDescriptionConflict,
-                    style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                Text(
+                  reason == AgeCheckFailReason.missing
+                      ? l10n.personaAgeMissing
+                      : l10n.personaDescriptionConflict,
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isDesktop ? 14 : 14,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text('$names$suffix', style: AppTheme.bodyStyle),
               ],
@@ -172,11 +200,13 @@ class AppSnackBar {
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.textPrimary,
               side: const BorderSide(color: AppTheme.textPrimary, width: 1.5),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: isDesktop
+                  ? const EdgeInsets.symmetric(horizontal: 24, vertical: 16)
+                  : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(isDesktop ? 32 : 16),
               ),
             ),
             onPressed: () {
@@ -187,8 +217,13 @@ class AppSnackBar {
                 ),
               );
             },
-            child: Text(l10n.edit,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            child: Text(
+              l10n.edit,
+              style: TextStyle(
+                fontSize: isDesktop ? 14 : 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
@@ -512,9 +514,16 @@ OUTPUT — ONLY JSON:
       // Step 5: cache and return
       _cache[branchId] = (validated, textOnly.length);
       return validated;
+    } on NetworkException {
+      rethrow;
     } on DeepSeekApiException {
       rethrow;
     } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is DioException && e.type == DioExceptionType.connectionError) {
+        throw const NetworkException();
+      }
       debugPrint('[SceneExtractor] Extraction error: $e');
       return SceneSnapshot.fallback;
     }
@@ -580,7 +589,8 @@ OUTPUT — ONLY JSON:
     String contextText,
   ) async {
     final apiKey = await AppConfig.getDeepSeekApiKey();
-    if (apiKey.isEmpty) return SceneSnapshot.fallback;
+    if (apiKey.isEmpty) throw const DeepSeekApiException('key_not_set');
+
 
     final response = await http.post(
       Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),

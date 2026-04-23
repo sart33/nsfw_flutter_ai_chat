@@ -64,9 +64,10 @@ class _GalleryFullscreenScreenState
         final l10n = context.l10n;
 
         switch (next.error) {
-          case AgeVerificationException():
-            AppSnackBar.showAgeConflictSingle(l10n, widget.personaId);
-
+          case AgeVerificationException(:final reason):
+            AppSnackBar.showAgeConflictSingle(l10n, widget.personaId, reason);
+          case NetworkException():
+            AppSnackBar.show(l10n.networkError, isError: true);
           case DeepSeekApiException():
             AppSnackBar.showDeepSeekError(next.error! as DeepSeekApiException, l10n);
 

@@ -14,6 +14,13 @@ class AppException implements Exception {
   String toString() => '$runtimeType: ${technicalMessage ?? '(no details)'}';
 }
 
+class NetworkException implements AppException {
+  const NetworkException();
+
+  @override
+
+  String? get technicalMessage => throw UnimplementedError();
+}
 /// Thrown when loading chat history from the database fails.
 class HistoryException extends AppException {
   const HistoryException([super.technicalMessage]);
@@ -64,8 +71,11 @@ abstract interface class GalleryException implements Exception {
 }
 
 /// Thrown when age verification fails.
-class AgeVerificationException extends AppException implements GalleryException {
-  const AgeVerificationException() : super('age_verification_failed');
+///
+enum AgeCheckFailReason { conflict, missing }
+class AgeVerificationException extends AppException {
+  final AgeCheckFailReason reason;
+  const AgeVerificationException(this.reason) : super('age_verification_failed');
   @override
   String get technicalMessage => 'age_verification_failed';
 }
