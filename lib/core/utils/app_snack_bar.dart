@@ -16,25 +16,64 @@ class AppSnackBar {
 
   static void show(
       String message, {
-        bool isError = false,      // true = красный + 8 сек, false = оранжевый + 6 сек
-        bool withSettings = false, // true = кнопка Settings → ApiKeysScreen
+        bool isError = false,
+        bool withSettings = false,
       }) {
     final messenger = scaffoldMessengerKey.currentState;
     if (messenger == null) return;
+
+    final context = navigatorKey.currentContext;
+    final isDesktop = context != null && MediaQuery.of(context).size.width >= 600;
+
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
       backgroundColor: isError ? AppTheme.error : AppTheme.warning,
       duration: Duration(seconds: isError ? 8 : 6),
-      content: Text(message, style: const TextStyle(color: AppTheme.textPrimary)),
-      action: withSettings
-          ? SnackBarAction(
-        label: navigatorKey.currentContext!.l10n.settings,
-        textColor: AppTheme.textPrimary,
-        onPressed: () => navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-        ),
-      )
-          : null,
+      content: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (withSettings) ...[
+            const SizedBox(width: 8),
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.textPrimary,
+                side: const BorderSide(color: AppTheme.textPrimary, width: 1.5),
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 24, vertical: 16)
+                    : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(isDesktop ? 32 : 16),
+                ),
+              ),
+              onPressed: () {
+                messenger.removeCurrentSnackBar();
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+                );
+              },
+              child: Text(
+                navigatorKey.currentContext!.l10n.settings,
+                style: TextStyle(
+                  fontSize: isDesktop ? 14 : 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     ));
   }
 
@@ -42,20 +81,34 @@ class AppSnackBar {
   static void showSuccess(String message, {bool isIcon = false}) {
     final messenger = scaffoldMessengerKey.currentState;
     if (messenger == null) return;
+
+    final context = navigatorKey.currentContext;
+    final isDesktop = context != null && MediaQuery.of(context).size.width >= 600;
+
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-        backgroundColor: AppTheme.success, // зелёный
-        duration: const Duration(seconds: 3),
-        content: isIcon ? Row(
-          children: [
-             Icon(Icons.verified_outlined, color: AppTheme.textPrimary, size: 18),
+      backgroundColor: AppTheme.success,
+      duration: const Duration(seconds: 3),
+      content: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (isIcon) ...[
+            Icon(Icons.verified_outlined, color: AppTheme.textPrimary, size: isDesktop ? 20 : 18),
             const SizedBox(width: 8),
-            Text(
-              message, style: const TextStyle(color: AppTheme.textPrimary),
-            ),
           ],
-        ) : Text(message, style: const TextStyle(color: AppTheme.textPrimary))
-      ));
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: isDesktop ? 14 : 14,
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ));
   }
 
   static void showDeepSeekError(DeepSeekApiException e, AppLocalizations l10n) {

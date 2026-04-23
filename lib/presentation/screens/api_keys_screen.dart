@@ -5,6 +5,7 @@ import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'dart:io' show Platform;
 
+import '../../core/utils/app_snack_bar.dart';
 import '../widgets/custom_app_bar_widget.dart';
 
 /// Screen for managing API keys stored securely.
@@ -77,7 +78,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _deepSeekObscure = true;
       _deepSeekChanged = false;
     });
-    _showSnackBar(context.l10n.deepSeekKeySaved);
+    AppSnackBar.showSuccess(context.l10n.deepSeekKeySaved);
   }
 
   Future<void> _deleteDeepSeekKey() async {
@@ -92,7 +93,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _deepSeekController.clear();
       _deepSeekChanged = false;
     });
-    _showSnackBar(context.l10n.keyDeleted);
+    AppSnackBar.showSuccess(context.l10n.keyDeleted);
   }
 
   Future<void> _saveNovitaKey() async {
@@ -105,7 +106,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _novitaObscure = true;
       _novitaChanged = false;
     });
-    _showSnackBar(context.l10n.novitaKeySaved);
+    AppSnackBar.showSuccess(context.l10n.novitaKeySaved);
   }
 
   Future<void> _deleteNovitaKey() async {
@@ -120,7 +121,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       _novitaController.clear();
       _novitaChanged = false;
     });
-    _showSnackBar(context.l10n.keyDeleted);
+    AppSnackBar.showSuccess(context.l10n.keyDeleted);
   }
 
   Future<bool> _confirmDelete({
@@ -153,13 +154,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
         false;
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: AppTheme.success,
-      content: Text(message, style: const TextStyle(color: Colors.white)),
-      duration: const Duration(seconds: 3),
-    ));
-  }
+
 
   InputDecoration _fieldDecoration({
     required String hint,
