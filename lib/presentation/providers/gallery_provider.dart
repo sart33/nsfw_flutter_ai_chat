@@ -23,8 +23,6 @@ class GalleryState {
   final String galleryMode;
   final GeneratingPhase? generatingPhase; // null = не генерируем
 
-
-
   const GalleryState({
     this.images = const [],
     this.isGenerating = false,
@@ -47,25 +45,28 @@ class GalleryState {
     bool? isLoaded,
     Object? galleryMode = _absent,
     Object? generatingPhase = _absent,
-
   }) {
     return GalleryState(
       images: images ?? this.images,
       isGenerating: isGenerating ?? this.isGenerating,
-      pendingImagePath: identical(pendingImagePath, _absent)
-          ? this.pendingImagePath
-          : pendingImagePath as String?,
-      pendingTemplateId: identical(pendingTemplateId, _absent)
-          ? this.pendingTemplateId
-          : pendingTemplateId as int?,
+      pendingImagePath:
+          identical(pendingImagePath, _absent)
+              ? this.pendingImagePath
+              : pendingImagePath as String?,
+      pendingTemplateId:
+          identical(pendingTemplateId, _absent)
+              ? this.pendingTemplateId
+              : pendingTemplateId as int?,
       error: identical(error, _absent) ? this.error : error as AppException?,
       isLoaded: isLoaded ?? this.isLoaded,
-      galleryMode: identical(galleryMode, _absent)
-          ? this.galleryMode
-          : galleryMode as String,
-      generatingPhase: identical(generatingPhase, _absent)
-          ? this.generatingPhase
-          : generatingPhase as GeneratingPhase?,
+      galleryMode:
+          identical(galleryMode, _absent)
+              ? this.galleryMode
+              : galleryMode as String,
+      generatingPhase:
+          identical(generatingPhase, _absent)
+              ? this.generatingPhase
+              : generatingPhase as GeneratingPhase?,
     );
   }
 }
@@ -77,7 +78,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   final GalleryRepository _repo;
 
   GalleryNotifier(this.personaId, this._repo, String galleryMode)
-      : super(GalleryState(galleryMode: galleryMode)) {
+    : super(GalleryState(galleryMode: galleryMode)) {
     _loadGallery();
   }
 
@@ -92,7 +93,9 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   List<GalleryImageEntity> _filterByMode(
-      List<GalleryImageEntity> all, String mode) {
+    List<GalleryImageEntity> all,
+    String mode,
+  ) {
     final List<int> range;
     if (mode == 'romantic') {
       range = List.generate(20, (i) => i + 21);
@@ -116,37 +119,45 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   /// Clear error state (called by UI after showing toast).
   void clearError() => state = state.copyWith(error: null);
 
-
-
   // ── generatePreview ─────────────────────────────────────────────────────
 
   Future<void> generatePreview(String description) async {
     state = state.copyWith(isGenerating: true, pendingImagePath: null);
-      final result = await _repo.generatePreview(personaId, description, state.galleryMode);
+    try {
+      final data = await _repo.generatePreview(
+        personaId,
+        description,
+        state.galleryMode,
+      );
 
-      result.when(
-          success: (data) => state = state.copyWith(
+      state = state.copyWith(
         isGenerating: false,
         pendingImagePath: data.tempPath,
-        pendingTemplateId: data.templateId
-      ), failure: (msg, e) => state = state.copyWith(
-          isGenerating: false,
-          error: switch (e) {
-            GalleryFullException() => const GalleryFullException(),
-            NovitaException() => GenerationException(msg),
-            _ => GenerationException(msg),
-          }
-      ));
-
+        pendingTemplateId: data.templateId,
+      );
+    } on GalleryFullException {
+      state = state.copyWith(
+        isGenerating: false,
+        error: const GalleryFullException(),
+      );
+    } on NovitaApiException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
+    } on DeepSeekApiException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
+    } catch (e) {
+      state = state.copyWith(
+        isGenerating: false,
+        error: SaveException(e.toString()),
+      );
+    }
   }
 
   // ── generatePreviewWithVerification ─────────────────────────────────────
 
   Future<void> generatePreviewWithVerification(
-      PersonaEntity persona,
-      VoidCallback onVerified,
-      ) async {
-
+    PersonaEntity persona,
+    VoidCallback onVerified,
+  ) async {
     if (persona.ageVerified) {
       state = state.copyWith(
         isGenerating: true,
@@ -164,15 +175,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       generatingPhase: GeneratingPhase.verifying,
     );
     try {
-
       final combinedText = [
         persona.description,
         persona.behavior,
         persona.greeting,
-
       ].join('\n\n');
-      final check = await PromptCleanerService.instance
-          .checkForMinorSignals(combinedText);
+      final check = await PromptCleanerService.instance.checkForMinorSignals(
+        combinedText,
+      );
 
       if (check.hasConflict == true &&
           (check.severity == 'high' || check.severity == 'medium')) {
@@ -185,32 +195,32 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       await DatabaseHelper.instance.setPersonaAgeVerified(persona.id, true);
       onVerified();
 
-
       state = state.copyWith(generatingPhase: GeneratingPhase.preparingPrompts);
 
-      await PromptCleanerService.instance
-          .cleanAndSave(persona.id, persona.description);
-
+      await PromptCleanerService.instance.cleanAndSave(
+        persona.id,
+        persona.description,
+      );
 
       state = state.copyWith(generatingPhase: GeneratingPhase.generating);
 
       await generatePreview(persona.description);
-
-    } on PromptCleanerException catch (e) {
+    } on DeepSeekApiException catch (e) {
       // network_error, key_invalid, 402 и т.д. — всё сюда
       state = state.copyWith(
         isGenerating: false,
         generatingPhase: null,
-        error: PromptCleanerGalleryException(e),
+        error: DeepSeekApiException(e.toString()),
       );
     } catch (e) {
       state = state.copyWith(
         isGenerating: false,
         generatingPhase: null,
-        error: GenerationException(e.toString()),
+        error: DeepSeekApiException(e.toString()),
       );
     }
   }
+
   // ── confirmPending ──────────────────────────────────────────────────────
 
   Future<void> confirmPending(String personaId, String description) async {
@@ -220,7 +230,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
     try {
       final entity = await _repo.savePreGeneratedImage(
-          pendingPath, personaId, templateId);
+        pendingPath,
+        personaId,
+        templateId,
+      );
       state = state.copyWith(
         images: [entity, ...state.images],
         pendingImagePath: null,
@@ -255,25 +268,37 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
 
     state = state.copyWith(isGenerating: true, pendingImagePath: null);
-    final result = await _repo.regeneratePreview(
-        personaId, description, templateId, state.galleryMode);
+    try {
+    final data = await _repo.regeneratePreview(
+      personaId,
+      description,
+      templateId,
+      state.galleryMode,
+    );
 
-    result.when(
-        success: (data) =>
-        state = state.copyWith(
-          isGenerating: false,
-          pendingImagePath: data.tempPath,
-          pendingTemplateId: data.templateId,
-        ),
-        failure: (msg, e) =>
-        state = state.copyWith(
-            isGenerating: false,
-            error: switch (e) {
-              NovitaException() => GenerationException(msg),
-              _ => GenerationException(msg),
-            }
-        ));
+              state = state.copyWith(
+                isGenerating: false,
+                pendingImagePath: data.tempPath,
+                pendingTemplateId: data.templateId,
+              );
+    } on GalleryFullException {
+      state = state.copyWith(
+        isGenerating: false,
+        error: const GalleryFullException(),
+      );
+    } on NovitaApiException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
+    } on DeepSeekApiException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
+    } catch (e) {
+      state = state.copyWith(
+        isGenerating: false,
+        error: SaveException(e.toString()),
+      );
+    }
   }
+
+
   // ── discardPending ──────────────────────────────────────────────────────
 
   void discardPending() {
@@ -284,34 +309,34 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         if (f.existsSync()) f.deleteSync();
       } catch (_) {}
     }
-    state = state.copyWith(
-      pendingImagePath: null,
-      pendingTemplateId: null,
-    );
+    state = state.copyWith(pendingImagePath: null, pendingTemplateId: null);
   }
 
   // ── regenerateExisting ──────────────────────────────────────────────────
 
   Future<void> regenerateExisting(
-      String imageId, String description, int templateId) async {
+    String imageId,
+    String description,
+    int templateId,
+  ) async {
     state = state.copyWith(isGenerating: true);
-      final result = await _repo.regenerateSameTemplate(
-          imageId, personaId, description, templateId);
-      result.when(
-          success: (entity) {
-            final outdated = state.images.map((img) {
+    try {
+    final entity = await _repo.regenerateSameTemplate(
+      imageId,
+      personaId,
+      description,
+      templateId,
+    );
+      final outdated =
+            state.images.map((img) {
               return img.id == imageId ? entity : img;
             }).toList();
-            state = state.copyWith(images: outdated, isGenerating: false);
-          },
-    failure: (msg, e) => state = state.copyWith(
-        isGenerating: false,
-        error: switch (e) {
-          NovitaException() => GenerationException(msg),
-          _ => GenerationException(msg),
-        }
-      ));
-
+        state = state.copyWith(images: outdated, isGenerating: false);
+    } on NovitaApiException catch (e) {
+      state = state.copyWith(isGenerating: false, error: e);
+    } catch (e) {
+      state = state.copyWith(isGenerating: false, error: SaveException(e.toString()));
+    }
   }
 
   // ── deleteImage ─────────────────────────────────────────────────────────
@@ -336,12 +361,15 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 class GalleryKey {
   final String personaId;
   final String galleryMode;
+
   const GalleryKey(this.personaId, this.galleryMode);
+
   @override
   bool operator ==(Object other) =>
       other is GalleryKey &&
       other.personaId == personaId &&
       other.galleryMode == galleryMode;
+
   @override
   int get hashCode => Object.hash(personaId, galleryMode);
 }
@@ -350,6 +378,9 @@ class GalleryKey {
 
 final galleryProvider =
     StateNotifierProvider.family<GalleryNotifier, GalleryState, GalleryKey>(
-  (ref, key) => GalleryNotifier(
-      key.personaId, GalleryRepository.instance, key.galleryMode),
-);
+      (ref, key) => GalleryNotifier(
+        key.personaId,
+        GalleryRepository.instance,
+        key.galleryMode,
+      ),
+    );

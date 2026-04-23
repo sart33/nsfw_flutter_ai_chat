@@ -55,31 +55,33 @@ class AppSnackBar {
       ));
   }
 
-  static void showPromptCleanerError(PromptCleanerException e, AppLocalizations l10n) {
+  static void showDeepSeekError(DeepSeekApiException e, AppLocalizations l10n) {
     final (msg, isError, withSettings) = switch (e.code) {
       'key_not_set'          => (l10n.errorDeepSeekNotSet,              true,  true),
       'key_invalid'          => (l10n.errorDeepSeekKeyInvalid,          true,  true),
       'insufficient_balance' => (l10n.errorDeepSeekInsufficientBalance, true,  false),
+      'service_unavailable'  => (l10n.errorDeepseekServiceUnavailable,  false, false),
       'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
-      _                      => ('l10n.errorGeneric',                     false, false),
+      _                      => ('l10n.errorGeneric',                   false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
   }
 
-  static void showPersonaValidationError(PromptCleanerException e, AppLocalizations l10n) {
+    static void showPersonaValidationError(DeepSeekApiException e, AppLocalizations l10n) {
     final (msg, isError, withSettings) = switch (e.code) {
       'key_not_set'          => (l10n.personaNotValidatedKeyNotSet,     true, true),
       'key_invalid'          => (l10n.personaNotValidatedKeyInvalid,    true, true),
       'insufficient_balance' => (l10n.personaNotValidatedNoBalance,     false, false),
-      'network_error'        => (l10n.personaNotValidatedNetworkError, false, false),
+      'network_error'        => (l10n.personaNotValidatedNetworkError,  false, false),
+      'service_unavailable'  => (l10n.personaNotValidatedDeepseekUnavailable,  false, false),
       'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
       _                      => (l10n.personaNotValidatedGeneric,       false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
   }
 
-  static void showNovitaError(NovitaException e, AppLocalizations l10n) {
-    final (msg, isError, withSettings) = switch (e.message) {
+  static void showNovitaError(NovitaApiException e, AppLocalizations l10n) {
+    final (msg, isError, withSettings) = switch (e.technicalMessage) {
       'api_key_not_set'      => (l10n.errorNovitaKeyNotSet,            true,  true),
       'api_key_invalid'      => (l10n.errorNovitaKeyInvalid,           true,  true),
       'insufficient_balance' => (l10n.errorNovitaInsufficientBalance,  true,  false),

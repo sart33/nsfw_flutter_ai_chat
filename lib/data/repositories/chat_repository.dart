@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -34,7 +35,10 @@ class ChatRepository {
     required DatabaseHelper db,
     required SharedPreferences prefs,
     required SummarizationService summarizationService,
-  })  : _dio = dio,
+  })  : _dio = Dio(BaseOptions(
+    baseUrl: dio.options.baseUrl,
+    validateStatus: (status) => true, // не кидать DioException для любого статуса
+  )),
         _db = db,
         _prefs = prefs,
         _summarizationService = summarizationService;
@@ -182,9 +186,10 @@ class ChatRepository {
     bool suppressHidden = false,
   }) async {
     try {
+      debugPrint('Preparing to send message.');
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
-        throw Exception('DeepSeek API key not set. Please add key in API Keys screen.');
+        throw DeepSeekApiException('key_not_set');
       }
 
       final reminderEnabled =
@@ -247,6 +252,18 @@ class ChatRepository {
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
 
+      debugPrint('API response status: ${response.statusCode}');
+      if (response.statusCode == 401) {
+        throw const DeepSeekApiException('key_invalid');
+      }
+
+      if (response.statusCode == 402) {
+        throw const DeepSeekApiException('insufficient_balance');
+      }
+
+      if (response.statusCode == 504 || response.statusCode == 503) {
+        throw const DeepSeekApiException('service_unavailable');
+      }
       log(jsonEncode(response.data), name: 'API_RESPONSE');
 
       final content =
@@ -261,16 +278,13 @@ class ChatRepository {
       ));
 
       return content.trim();
-    } on DioException catch (e) {
-      log('DioException: ${e.message} | response: ${e.response?.data} | status: ${e.response?.statusCode}',
-          name: 'API_ERROR');
-      throw ApiException('${e.response?.statusCode ?? 0}|${e.requestOptions.uri}|${e.message}');
     } catch (e) {
-      log('Unexpected error in sendMessage: $e', name: 'API_ERROR');
-      throw ApiException(e.toString());
-    }
-  }
+      if (e is DeepSeekApiException) rethrow;
 
+      if (e is SocketException) throw const DeepSeekApiException('network_error');
+      throw const DeepSeekApiException('invalid_response');
+  }
+}
   // ── MULTI PERSONA CHAT ─────────────────────────────────────────────────
 
   /// Sends the conversation history to DeepSeek for a multi-persona chat.
@@ -289,7 +303,7 @@ class ChatRepository {
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
-        throw Exception('DeepSeek API key not set. Please add key in API Keys screen.');
+        throw DeepSeekApiException('key_not_set');
       }
 
       final reminderEnabled =
@@ -355,7 +369,17 @@ class ChatRepository {
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
+      if (response.statusCode == 401) {
+        throw const DeepSeekApiException('key_invalid');
+      }
 
+      if (response.statusCode == 402) {
+        throw const DeepSeekApiException('insufficient_balance');
+      }
+
+      if (response.statusCode == 504 || response.statusCode == 503) {
+        throw const DeepSeekApiException('service_unavailable');
+      }
       log(jsonEncode(response.data), name: 'API_RESPONSE');
 
       final content =
@@ -370,14 +394,10 @@ class ChatRepository {
       ));
 
       return content.trim();
-    } on DioException catch (e) {
-      log(
-          'DioException in sendMultiMessage: ${e.message} | response: ${e.response?.data}',
-          name: 'API_ERROR');
-      throw ApiException('DioException: ${e.message}');
     } catch (e) {
-      log('Unexpected error in sendMultiMessage: $e', name: 'API_ERROR');
-      throw ApiException(e.toString());
+      if (e is DeepSeekApiException) rethrow;
+      if (e is SocketException) throw const DeepSeekApiException('network_error');
+      throw const DeepSeekApiException('invalid_response');
     }
   }
 

@@ -32,7 +32,7 @@ class NovitaAvatarService {
         int seed = 101,
       }) async {
     final apiKey = await AppConfig.getNovitaApiKey();
-    if (apiKey.isEmpty) throw NovitaException('api_key_not_set');
+    if (apiKey.isEmpty) throw NovitaApiException('api_key_not_set');
     debugPrint('[NovitaAvatarService] prompt: $prompt');
     return _submit(prompt, saveDir, seed: seed, apiKey: apiKey);
   }
@@ -54,22 +54,22 @@ class NovitaAvatarService {
     );
 debugPrint('[NovitaAvatarService] submit response: ${submitResp.statusCode} ${submitResp.data}');
     if (submitResp.statusCode == 401) {
-      throw NovitaException('api_key_invalid');
+      throw NovitaApiException('api_key_invalid');
     }
     if (submitResp.statusCode == 403) {
       // Парсим reason из тела
       final reason = submitResp.data?['reason'] as String? ?? '';
       if (reason == 'NOT_ENOUGH_BALANCE') {
-        throw NovitaException('insufficient_balance');
+        throw NovitaApiException('insufficient_balance');
       }
-      throw NovitaException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
+      throw NovitaApiException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
     }
     if (submitResp.statusCode != 200) {
-      throw NovitaException('http_${submitResp.statusCode}');
+      throw NovitaApiException('http_${submitResp.statusCode}');
     }
 
     final taskId = submitResp.data['task_id'] as String?;
-    if (taskId == null || taskId.isEmpty) throw NovitaException('task_id_missing');
+    if (taskId == null || taskId.isEmpty) throw NovitaApiException('task_id_missing');
 
     Map<String, dynamic>? resultData;
     for (int i = 0; i < 40; i++) {
@@ -84,23 +84,23 @@ debugPrint('[NovitaAvatarService] submit response: ${submitResp.statusCode} ${su
         resultData = poll.data as Map<String, dynamic>;
         break;
       } else if (status == 'TASK_STATUS_FAILED') {
-        throw NovitaException('generation_failed');
+        throw NovitaApiException('generation_failed');
       }
     }
 
-    if (resultData == null) throw NovitaException('timeout');
+    if (resultData == null) throw NovitaApiException('timeout');
 
     final images = resultData['images'] as List<dynamic>?;
-    if (images == null || images.isEmpty) throw NovitaException('no_images');
+    if (images == null || images.isEmpty) throw NovitaApiException('no_images');
     final imageUrl = images[0]['image_url'] as String?;
-    if (imageUrl == null || imageUrl.isEmpty) throw NovitaException('no_image_url');
+    if (imageUrl == null || imageUrl.isEmpty) throw NovitaApiException('no_image_url');
 
     final downloadResp = await _dio.get<List<int>>(
       imageUrl,
       options: Options(responseType: ResponseType.bytes),
     );
     final bytes = downloadResp.data;
-    if (bytes == null || bytes.isEmpty) throw NovitaException('empty_image');
+    if (bytes == null || bytes.isEmpty) throw NovitaApiException('empty_image');
 
     final dir = Directory(saveDir);
     if (!dir.existsSync()) dir.createSync(recursive: true);

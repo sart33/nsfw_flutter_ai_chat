@@ -55,7 +55,7 @@ class NovitaImageService {
       final apiKey = await AppConfig.getNovitaApiKey();
       if (apiKey.isEmpty) {
         debugPrint('Novita API key is not set. Please add it in settings.');
-        throw NovitaException('api_key_not_set');
+        throw NovitaApiException('api_key_not_set');
       }
 
       // 1. Build final prompt
@@ -80,18 +80,18 @@ class NovitaImageService {
       debugPrint('Novita API key error: ${submitResponse.statusCode} ${submitJson['reason']}');
 
       if (submitResponse.statusCode == 401) {
-        throw NovitaException('api_key_invalid');
+        throw NovitaApiException('api_key_invalid');
       }
       if (submitResponse.statusCode == 403) {
         // Парсим reason из тела
         final reason = submitJson['reason'] as String? ?? '';
         if (reason == 'NOT_ENOUGH_BALANCE') {
-          throw NovitaException('insufficient_balance');
+          throw NovitaApiException('insufficient_balance');
         }
-        throw NovitaException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
+        throw NovitaApiException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
       }
       if (submitResponse.statusCode != 200) {
-        throw NovitaException('http_${submitResponse.statusCode}');
+        throw NovitaApiException('http_${submitResponse.statusCode}');
       }
 
       // 3. Parse task_id
@@ -99,7 +99,7 @@ class NovitaImageService {
       final taskId = submitJson['task_id'] as String?;
       if (taskId == null || taskId.isEmpty) {
 
-        throw NovitaException('task_id_missing');
+        throw NovitaApiException('task_id_missing');
       }
 
       // 4. Poll for result — every 3 s, max 40 attempts (~2 min total)
@@ -125,31 +125,31 @@ class NovitaImageService {
           resultJson = pollJson;
           break;
         } else if (status == 'TASK_STATUS_FAILED') {
-          throw NovitaException('generation_failed');
+          throw NovitaApiException('generation_failed');
         }
       }
 
-      if (resultJson == null) throw NovitaException('timeout');
+      if (resultJson == null) throw NovitaApiException('timeout');
 
       // debugPrint('Novita generation succeeded: $resultJson');
       // 5. Extract image URL
       final images = resultJson['images'] as List<dynamic>?;
-      if (images == null || images.isEmpty) throw NovitaException('no_images');
+      if (images == null || images.isEmpty) throw NovitaApiException('no_images');
 
       final imageUrl =
           (images[0] as Map<String, dynamic>)['image_url'] as String?;
-      if (imageUrl == null || imageUrl.isEmpty) throw NovitaException('no_image_url');
+      if (imageUrl == null || imageUrl.isEmpty) throw NovitaApiException('no_image_url');
 
 
       // 6. Download bytes
       final downloadResponse = await http.get(Uri.parse(imageUrl));
       if (downloadResponse.statusCode < 200 ||
           downloadResponse.statusCode >= 300) {
-        throw NovitaException('download_failed_${downloadResponse.statusCode}');
+        throw NovitaApiException('download_failed_${downloadResponse.statusCode}');
 
       }
       final bytes = downloadResponse.bodyBytes;
-      if (bytes.isEmpty) throw NovitaException('empty_image');
+      if (bytes.isEmpty) throw NovitaApiException('empty_image');
 
       return bytes;
 

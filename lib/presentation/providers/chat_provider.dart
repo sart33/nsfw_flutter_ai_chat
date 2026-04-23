@@ -1,22 +1,21 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
 import 'package:nsfw_chat/core/enums/quick_action_type.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
+import 'package:nsfw_chat/core/services/chat_image_service.dart';
 import 'package:nsfw_chat/core/services/prompt_cleaner_service.dart';
 import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
-import 'package:nsfw_chat/core/services/chat_image_service.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/data/repositories/branch_repository.dart';
 import 'package:nsfw_chat/data/repositories/chat_repository.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
+import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 /// Chat state — persisted in SQLite per branch.
 class ChatState {
@@ -195,13 +194,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
       PromptCleanerService.instance
           .cleanAndSave(persona.id, persona.description)
           .catchError((_) {});
-    } on PromptCleanerException catch (e) {
+    } on DeepSeekApiException catch (e) {
       if (_disposed) return;
       state = state.copyWith(
         verifyingCount: state.verifyingCount - 1,
-        error: PromptCleanerChatException(e),
+        error: e,
       );
-    } catch (_) {
+    } catch (e) {
+        debugPrint('[ChatNotifier] verifyPersonaIfNeeded error: $e');
       if (_disposed) return;
       state = state.copyWith(verifyingCount: state.verifyingCount - 1);
     }
@@ -251,13 +251,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, userMsg],
         error: null,
       );
-      log(
-          'sendMessage: saving userMsg, message count before=${state.messages.length}',
-          name: 'PROVIDER');
       await repo.saveMessage(userMsg, _branchId);
-      log(
-          'sendMessage: userMsg saved, message count after=${state.messages.length}',
-          name: 'PROVIDER');
     }
 
     state = state.copyWith(isLoading: true, error: null);
@@ -271,8 +265,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
 
     try {
-      final suppressHidden = quickActionType == QuickActionType.moreDetails || 
-                            quickActionType == QuickActionType.shorter;
+      final suppressHidden = quickActionType == QuickActionType.moreDetails ||
+          quickActionType == QuickActionType.shorter;
       final reply = await repo.sendMessage(
         history: state.messages,
         persona: persona,
@@ -292,28 +286,31 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, aiMsg],
         isLoading: false,
       );
-      log(
-          'sendMessage: saving aiMsg, message count before=${state.messages.length}',
-          name: 'PROVIDER');
+
       await repo.saveMessage(aiMsg, _branchId);
-      log(
-          'sendMessage: aiMsg saved, message count after=${state.messages.length}',
-          name: 'PROVIDER');
-      
+
       // Save hidden reset message if provided (after AI message is saved)
       if (hiddenResetContent != null && hiddenResetContent.isNotEmpty) {
         await _saveHiddenReset(hiddenResetContent);
       }
-      
+
       // Update branch preview and timestamp
-      final previewText = reply.length > 100 ? '${reply.substring(0, 100)}…' : reply;
+      final previewText = reply.length > 100
+          ? '${reply.substring(0, 100)}…'
+          : reply;
       await _branchRepo.updatePreview(_branchId, previewText);
       await _branchRepo.touchTimestamp(_branchId);
+    } on DeepSeekApiException catch (e) {
+      debugPrint('[ChatNotifier] DeepSeekApiException: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
     } catch (e) {
       debugPrint('[ChatNotifier] sendMessage error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: e is AppException ? e : ApiException(e.toString()),
+        error: e is AppException ? e : DeepSeekApiException(e.toString()),
       );
     }
   }
@@ -332,7 +329,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
     String? hiddenResetContent,
   }) async {
     final repo = await _repo();
-    debugPrint('[ChatNotifier] sendMultiMessage called with content="$content", behavior="$behavior"');
     if (!skipSave) {
       final userMsg = ChatMessageModel(
         id: const Uuid().v4(),
@@ -392,11 +388,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
       if (hiddenResetContent != null && hiddenResetContent.isNotEmpty) {
         await _saveHiddenReset(hiddenResetContent);
       }
+    } on DeepSeekApiException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
     } catch (e) {
       debugPrint('[ChatNotifier] sendMultiMessage error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: e is AppException ? e : ApiException(e.toString()),
+        error: e is AppException ? e : DeepSeekApiException(e.toString()),
       );
     }
   }
@@ -524,11 +525,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
         final previewText = reply.length > 100 ? '${reply.substring(0, 100)}…' : reply;
         await _branchRepo.updatePreview(_branchId, previewText);
         await _branchRepo.touchTimestamp(_branchId);
+      } on DeepSeekApiException catch (e) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e,
+        );
       } catch (e) {
         debugPrint('[ChatNotifier] regenLastAI (single) error: $e');
         state = state.copyWith(
           isLoading: false,
-          error: e is AppException ? e : ApiException(e.toString()),
+          error: e is AppException ? e : DeepSeekApiException(e.toString()),
         );
       }
     } else if (personas != null && behavior != null) {
@@ -560,11 +566,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
           messages: [...state.messages, ...newMessages],
           isLoading: false,
         );
+      } on DeepSeekApiException catch (e) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e,
+        );
       } catch (e) {
         debugPrint('[ChatNotifier] regenLastAI (multi) error: $e');
         state = state.copyWith(
           isLoading: false,
-          error: e is AppException ? e : ApiException(e.toString()),
+          error: e is AppException ? e : DeepSeekApiException(e.toString()),
         );
       }
     }
@@ -670,14 +681,24 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, imgMsg],
         isLoading: false,
       );
+    } on DeepSeekApiException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
+    } on NovitaApiException catch (e) {
+       state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
     } catch (e) {
       debugPrint('[ChatNotifier] generateSceneImage error: $e');
-      final msg = e.toString().replaceFirst('Exception', '');
+
       state = state.copyWith(
         isLoading: false,
         error: e is AppException
             ? e
-            : GenerationException(msg),
+            : NovitaApiException(e.toString()),
       );
     }
   }

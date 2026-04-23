@@ -10,9 +10,8 @@ import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/presentation/providers/gallery_provider.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../../core/utils/app_snack_bar.dart';
 import '../../domain/exceptions/app_exceptions.dart';
-import '../../main.dart';
-import 'api_keys_screen.dart';
 
 class GalleryFullscreenScreen extends ConsumerStatefulWidget {
   final List<GalleryImageEntity> images;
@@ -53,27 +52,6 @@ class _GalleryFullscreenScreenState
     super.dispose();
   }
 
-  void _showSnack(String msg, {bool isKeyError = false}) {
-    final messenger = scaffoldMessengerKey.currentState;
-    if (messenger == null) return;
-    final navigator = Navigator.of(context);
-    messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
-      backgroundColor: isKeyError ? AppTheme.error : AppTheme.warning,
-      duration: Duration(seconds: isKeyError ? 8 : 6),
-      content: Text(msg, style: const TextStyle(color: Colors.white)),
-      action: isKeyError
-          ? SnackBarAction(
-        label: context.l10n.settings,
-        textColor: Colors.white,
-        onPressed: () => navigator.push(
-          MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
-        ),
-      )
-          : null,
-    ));
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -83,22 +61,30 @@ class _GalleryFullscreenScreenState
 
     ref.listen<GalleryState>(galleryProvider(galleryKey), (prev, next) {
       if (next.error != null && next.error != prev?.error) {
-        final isKeyError = next.error is GenerationException &&
-            (next.error!.technicalMessage?.contains('api_key') ?? false);
-        final msg = switch (next.error) {
-          GalleryFullException() => context.l10n.galleryFull,
-          GenerationException() when next.error!.technicalMessage ==
-              'api_key_not_set'
-          => context.l10n.errorNovitaKeyNotSet,
-          GenerationException() when next.error!.technicalMessage ==
-              'api_key_invalid'
-          => context.l10n.errorNovitaKeyInvalid,
-          GenerationException() => context.l10n.errorImageGeneration,
-          SaveException() => context.l10n.errorSave,
-          DeleteException() => context.l10n.errorDelete,
-          _ => context.l10n.errorUnknown,
-        };
-        _showSnack(msg, isKeyError: isKeyError);
+        final l10n = context.l10n;
+
+        switch (next.error) {
+          case AgeVerificationException():
+            AppSnackBar.showAgeConflictSingle(l10n, widget.personaId);
+
+          case DeepSeekApiException():
+            AppSnackBar.showDeepSeekError(next.error! as DeepSeekApiException, l10n);
+
+          case NovitaApiException():
+            AppSnackBar.showNovitaError(next.error! as NovitaApiException, l10n);
+
+          case GalleryFullException():
+            AppSnackBar.show(l10n.galleryFull);
+
+          case SaveException():
+            AppSnackBar.show(l10n.errorSave);
+
+          case DeleteException():
+            AppSnackBar.show(l10n.errorDelete);
+
+          default:
+            AppSnackBar.show(l10n.errorUnknown);
+        }
         ref.read(galleryProvider(galleryKey).notifier).clearError();
       }
     });

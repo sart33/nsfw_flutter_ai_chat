@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 
+import '../../domain/exceptions/app_exceptions.dart';
+
 class SceneSnapshot {
   final String? location;
   final String? locationDetails;
@@ -39,11 +41,9 @@ class SceneSnapshot {
       clothingState: json['clothingState'] as String?,
       clothingDetails: json['clothingDetails'] as String?,
       intimacyLevel: (json['intimacyLevel'] as int? ?? 0).clamp(0, 4),
-      charactersPositioning:
-          json['charactersPositioning'] as String?,
+      charactersPositioning: json['charactersPositioning'] as String?,
       timeOfDay: json['timeOfDay'] as String?,
-      confidence:
-          (json['confidence'] as num?)?.toDouble() ?? 0.0,
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -98,10 +98,7 @@ class SceneSnapshot {
             ),
             'alone',
           )
-          .replaceAll(
-            RegExp(r'\bwith\b', caseSensitive: false),
-            'by herself',
-          );
+          .replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
       parts.add(safePose);
     }
     if (activity != null) {
@@ -114,10 +111,7 @@ class SceneSnapshot {
             ),
             'alone',
           )
-          .replaceAll(
-            RegExp(r'\bwith\b', caseSensitive: false),
-            'by herself',
-          );
+          .replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
       parts.add(safeActivity);
     }
     if (clothingDetails != null) parts.add(clothingDetails!);
@@ -140,14 +134,14 @@ class SceneSnapshot {
 
 class SceneExtractorService {
   SceneExtractorService._();
-  static final SceneExtractorService instance =
-      SceneExtractorService._();
+
+  static final SceneExtractorService instance = SceneExtractorService._();
 
   // ── Scene switch detection patterns ────────────────────────────────
-// These patterns are used to detect when a new scene begins in the chat history.
-// Everything before the first matching pattern is considered part of the previous scene
-// and will be ignored for image generation. This helps keep the image prompt relevant
-// to the current location, time and context.
+  // These patterns are used to detect when a new scene begins in the chat history.
+  // Everything before the first matching pattern is considered part of the previous scene
+  // and will be ignored for image generation. This helps keep the image prompt relevant
+  // to the current location, time and context.
 
   static final List<RegExp> sceneSwitchPatterns = [
     // === RUSSIAN ===
@@ -357,9 +351,7 @@ class SceneExtractorService {
 
   // ── DeepSeek prompt ─────────────────────────────────────────────────
 
-  static String _buildExtractionPrompt(
-      String current, String context) =>
-'''
+  static String _buildExtractionPrompt(String current, String context) => '''
 You are a scene extraction engine for image generation.
 
 You receive TWO parts:
@@ -470,10 +462,12 @@ OUTPUT — ONLY JSON:
     if (messages.isEmpty) return SceneSnapshot.fallback;
 
     // Remove image-only messages from ALL processing
-    final textOnly = messages
-        .where((m) =>
-            m.imageLocalPath == null && m.content.trim().isNotEmpty)
-        .toList();
+    final textOnly =
+        messages
+            .where(
+              (m) => m.imageLocalPath == null && m.content.trim().isNotEmpty,
+            )
+            .toList();
     if (textOnly.isEmpty) return SceneSnapshot.fallback;
 
     // Step 1: find current scene window
@@ -482,9 +476,7 @@ OUTPUT — ONLY JSON:
     // Step 2: check cache
     final cached = _cache[branchId];
     if (cached != null) {
-      final windowText = sceneWindow
-          .map((m) => m.content)
-          .join(' ');
+      final windowText = sceneWindow.map((m) => m.content).join(' ');
       final hasNewSignal = _hasSceneSwitchSignal(windowText);
       if (!hasNewSignal && cached.$2 == textOnly.length) {
         debugPrint('[SceneExtractor] Using cached scene');
@@ -496,28 +488,36 @@ OUTPUT — ONLY JSON:
     // Split: last message = CURRENT (highest priority)
     // Everything before = PREVIOUS CONTEXT (lower priority)
     final lastMsg = sceneWindow.last;
-    final previousMsgs = sceneWindow.length > 1
-        ? sceneWindow.sublist(0, sceneWindow.length - 1)
-        : <ChatMessageModel>[];
+    final previousMsgs =
+        sceneWindow.length > 1
+            ? sceneWindow.sublist(0, sceneWindow.length - 1)
+            : <ChatMessageModel>[];
 
     final currentText = _formatMessage(lastMsg);
-    final contextText = previousMsgs
-        .map(_formatMessage)
-        .join('\n');
+    final contextText = previousMsgs.map(_formatMessage).join('\n');
 
     debugPrint('[SceneExtractor] CURRENT: $currentText');
     debugPrint('[SceneExtractor] CONTEXT: $contextText');
 
-    final rawSnapshot = await _extractWithLLM(currentText, contextText);
+    try {
+      final rawSnapshot = await _extractWithLLM(currentText, contextText);
 
-    // Step 4: validate
-    final validated = _validateAndFix(rawSnapshot);
-    debugPrint('[SceneExtractor] Final snapshot: '
-        '${jsonEncode(validated.toMap())}');
+      // Step 4: validate
+      final validated = _validateAndFix(rawSnapshot);
+      debugPrint(
+        '[SceneExtractor] Final snapshot: '
+        '${jsonEncode(validated.toMap())}',
+      );
 
-    // Step 5: cache and return
-    _cache[branchId] = (validated, textOnly.length);
-    return validated;
+      // Step 5: cache and return
+      _cache[branchId] = (validated, textOnly.length);
+      return validated;
+    } on DeepSeekApiException {
+      rethrow;
+    } catch (e) {
+      debugPrint('[SceneExtractor] Extraction error: $e');
+      return SceneSnapshot.fallback;
+    }
   }
 
   // ── Scene window extraction ─────────────────────────────────────────
@@ -528,33 +528,40 @@ OUTPUT — ONLY JSON:
   /// everything from that message forward = current scene.
   /// If no switch found, returns last 6 messages.
   List<ChatMessageModel> _extractCurrentSceneWindow(
-      List<ChatMessageModel> messages) {
+    List<ChatMessageModel> messages,
+  ) {
     // Remove image-only messages (they have empty content)
-    final textMessages = messages
-        .where((m) => m.imageLocalPath == null && m.content.trim().isNotEmpty)
-        .toList();
+    final textMessages =
+        messages
+            .where(
+              (m) => m.imageLocalPath == null && m.content.trim().isNotEmpty,
+            )
+            .toList();
     if (textMessages.isEmpty) return [];
-    
+
     // Scan from newest backwards to find last scene switch
     for (int i = textMessages.length - 1; i >= 0; i--) {
       final text = textMessages[i].content;
-      final hasSwitch =
-          sceneSwitchPatterns.any((p) => p.hasMatch(text));
+      final hasSwitch = sceneSwitchPatterns.any((p) => p.hasMatch(text));
       if (hasSwitch) {
         // Current scene = from this message to end
         final window = textMessages.sublist(i);
         debugPrint(
-            '[SceneExtractor] Scene switch found at index $i, '
-            'window size: ${window.length}');
+          '[SceneExtractor] Scene switch found at index $i, '
+          'window size: ${window.length}',
+        );
         return window;
       }
     }
     // No switch found — use last 6 messages
-    final fallbackWindow = textMessages.length > 6
-        ? textMessages.sublist(textMessages.length - 6)
-        : textMessages;
-    debugPrint('[SceneExtractor] No scene switch found, '
-        'using last ${fallbackWindow.length} messages');
+    final fallbackWindow =
+        textMessages.length > 6
+            ? textMessages.sublist(textMessages.length - 6)
+            : textMessages;
+    debugPrint(
+      '[SceneExtractor] No scene switch found, '
+      'using last ${fallbackWindow.length} messages',
+    );
     return fallbackWindow;
   }
 
@@ -569,48 +576,55 @@ OUTPUT — ONLY JSON:
   // ── LLM extraction ──────────────────────────────────────────────────
 
   Future<SceneSnapshot> _extractWithLLM(
-      String currentText, String contextText) async {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) return SceneSnapshot.fallback;
+    String currentText,
+    String contextText,
+  ) async {
+    final apiKey = await AppConfig.getDeepSeekApiKey();
+    if (apiKey.isEmpty) return SceneSnapshot.fallback;
 
-      final response = await http.post(
-        Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': AppConfig.deepSeekModel,
-          'messages': [
-            {
-              'role': 'user',
-              'content': _buildExtractionPrompt(currentText, contextText),
-            }
-          ],
-          'max_tokens': 300,
-          'temperature': 0.1,
-        }),
-      );
+    final response = await http.post(
+      Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'model': AppConfig.deepSeekModel,
+        'messages': [
+          {
+            'role': 'user',
+            'content': _buildExtractionPrompt(currentText, contextText),
+          },
+        ],
+        'max_tokens': 300,
+        'temperature': 0.1,
+      }),
+    );
 
-      if (response.statusCode == 401) throw Exception('api_key_invalid');
+    if (response.statusCode == 401) {
+      throw const DeepSeekApiException('key_invalid');
+    }
+    if (response.statusCode == 402) {
+      throw const DeepSeekApiException('insufficient_balance');
+    }
+    if (response.statusCode == 504 || response.statusCode == 503) {
+      throw const DeepSeekApiException('service_unavailable');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw DeepSeekApiException('http_error', statusCode: response.statusCode);
+    }
 
-      if (response.statusCode < 200 || response.statusCode >= 300) throw Exception('api_key_not_set');
+    final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+    final rawContent =
+        (responseJson['choices'] as List).first['message']['content'] as String;
 
+    debugPrint('[SceneExtractor] Raw LLM response: $rawContent');
 
-      final responseJson =
-          jsonDecode(response.body) as Map<String, dynamic>;
-      final rawContent = (responseJson['choices'] as List)
-          .first['message']['content'] as String;
+    final cleaned =
+        rawContent.replaceAll('```json', '').replaceAll('```', '').trim();
 
-      debugPrint('[SceneExtractor] Raw LLM response: $rawContent');
-
-      final cleaned = rawContent
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
-
-      final map = jsonDecode(cleaned) as Map<String, dynamic>;
-      return SceneSnapshot.fromJson(map);
+    final map = jsonDecode(cleaned) as Map<String, dynamic>;
+    return SceneSnapshot.fromJson(map);
   }
 
   // ── Validation ──────────────────────────────────────────────────────
@@ -620,18 +634,21 @@ OUTPUT — ONLY JSON:
     var s = raw;
 
     // Public locations: cap intimacy and fix impossible poses
-    final publicLocations = {
-      'cafe', 'street', 'park', 'restaurant', 'office'
-    };
+    final publicLocations = {'cafe', 'street', 'park', 'restaurant', 'office'};
     if (s.location != null &&
         publicLocations.contains(s.location!.toLowerCase())) {
       if (s.intimacyLevel > 1) {
         s = s.copyWith(intimacyLevel: 1);
       }
       // Public poses should be standing or sitting, not intimate poses
-      if (s.pose != null && 
-          ['lying_on_back', 'lying_on_side', 'lying_on_stomach', 'kneeling', 'bending_over']
-              .contains(s.pose!.toLowerCase())) {
+      if (s.pose != null &&
+          [
+            'lying_on_back',
+            'lying_on_side',
+            'lying_on_stomach',
+            'kneeling',
+            'bending_over',
+          ].contains(s.pose!.toLowerCase())) {
         s = s.copyWith(pose: 'standing');
       }
     }
@@ -639,7 +656,7 @@ OUTPUT — ONLY JSON:
     // Shower/bathroom: cannot be fully dressed
     if (s.location != null &&
         (s.location!.toLowerCase().contains('shower') ||
-         s.location!.toLowerCase().contains('bathroom'))) {
+            s.location!.toLowerCase().contains('bathroom'))) {
       if (s.clothingState == 'fully_dressed') {
         s = s.copyWith(clothingState: 'casual');
       }
@@ -648,7 +665,7 @@ OUTPUT — ONLY JSON:
     // Bedroom: intimacy can be higher
     if (s.location != null &&
         (s.location!.toLowerCase().contains('bed') ||
-         s.location!.toLowerCase().contains('bedroom'))) {
+            s.location!.toLowerCase().contains('bedroom'))) {
       if (s.intimacyLevel < 2) {
         s = s.copyWith(intimacyLevel: 2);
       }

@@ -149,20 +149,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
 
 
   @override
-  @override
   void didPopNext() {
     ref.read(chatProvider(widget.branchId).notifier).resetVerification();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final notifier = ref.read(chatProvider(widget.branchId).notifier);
-      debugPrint('[ChatScreen] 1 ageVerified: ${notifier.toString()}');
 
       if (!widget.isMulti) {
         final map = await DatabaseHelper.instance.getPersonaById(widget.entityId);
         if (!mounted || map == null) return;
         final fresh = PersonaMapper.toEntity(PersonaModel.fromMap(map));
-        debugPrint('[ChatScreen] 2 ageVerified: ${fresh.ageVerified}');
         if (!fresh.ageVerified) notifier.verifyPersonaIfNeeded(fresh);
       } else {
         final preset = ref.read(multiPresetProvider)
@@ -172,7 +169,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
           final map = await DatabaseHelper.instance.getPersonaById(id);
           if (!mounted || map == null) continue;
           final fresh = PersonaMapper.toEntity(PersonaModel.fromMap(map));
-          debugPrint('[ChatScreen] 2 ageVerified: ${fresh.ageVerified}');
           if (!fresh.ageVerified) notifier.verifyPersonaIfNeeded(fresh);
         }
       }
@@ -228,58 +224,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   Widget build(BuildContext context) {
     ref.listen<ChatState>(chatProvider(widget.branchId), (prev, next) {
       if (next.error != null && next.error != prev?.error) {
-        final error = next.error!;
-        if (error is ApiException) {
-          final is401 = error.toString().contains('401');
-          final is402 = error.toString().contains('402');
-          final is403 = error.toString().contains('403');
-          final isDeepSeek = error.toString().contains('deepseek');
-          final isNovita = error.toString().contains('novita');
-          AppSnackBar.show(
-            is401 || is403
-                ? (isDeepSeek
-                    ? context.l10n.errorDeepSeekKeyInvalid
-                    : isNovita
-                    ? context.l10n.errorNovitaKeyInvalid
-                    : context.l10n.errorApiKeyInvalid)
-                : is402
-                ? context.l10n.errorDeepSeekInsufficientBalance
-                : context.l10n.errorConnectionFailed,
-            isError: is401 || is402 || is403,
-            withSettings: is401 || is403,
-          );
-        } else if (error is GenerationException) {
-          final isKeyNotSet = error.toString().contains('api_key_not_set');
-          final isKeyInvalid = error.toString().contains('api_key_invalid');
-          AppSnackBar.show(
-            isKeyNotSet
-                ? context.l10n.errorNovitaKeyNotSet
-                : isKeyInvalid
-                ? context.l10n.errorNovitaKeyInvalid
-                : context.l10n.errorImageGeneration,
-            isError: isKeyNotSet || isKeyInvalid,
-            withSettings: isKeyNotSet || isKeyInvalid,
-          );
-        } else if (error is AgeVerificationException) {
-          // Show age conflict snackbar with failed personas list
-          final failedPersonas = next.failedPersonas;
-          if (failedPersonas.isNotEmpty) {
-            if (widget.isMulti) {
-              AppSnackBar.showAgeConflictMulti(context.l10n, next.failedPersonas);
+        final l10n = context.l10n;
+        switch (next.error) {
+          case DeepSeekApiException():
+            AppSnackBar.showDeepSeekError(next.error! as DeepSeekApiException, l10n);
+
+          case NovitaApiException():
+            AppSnackBar.showNovitaError(next.error! as NovitaApiException, l10n);
+
+          case AgeVerificationException():
+            final failedPersonas = next.failedPersonas;
+            if (failedPersonas.isNotEmpty) {
+              widget.isMulti
+                  ? AppSnackBar.showAgeConflictMulti(l10n, failedPersonas)
+                  : AppSnackBar.showAgeConflictSingle(l10n, _singlePersona!.id);
             } else {
-              AppSnackBar.showAgeConflictSingle(context.l10n, _singlePersona!.id);
+              AppSnackBar.show(l10n.personaDescriptionConflict, isError: true);
             }
-          } else {
-            AppSnackBar.show(context.l10n.personaDescriptionConflict, isError: true);
-          }
-        } else if (error is PromptCleanerChatException) {
-          AppSnackBar.showPersonaValidationError(error.cause, context.l10n);
-        } else {
-          AppSnackBar.show(
-            error is HistoryException
-                ? context.l10n.errorHistory
-                : context.l10n.errorUnknown,
-          );
+
+          case HistoryException():
+            AppSnackBar.show(l10n.errorHistory);
+
+          default:
+            AppSnackBar.show(l10n.errorUnknown);
         }
         ref.read(chatProvider(widget.branchId).notifier).clearError();
       }
@@ -1410,9 +1377,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
 
   void _generateSceneImage() async {
     if (_singlePersona == null) return;
-    if (!await _ensureApiKey()) return;
-    final error = ref.read(chatProvider(widget.branchId)).error;
-    if (error is ApiException && error.toString().contains('401')) return;
     ref
         .read(chatProvider(widget.branchId).notifier)
         .generateSceneImage(persona: _singlePersona!);
@@ -1420,9 +1384,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
 
   void _regenSceneImage() async {
     if (_singlePersona == null) return;
-    if (!await _ensureApiKey()) return;
-    final error = ref.read(chatProvider(widget.branchId)).error;
-    if (error is ApiException && error.toString().contains('401')) return;
     ref
         .read(chatProvider(widget.branchId).notifier)
         .generateSceneImage(persona: _singlePersona!, regen: true);

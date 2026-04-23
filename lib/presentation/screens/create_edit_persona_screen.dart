@@ -204,21 +204,37 @@ class _CreateEditPersonaScreenState
         _isGeneratingAvatar = true;
         _isCheckingAge = true;
       });
+      bool _earlyExit = false;
 
       try {
         final check = await PromptCleanerService.instance.checkForMinorSignals(description);
         if (check.hasConflict == true &&
             (check.severity == 'high' || check.severity == 'medium')) {
           if (!mounted) return;
+          _earlyExit = true;
           AppSnackBar.show(context.l10n.personaDescriptionConflict);
           return;
         }
-      } on PromptCleanerException catch (e) {
+
+        if (!check.hasAge) {
+          if (!mounted) return;
+          _earlyExit = true;
+          AppSnackBar.show(context.l10n.personaAgeMissing); // жёлтый/оранжевый
+          return;
+        }
+      } on DeepSeekApiException catch (e) {
         if (!mounted) return;
-        AppSnackBar.showPersonaValidationError(e, context.l10n);
+        AppSnackBar.showDeepSeekError(e, context.l10n);
         return;
       } finally {
-        if (mounted) setState(() => _isCheckingAge = false);
+        if (_earlyExit && mounted) {
+          setState(() {
+            _isGeneratingAvatar = false;
+            _isCheckingAge = false;
+          });
+        } else if (mounted) {
+          setState(() => _isCheckingAge = false);
+        }
       }
 
       // Фаза 1: очистка промптов
@@ -226,9 +242,9 @@ class _CreateEditPersonaScreenState
       try {
         await PromptCleanerService.instance.cleanAndSave(personaId, description);
         if (mounted) setState(() => _lastSentDescription = description);
-      } on PromptCleanerException catch (e) {
+      } on DeepSeekApiException catch (e) {
         if (!mounted) return;
-        AppSnackBar.showPromptCleanerError(e, context.l10n);
+        AppSnackBar.showDeepSeekError(e, context.l10n);
         return;
       } finally {
         if (mounted) setState(() => _isCleaningPrompt = false);
@@ -306,10 +322,10 @@ class _CreateEditPersonaScreenState
       );
 
       if (mounted) setState(() => _generatedAvatarPreviewPath = path);
-    } on PromptCleanerException catch (e) {
+    } on DeepSeekApiException catch (e) {
       if (!mounted) return;
-      AppSnackBar.showPromptCleanerError(e, context.l10n);
-    } on NovitaException catch (e) {
+      AppSnackBar.showDeepSeekError(e, context.l10n);
+    } on NovitaApiException catch (e) {
       debugPrint('[Avatar] style generation error: $e');
       if (!mounted) return;
       AppSnackBar.showNovitaError(e, context.l10n);
@@ -369,7 +385,7 @@ class _CreateEditPersonaScreenState
         );
 
         if (mounted) setState(() => _generatedAvatarPreviewPath = path);
-      } on NovitaException catch (e) {
+      } on NovitaApiException catch (e) {
         debugPrint('[Avatar] style generation error: $e');
         if (!mounted) return;
         AppSnackBar.showNovitaError(e, context.l10n);
@@ -551,7 +567,7 @@ class _CreateEditPersonaScreenState
                             ),
                             const SizedBox(width: 10),
                             Text(
-                              context.l10n.validatingPersona,
+                              context.l10n.verifyingPersona,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -759,7 +775,7 @@ class _CreateEditPersonaScreenState
                             ),
                             const SizedBox(width: 10),
                             Text(
-                              context.l10n.validatingPersona, // 'Валидация...'
+                              context.l10n.verifyingPersona, // 'Валидация...'
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -1293,14 +1309,20 @@ class _CreateEditPersonaScreenState
               (check.severity == 'high' || check.severity == 'medium')) {
             // Реальный конфликт возраста — блокируем
             if (!mounted) return;
-            AppSnackBar.show(l10n.personaDescriptionConflict);
+            AppSnackBar.show(l10n.personaDescriptionConflict, isError: true); // красный
             return; // ← единственный случай когда не сохраняем
           } else {
+            if (!check.hasAge) {
+              if (!mounted) return;
+              AppSnackBar.show(l10n.personaAgeMissing); // жёлтый/оранжевый
+              return;
+            }
             ageVerified = true;
-            if (mounted)
+            if (mounted) {
               AppSnackBar.showSuccess(l10n.personaValidated, isIcon: true);
+            }
           }
-        } on PromptCleanerException catch (e) {
+        } on DeepSeekApiException catch (e) {
           // 401, 402, сеть — показываем ошибку, но НЕ блокируем сохранение
           AppSnackBar.showPersonaValidationError(e, l10n);
           // ageVerified остаётся false, идём дальше
@@ -1309,7 +1331,7 @@ class _CreateEditPersonaScreenState
         AppSnackBar.show(l10n.personaNotValidated);
         // ageVerified = false, идём дальше
       }
-
+      if (!mounted) return;
       // --- Сохранение всегда доходит сюда, кроме реального конфликта ---
       final persona =
           _isEdit
@@ -1331,6 +1353,7 @@ class _CreateEditPersonaScreenState
         ageVerified: ageVerified,
       );
 
+      if (!mounted) return;
       final notifier = ref.read(personaProvider.notifier);
       if (_isEdit) {
         notifier.updatePersona(entity);
@@ -1343,7 +1366,7 @@ class _CreateEditPersonaScreenState
       PromptCleanerService.instance
           .cleanAndSave(entity.id, entity.description)
           .catchError((e) {
-            if (e is PromptCleanerException) {
+            if (e is DeepSeekApiException) {
               AppSnackBar.showPersonaValidationError(e, l10n);
             }
           });

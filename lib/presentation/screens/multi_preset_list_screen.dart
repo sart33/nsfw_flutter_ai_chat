@@ -95,6 +95,11 @@ class MultiPresetListScreen extends ConsumerWidget {
       itemCount: presets.length,
       itemBuilder: (context, index) {
         final preset = presets[index];
+        final presetPersonas = preset.personaIds
+            .map((id) => personas.where((p) => p.id == id).firstOrNull)
+            .where((p) => p != null)
+            .cast<PersonaEntity>()
+            .toList();
         return Dismissible(
           key: Key(preset.id),
           direction: DismissDirection.endToStart,
@@ -162,7 +167,7 @@ class MultiPresetListScreen extends ConsumerWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                if (personas.any((p) => !p.ageVerified)) ...[
+                                if (presetPersonas.any((p) => !p.ageVerified)) ...[
                                   const SizedBox(width: 4),
                                   const Icon(
                                     Icons.warning_amber_rounded,

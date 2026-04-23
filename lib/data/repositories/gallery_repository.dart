@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:nsfw_chat/domain/result/preview_result.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
+import 'package:nsfw_chat/domain/result/preview_result.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core/utils/seed_utils.dart';
-import '../../domain/result/result.dart';
 
 /// Manages gallery image generation, persistence, and deletion for personas.
 class GalleryRepository {
@@ -46,7 +46,7 @@ class GalleryRepository {
   // ── Generate ──────────────────────────────────────────────────────────────
 
 
-  Future<Result<PreviewResult>> generatePreview(
+  Future<PreviewResult> generatePreview(
       String personaId, String description, String galleryMode) async {
     try {
       final usedIds = await _db.getUsedTemplateIds(personaId);
@@ -58,7 +58,7 @@ class GalleryRepository {
       } else if (galleryMode == 'office') {
         allIds = List.generate(20, (i) => i + 61); // 61-80, placeholder
       } else {
-        allIds = List.generate(20, (i) => i + 1);  // 1-20, nude (default)
+        allIds = List.generate(20, (i) => i + 1); // 1-20, nude (default)
       }
       final available =
       allIds.where((id) => !usedIds.contains(id)).toList();
@@ -78,12 +78,13 @@ class GalleryRepository {
 
       if (prompts != null) {
         effectiveDescription = switch (galleryMode) {
-          'erotic'   => (prompts['erotic']   as String?) ?? description,
-          'romantic' => _romantic2TemplateIds.contains(selectedId)
+          'erotic' => (prompts['erotic'] as String?) ?? description,
+          'romantic' =>
+          _romantic2TemplateIds.contains(selectedId)
               ? (prompts['romantic2'] as String?) ?? description
-              : (prompts['romantic']  as String?) ?? description,
-          'office'   => (prompts['office']   as String?) ?? description,
-          _          => (prompts['nsfw']     as String?) ?? description,
+              : (prompts['romantic'] as String?) ?? description,
+          'office' => (prompts['office'] as String?) ?? description,
+          _ => (prompts['nsfw'] as String?) ?? description,
         };
       } else {
         effectiveDescription = description;
@@ -99,20 +100,22 @@ class GalleryRepository {
       await _novita.generateImageTo(prompt, tempDir, saveId);
 
 
-      return Result.success(PreviewResult(
+      return PreviewResult(
         tempPath: tempPath,
         templateId: selectedId,
-      ));
-    }  on GalleryFullException {
-      rethrow;
-    } on NovitaException catch (e) {
-      return Result.failure(e.message, e);
+      );
+    } on GalleryFullException {
+      rethrow; // провайдер поймает и покажет galleryFull
+    } on NovitaApiException {
+      rethrow; // провайдер поймает и покажет novita error
+    } on DeepSeekApiException {
+      rethrow; // если cleanAndSave кинул
     } catch (e) {
-      return Result.failure(e.toString(), e is Exception ? e : null);
+      throw SaveException(e.toString());
     }
   }
 
-  Future<Result<PreviewResult>> regeneratePreview(
+  Future<PreviewResult> regeneratePreview(
       String personaId,
       String description,
       int templateId,
@@ -153,21 +156,26 @@ class GalleryRepository {
       final tempPath =
       await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed());
 
-      return Result.success(PreviewResult(
+      return PreviewResult(
         tempPath: tempPath,
         templateId: templateId,
-      ));
-    } on NovitaException catch (e) {
-      return Result.failure(e.message, e);
+      );
+    } on GalleryFullException {
+      rethrow; // провайдер поймает и покажет galleryFull
+    } on NovitaApiException {
+      rethrow; // провайдер поймает и покажет novita error
+    } on DeepSeekApiException {
+      rethrow; // если cleanAndSave кинул
     } catch (e) {
-      return Result.failure(e.toString(), e is Exception ? e : null);
+      throw SaveException(e.toString());
+
     }
   }
 
 
 
 
-  Future<Result<GalleryImageEntity>> regenerateSameTemplate(
+  Future<GalleryImageEntity> regenerateSameTemplate(
     String oldImageId,
     String personaId,
     String description,
@@ -222,19 +230,22 @@ class GalleryRepository {
         now.millisecondsSinceEpoch,
       );
 
-      return Result.success(GalleryImageEntity(
+      return GalleryImageEntity(
         id: saveId,
         personaId: personaId,
         templateId: templateId,
         localPath: localPath,
         generatedAt: now,
-      ));
+      );
 
-    } on NovitaException catch (e) {
-      return Result.failure(e.message, e);
+    } on GalleryFullException {
+      rethrow; // провайдер поймает и покажет galleryFull
+    } on NovitaApiException {
+      rethrow; // провайдер поймает и покажет novita error
     } catch (e) {
-        return Result.failure(e.toString(), e is Exception ? e : null);
-      }
+      throw SaveException(e.toString());
+
+    }
   }
 
   /// Saves a pre-generated temp image into the proper gallery location + DB.

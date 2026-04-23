@@ -77,28 +77,19 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           if (next.error == null || next.error == prev?.error) return;
 
           final l10n = context.l10n;
-
+          debugPrint('Gallery error: ${next.error}');
           switch (next.error) {
             case AgeVerificationException():
               AppSnackBar.showAgeConflictSingle(l10n, widget.persona.id);
 
-            case PromptCleanerGalleryException(:final cause):
-              AppSnackBar.showPersonaValidationError(cause, l10n);
+            case DeepSeekApiException():
+              AppSnackBar.showPersonaValidationError(next.error as DeepSeekApiException, l10n);
 
             case GalleryFullException():
               AppSnackBar.show(l10n.galleryFull);
 
-            case GenerationException(technicalMessage: 'api_key_not_set'):
-              AppSnackBar.show(l10n.errorNovitaKeyNotSet, isError: true, withSettings: true);
-
-            case GenerationException(technicalMessage: 'api_key_invalid'):
-              AppSnackBar.show(l10n.errorNovitaKeyInvalid, isError: true, withSettings: true);
-
-            case GenerationException(technicalMessage: 'insufficient_balance'):
-              AppSnackBar.show(l10n.errorNovitaInsufficientBalance, isError: true);
-
-            case GenerationException():
-              AppSnackBar.show(l10n.errorImageGeneration);
+            case NovitaApiException():
+              AppSnackBar.showNovitaError(next.error as NovitaApiException, l10n);
 
             case SaveException():
               AppSnackBar.show(l10n.errorSave);

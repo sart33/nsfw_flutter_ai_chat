@@ -75,7 +75,7 @@ Return only this JSON, nothing else:
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
         debugPrint('[PromptCleanerService] DeepSeek API key is not set, skipping.');
-        throw const PromptCleanerException('key_not_set');
+        throw const DeepSeekApiException('key_not_set');
 
         // AppSnackBar.showCriticalWithLang(
         //   'DeepSeek API key not set. Gallery prompts and chat scene descriptions will not be generated.',
@@ -104,13 +104,16 @@ Return only this JSON, nothing else:
       );
 
       if (response.statusCode == 401) {
-        throw const PromptCleanerException('key_invalid');
+        throw const DeepSeekApiException('key_invalid');
       }
       if (response.statusCode == 402) {
-        throw const PromptCleanerException('insufficient_balance');
+        throw const DeepSeekApiException('insufficient_balance');
+      }
+      if (response.statusCode == 504 || response.statusCode == 503) {
+        throw const DeepSeekApiException('service_unavailable');
       }
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw PromptCleanerException('http_error', statusCode: response.statusCode);
+        throw DeepSeekApiException('http_error', statusCode: response.statusCode);
       }
 
       try {
@@ -142,7 +145,7 @@ Return only this JSON, nothing else:
       );
     } catch (e) {
       debugPrint('[PromptCleanerService] Error: $e');
-      throw const PromptCleanerException('parse_error');
+      throw const DeepSeekApiException('parse_error');
       // AppSnackBar.showErrorWithLang(
       //   'Gallery prompts and chat scene update failed. Please try again.',
       //   'Ошибка обновления описаний для галереи и сцен чата. Попробуйте снова.',
@@ -152,30 +155,41 @@ Return only this JSON, nothing else:
     /// Checks the character description for signs of underage.
     /// Returns hasConflict, severity ('low'/'medium'/'high'), reason.
     /// Call only if the API key is present.
-  Future<({bool hasConflict, String? severity, String reason})>
+  Future<({bool hasConflict, String? severity, String reason, bool hasAge})>
   checkForMinorSignals(String description) async {
 
     try {
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
-        throw const PromptCleanerException('key_not_set');
+        throw const DeepSeekApiException('key_not_set');
       }
 
 
       const prompt = '''
 Analyze the following character description.
 The character is defined as an adult (18+).
-Return ONLY valid JSON in this format:
-{"has_conflict": true/false, "severity": "low" | "medium" | "high", "reason": "short explanation"}
 
-Task:
-Detect whether the description contains ANY signals that contradict the character being an adult (18+).
+Return ONLY valid JSON in this format:
+{
+  "has_conflict": true/false,
+  "severity": "low" | "medium" | "high" | null,
+  "reason": "short explanation",
+  "has_age": true/false,
+}
+
+Tasks:
+
+1. Detect whether the description contains ANY signals that contradict the character being an adult (18+).
 These include:
 - explicit age under 18
 - references to school (schoolgirl, schoolboy, student in a minor context)
 - words like child, kid, minor, underage
 - descriptions that strongly imply a minor
 
+2. Detect whether the description explicitly specifies the character's age (a number or clear statement like "43 years old").
+   - If yes → has_age = true
+   - If missing or unclear → has_age = false
+   
 Important:
 - Ignore vague words like "cute", "petite", "young-looking", "youthful"
 - Be conservative: if unclear, return has_conflict = false
@@ -203,15 +217,18 @@ Important:
       debugPrint('[PromptCleanerService] checkForMinorSignals response: ${response.statusCode} ${response.body}');
 
       if (response.statusCode == 401) {
-        throw const PromptCleanerException('key_invalid');
+        throw const DeepSeekApiException('key_invalid');
       }
 
       if (response.statusCode == 402) {
-        throw const PromptCleanerException('insufficient_balance');
+        throw const DeepSeekApiException('insufficient_balance');
       }
 
+      if (response.statusCode == 504 || response.statusCode == 503) {
+        throw const DeepSeekApiException('service_unavailable');
+      }
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw PromptCleanerException('http_error', statusCode: response.statusCode);
+        throw DeepSeekApiException('http_error', statusCode: response.statusCode);
       }
 
 
@@ -221,7 +238,7 @@ Important:
 
       if (finishReason == 'length') {
         debugPrint('[PromptCleanerService] checkForMinorSignals response truncated (finish_reason=length), likely due to max_tokens limit. Consider increasing max_tokens or check if the prompt is too long.');
-        throw const PromptCleanerException('invalid_response');
+        throw const DeepSeekApiException('invalid_response');
       }
 
       final content = ((responseJson['choices'] as List)
@@ -233,30 +250,32 @@ Important:
       final result = jsonDecode(content) as Map<String, dynamic>;
 
       final hasConflict = (result['has_conflict'] as bool?)
-          ?? (throw const PromptCleanerException('invalid_response'));
+          ?? (throw const DeepSeekApiException('invalid_response'));
 
       final severity = result['severity'] as String?;
 
       final reason = (result['reason'] as String?) ?? '';
 
+      final hasAge = (result['has_age'] as bool?)
+          ?? (throw const DeepSeekApiException('invalid_response'));
+
       return (
       hasConflict: hasConflict,
       severity: severity,
       reason: reason,
+      hasAge: hasAge,
       );
 
-    } on PromptCleanerException {
-      rethrow; // ВАЖНО: не глотаем свои ошибки
     } catch (e) {
 
-
+      if (e is DeepSeekApiException) rethrow;
       if (e is SocketException || e is http.ClientException) {
         debugPrint('[PromptCleanerService] $e');
 
-        throw const PromptCleanerException('network_error');
+        throw const DeepSeekApiException('network_error');
 
       }
-      throw const PromptCleanerException('invalid_response');
+      throw const DeepSeekApiException('invalid_response');
     }
     }
   }
