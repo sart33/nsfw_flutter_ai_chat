@@ -459,6 +459,45 @@ class _CreateEditPersonaScreenState
     );
   }
 
+
+  Widget _buildInfoHint(String text) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDesktop =
+        _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+    return Container(
+
+      padding: EdgeInsets.symmetric(horizontal: useDesktop ? 28 : 8, vertical: useDesktop ? 12 : 6 ),
+      decoration: useDesktop ? AppTheme.cardDecoration() : null,
+
+    child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              SizedBox(height: useDesktop ? 2 : 2),
+              Icon(
+                Icons.info_outline,
+                size: useDesktop ? 22 : 18,
+                color: AppTheme.primaryAccent,
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: AppTheme.primaryAccent,
+                fontSize: useDesktop ? 15 : 14,
+
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -475,6 +514,7 @@ class _CreateEditPersonaScreenState
     );
   }
 
+
   // ══════════════════════════════════════════════════════════════════════════
   // MOBILE LAYOUT
   // ══════════════════════════════════════════════════════════════════════════
@@ -488,7 +528,10 @@ class _CreateEditPersonaScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildAvatarSection(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
+            _buildInfoHint(context.l10n.personaDescriptionAgeRequirement),
+
+            const SizedBox(height: 16),
 
             TextFormField(
               controller: _nameCtrl,
@@ -509,6 +552,7 @@ class _CreateEditPersonaScreenState
               maxChars: _descMax,
               maxLines: 4,
             ),
+
             const SizedBox(height: 16),
 
             _buildCountedField(
@@ -684,112 +728,120 @@ class _CreateEditPersonaScreenState
 
   /// Правая панель: все текстовые поля + кнопка Save, обёрнутые в карточку
   Widget _buildDesktopFormPanel() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppTheme.cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Имя
-          TextFormField(
-            controller: _nameCtrl,
-            style: const TextStyle(color: AppTheme.textPrimary),
-            decoration: _fieldDecoration(context.l10n.nameLabel),
-            onChanged: (_) => setState(() {}),
-            validator:
-                (v) =>
-                    (v == null || v.trim().isEmpty)
-                        ? context.l10n.enterName
-                        : null,
-          ),
-          const SizedBox(height: 20),
+    return Column(
+      children: [
+        _buildInfoHint(context.l10n.personaDescriptionAgeRequirement),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: AppTheme.cardDecoration(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
 
-          // Описание
-          _buildCountedField(
-            controller: _descCtrl,
-            label: context.l10n.description,
-            maxChars: _descMax,
-            maxLines: 5,
-          ),
-          const SizedBox(height: 16),
+              // Имя
+              TextFormField(
+                controller: _nameCtrl,
+                style: const TextStyle(color: AppTheme.textPrimary),
+                decoration: _fieldDecoration(context.l10n.nameLabel),
+                onChanged: (_) => setState(() {}),
+                validator:
+                    (v) =>
+                        (v == null || v.trim().isEmpty)
+                            ? context.l10n.enterName
+                            : null,
+              ),
+              const SizedBox(height: 20),
 
-          // Приветствие
-          _buildCountedField(
-            controller: _greetCtrl,
-            label: context.l10n.greeting,
-            maxChars: _greetMax,
-            maxLines: 3,
-          ),
-          const SizedBox(height: 16),
+              // Описание
+              _buildCountedField(
+                controller: _descCtrl,
+                label: context.l10n.description,
+                maxChars: _descMax,
+                maxLines: 5,
+              ),
+              const SizedBox(height: 16),
 
-          // Поведение
-          TextFormField(
-            controller: _behaviorCtrl,
-            style: const TextStyle(color: AppTheme.textPrimary),
-            maxLines: 5,
-            decoration: _fieldDecoration(
-              context.l10n.behaviorOptional,
-            ).copyWith(hintText: context.l10n.aiInstructions),
-          ),
-          const SizedBox(height: 28),
+              // Приветствие
+              _buildCountedField(
+                controller: _greetCtrl,
+                label: context.l10n.greeting,
+                maxChars: _greetMax,
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
 
-          // Кнопка Save — фиксированная ширина, центр
-          Center(
-            child: SizedBox(
-              width: 260,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: (_isGeneratingAvatar || _isSaving) ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentVivid,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppTheme.cardBg,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(32),
+              // Поведение
+              TextFormField(
+                controller: _behaviorCtrl,
+                style: const TextStyle(color: AppTheme.textPrimary),
+                maxLines: 5,
+                decoration: _fieldDecoration(
+                  context.l10n.behaviorOptional,
+                ).copyWith(hintText: context.l10n.aiInstructions),
+              ),
+              const SizedBox(height: 28),
+
+              const SizedBox(height: 16),
+              // Кнопка Save — фиксированная ширина, центр
+              Center(
+                child: SizedBox(
+                  width: 260,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: (_isGeneratingAvatar || _isSaving) ? null : _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentVivid,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: AppTheme.cardBg,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                    ),
+                    child:
+                        _isSaving
+                            ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme
+                                          .accentVividInputBorder, // оранжевый — идёт процесс
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  context.l10n.verifyingPersona, // 'Валидация...'
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white54,
+                                  ),
+                                ),
+                              ],
+                            )
+                            : Text(
+                              _isEdit ? context.l10n.save : context.l10n.create,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
                   ),
                 ),
-                child:
-                    _isSaving
-                        ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppTheme
-                                      .accentVividInputBorder, // оранжевый — идёт процесс
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              context.l10n.verifyingPersona, // 'Валидация...'
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white54,
-                              ),
-                            ),
-                          ],
-                        )
-                        : Text(
-                          _isEdit ? context.l10n.save : context.l10n.create,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1319,10 +1371,10 @@ class _CreateEditPersonaScreenState
         }
         on NetworkException catch (_) {
           if (!mounted) return;
-          AppSnackBar.show(context.l10n.networkError, isError: true);
+          AppSnackBar.showExtended(context.l10n.characterSavedNotVerifiedNetworkError, null);
         } on DeepSeekApiException catch (e) {
           // 401, 402, сеть — показываем ошибку, но НЕ блокируем сохранение
-          AppSnackBar.showPersonaValidationError(e, l10n);
+          AppSnackBar.showCreatePersonaValidationError(e, l10n);
           // ageVerified остаётся false, идём дальше
         }
        } else {
@@ -1365,10 +1417,10 @@ class _CreateEditPersonaScreenState
           .cleanAndSave(entity.id, entity.description)
           .catchError((e) {
         if (e is NetworkException) {
-          AppSnackBar.show(l10n.networkError, isError: true);
+          AppSnackBar.show(l10n.characterSavedNotVerifiedNetworkError);
         }
             if (e is DeepSeekApiException) {
-              AppSnackBar.showPersonaValidationError(e, l10n);
+              AppSnackBar.showCreatePersonaValidationError(e, l10n);
             }
           });
     } finally {

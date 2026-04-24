@@ -418,5 +418,16 @@
   },
   "profile": "Профіль",
   "ageNotVerified": "Вік не підтверджено",
-  "personaAgeMissing": "Вкажіть вік персонажа (наприклад, \"28 років\")."
+  "personaAgeMissing": "Вкажіть вік персонажа (наприклад, \"28 років\").",
+  "personaDescriptionAgeRequirement": "Персонаж має бути повнолітнім (18+). В описі вказуйте вік.",
+  "personaAutoValidationInfo": "Перевірка виконується автоматично. Опис, що не відповідає вимогам, не буде збережено.",
+
+  "characterSavedNotVerifiedKeyNotSet": "Персонаж збережений, але не пройшов перевірку: API-ключ DeepSeek не задано. Будь ласка, додайте його в налаштуваннях.",
+  "characterSavedNotVerifiedKeyInvalid": "Персонаж збережений, але не пройшов перевірку: недійсний API-ключ DeepSeek. Будь ласка, оновіть його в налаштуваннях.",
+  "characterSavedNotVerifiedNoBalance": "Персонаж збережений, але не пройшов перевірку: недостатньо коштів на балансі DeepSeek. Будь ласка, поповніть рахунок.",
+  "characterSavedNotVerifiedDeepSeekUnavailable": "Персонаж збережений, але не пройшов перевірку: сервіс DeepSeek тимчасово недоступний. Будь ласка, спробуйте пізніше.",
+  "characterSavedNotVerifiedNetworkError": "Персонаж збережений, але не пройшов перевірку: помилка мережі. Перевірте підключення та спробуйте знову.",
+  "characterSavedNotVerifiedGeneric": "Персонаж збережений, але не пройшов перевірку: помилка перевірки. Будь ласка, спробуйте пізніше.",
+  "characterSavedNotVerifiedContinueHint": "Ви зможете продовжити після усунення проблеми."
+
 }

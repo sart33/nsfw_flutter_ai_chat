@@ -404,5 +404,14 @@
   },
   "profile": "Profile",
   "ageNotVerified": "Age not verified",
-  "personaAgeMissing": "Please specify the character's age (e.g. \"28 years old\")."
+  "personaAgeMissing": "Please specify the character's age (e.g. \"28 years old\").",
+  "personaDescriptionAgeRequirement": "Character must be 18 or older. Please specify the age clearly in the description.",
+  "personaAutoValidationInfo": "Verification runs automatically. Non-compliant descriptions will not be saved.",
+
+  "characterSavedNotVerifiedKeyNotSet": "Character saved, but not verified: DeepSeek API key not set. Please add it in settings.",
+  "characterSavedNotVerifiedKeyInvalid": "Character saved, but not verified: invalid DeepSeek API key. Please update it in settings.",
+  "characterSavedNotVerifiedNoBalance": "Character saved, but not verified: insufficient DeepSeek balance. Please top up your account.",
+  "characterSavedNotVerifiedDeepSeekUnavailable": "Character saved, but not verified: DeepSeek service is temporarily unavailable. Please try again later.",
+  "characterSavedNotVerifiedNetworkError": "Character saved, but not verified: network error occurred. Please check your connection and try again.",
+  "characterSavedNotVerifiedContinueHint": "You can continue once the issue is resolved."
 }

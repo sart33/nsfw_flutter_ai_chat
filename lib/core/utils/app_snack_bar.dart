@@ -77,6 +77,95 @@ class AppSnackBar {
     ));
   }
 
+  static void showExtended(
+      String messageOne,
+      String? messageTwo,{
+        bool isError = false,
+        bool withSettings = false,
+      }) {
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+
+    final context = navigatorKey.currentContext;
+    final isDesktop = context != null && MediaQuery.of(context).size.width >= 600;
+
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      backgroundColor: isError ? AppTheme.error : AppTheme.warning,
+      duration: Duration(seconds: withSettings ? 12 : 9),
+      content: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  messageOne,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (withSettings) ...[
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textPrimary,
+                    side: const BorderSide(color: AppTheme.textPrimary, width: 1.5),
+                    padding: isDesktop
+                        ? const EdgeInsets.symmetric(horizontal: 24, vertical: 16)
+                        : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(isDesktop ? 32 : 16),
+                    ),
+                  ),
+                  onPressed: () {
+                    messenger.removeCurrentSnackBar();
+                    navigatorKey.currentState?.push(
+                      MaterialPageRoute(builder: (_) => const ApiKeysScreen()),
+                    );
+                  },
+                  child: Text(
+                    navigatorKey.currentContext!.l10n.settings,
+                    style: TextStyle(
+                      fontSize: isDesktop ? 14 : 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+
+              ],
+            ],
+          ),
+          if (messageTwo != null) ...[
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  messageTwo,
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    fontSize: isDesktop ? 13 : 14,
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w400,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+    ],
+      ),
+    ));
+  }
+
 
   static void showSuccess(String message, {bool isIcon = false}) {
     final messenger = scaffoldMessengerKey.currentState;
@@ -135,6 +224,18 @@ class AppSnackBar {
       _                      => (l10n.personaNotValidatedGeneric,       false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
+  }
+
+    static void showCreatePersonaValidationError(DeepSeekApiException e, AppLocalizations l10n) {
+    final (msg1, msg2,isError, withSettings) = switch (e.code) {
+      'key_not_set'          => (l10n.characterSavedNotVerifiedKeyNotSet, l10n.characterSavedNotVerifiedContinueHint, false, true),
+      'key_invalid'          => (l10n.characterSavedNotVerifiedKeyInvalid, l10n.characterSavedNotVerifiedContinueHint,   false, true),
+      'insufficient_balance' => (l10n.characterSavedNotVerifiedNoBalance, l10n.characterSavedNotVerifiedContinueHint,    false, false),
+      'network_error'        => (l10n.characterSavedNotVerifiedNetworkError, null, false, false),
+      'service_unavailable'  => (l10n.characterSavedNotVerifiedDeepSeekUnavailable, null, false, false),
+      _                      => (l10n.characterSavedNotVerifiedGeneric, null,      false, false),
+    };
+    showExtended(msg1, msg2, isError: isError, withSettings: withSettings);
   }
 
   static void showNovitaError(NovitaApiException e, AppLocalizations l10n) {

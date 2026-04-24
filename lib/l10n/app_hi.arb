@@ -441,7 +441,17 @@
   },
   "profile": "Profile",
   "ageNotVerified": "Age verify नहीं",
-  "personaAgeMissing": "Character age specify करें (e.g. \"28 years old\")."
+  "personaAgeMissing": "Character age specify करें (e.g. \"28 years old\").",
+  "personaDescriptionAgeRequirement": "Character 18+ होना चाहिए. Description में age clearly mention करें.",
+  "personaAutoValidationInfo": "Verification automatically होता है. Non-compliant descriptions save नहीं होंगे.",
+
+  "characterSavedNotVerifiedKeyNotSet": "Character saved, not verified: DeepSeek API key set नहीं है. Please add it in Settings.",
+  "characterSavedNotVerifiedKeyInvalid": "Character saved, not verified: invalid DeepSeek API key. Please update it in Settings.",
+  "characterSavedNotVerifiedNoBalance": "Character saved, not verified: insufficient DeepSeek balance. Please top up.",
+  "characterSavedNotVerifiedDeepSeekUnavailable": "Character saved, not verified: DeepSeek service अभी unavailable है. Please try again later.",
+  "characterSavedNotVerifiedNetworkError": "Character saved, not verified: network error. कृपया अपना internet connection check करें और फिर try करें.",
+  "characterSavedNotVerifiedGeneric": "Character saved, not verified: validation unavailable.",
+  "characterSavedNotVerifiedContinueHint": "You can continue after resolving the issue."
 
 
 }

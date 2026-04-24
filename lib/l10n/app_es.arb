@@ -416,7 +416,17 @@
   },
   "profile": "Perfil",
   "ageNotVerified": "Edad no verificada",
-  "personaAgeMissing": "Especifica la edad del personaje (por ejemplo, \"28 años\")."
+  "personaAgeMissing": "Especifica la edad del personaje (por ejemplo, \"28 años\").",
+  "personaDescriptionAgeRequirement": "El personaje debe tener 18+. Indica la edad explícitamente en la descripción.",
+  "personaAutoValidationInfo": "La verificación se realiza automáticamente. Las descripciones que no cumplan los requisitos no se guardarán.",
+
+  "characterSavedNotVerifiedKeyNotSet": "Personaje guardado, pero no verificado: clave API de DeepSeek no configurada. Agréguela en ajustes.",
+  "characterSavedNotVerifiedKeyInvalid": "Personaje guardado, pero no verificado: clave API de DeepSeek inválida. Actualícela en ajustes.",
+  "characterSavedNotVerifiedNoBalance": "Personaje guardado, pero no verificado: saldo insuficiente en DeepSeek. Recargue su cuenta.",
+  "characterSavedNotVerifiedDeepSeekUnavailable": "Personaje guardado, pero no verificado: servicio DeepSeek no disponible temporalmente. Intente más tarde.",
+  "characterSavedNotVerifiedNetworkError": "Personaje guardado, pero no verificado: error de red. Verifique su conexión e intente de nuevo.",
+  "characterSavedNotVerifiedGeneric": "Personaje guardado, pero no verificado: error de verificación. Intente más tarde.",
+  "characterSavedNotVerifiedContinueHint": "Podrá continuar después de resolver el problema."
 
 }
 

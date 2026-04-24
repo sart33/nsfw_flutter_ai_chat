@@ -509,5 +509,16 @@
   },
   "profile": "Profil",
   "ageNotVerified": "Usia belum diverifikasi",
-  "personaAgeMissing": "Tentukan usia karakter (misalnya, \"28 tahun\")."
+  "personaAgeMissing": "Tentukan usia karakter (misalnya, \"28 tahun\").",
+  "personaDescriptionAgeRequirement": "Karakter harus berusia 18+. Cantumkan usia secara jelas dalam deskripsi.",
+  "personaAutoValidationInfo": "Verifikasi dilakukan secara otomatis. Deskripsi yang tidak sesuai tidak akan disimpan.",
+
+  "characterSavedNotVerifiedKeyNotSet": "Karakter disimpan, tetapi belum diverifikasi: kunci API DeepSeek belum diatur. Tambahkan di pengaturan.",
+  "characterSavedNotVerifiedKeyInvalid": "Karakter disimpan, tetapi belum diverifikasi: kunci API DeepSeek tidak valid. Perbarui di pengaturan.",
+  "characterSavedNotVerifiedNoBalance": "Karakter disimpan, tetapi belum diverifikasi: saldo DeepSeek tidak cukup. Silakan isi ulang.",
+  "characterSavedNotVerifiedDeepSeekUnavailable": "Karakter disimpan, tetapi belum diverifikasi: layanan DeepSeek sedang tidak tersedia. Coba lagi nanti.",
+  "characterSavedNotVerifiedNetworkError": "Karakter disimpan, tetapi belum diverifikasi: kesalahan jaringan. Periksa koneksi dan coba lagi.",
+  "characterSavedNotVerifiedGeneric": "Karakter disimpan, tetapi belum diverifikasi: verifikasi gagal. Coba lagi nanti.",
+  "characterSavedNotVerifiedContinueHint": "Anda dapat melanjutkan setelah masalah diselesaikan."
+
 }
