@@ -20,9 +20,9 @@ class PromptCleanerService {
   // romantic2 is NOT requested — caller copies office result.
   static String _buildPrompt(String description) => '''
 You are a prompt cleaner for AI image generation.
-Given a character description (may be in any language),
-return 3 cleaned versions as a single JSON object.
+Given a character description (may be in any language), return 3 cleaned versions as a single JSON object.
 No explanation, no markdown, only raw JSON.
+All output text MUST be in English only. Translate if needed.
 
 Rules:
 
@@ -35,7 +35,6 @@ erotic:
 - keep tattoos with body location
 - remove any fetish gear or sexual accessories (e.g. anal plugs, BDSM items)
 - remove any clothing, outfit, lingerie, underwear, or wearable items completely
-- remove any mentions of clothing or worn items (e.g. lingerie, underwear, bra, panties, swimsuit, dress, skirt, straps, harness, corset, latex, uniform)
 - append "properly dressed" at the end
 
 romantic:
@@ -44,24 +43,22 @@ romantic:
 - remove all piercings everywhere
 - remove all genital mentions
 - remove tongue piercing and tongue ball mentions
-- keep tattoo mention but change location to arms only
+- remove flat stomach / toned stomach mentions
+- remove buttocks / ass / butt / glutes mentions and all adjectives before them
+- remove waist mentions (slim waist, thin waist, narrow waist, etc.)
+- remove any belly / abdomen mentions
+- do NOT add any replacement for removed body part descriptions- keep tattoo mention but change location to arms only
 - remove any clothing, outfit, lingerie, underwear, or wearable items completely
-- remove any mentions of clothing or worn items (e.g. lingerie, underwear, bra, panties, swimsuit, dress, skirt, straps, harness, corset, latex, uniform)
 - append "properly dressed" at the end
 
 office:
-- same as romantic
+- apply all romantic rules above
 - remove all tattoo mentions entirely
-- remove any mentions of fetish clothing, BDSM elements, or sexualized accessories (e.g. straps, harnesses, chokers, latex, corsets used in sexual context)
-- remove any clothing descriptions that imply sexualized style or exposure
-- remove phrases implying seduction, sexual intent, or body used for attraction
-- remove any clothing, outfit, lingerie, underwear, or wearable items completely
-- remove any mentions of clothing or worn items (e.g. lingerie, underwear, bra, panties, swimsuit, dress, skirt, straps, harness, corset, latex, uniform)
+- remove any fetish clothing, BDSM elements, or sexualized accessories
 - remove any phrases implying seduction, sexual intent, or provocative use of the body
 - append "properly dressed" at the end
 
-Input:
-"$description"
+Input: "$description"
 
 Return only this JSON, nothing else:
 {"erotic":"...","romantic":"...","office":"..."}
@@ -91,7 +88,7 @@ Return only this JSON, nothing else:
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'deepseek-chat',
+          'model': AppConfig.deepSeekChatModel,
           'messages': [
             {
               'role': 'user',
@@ -290,7 +287,7 @@ Answer in English regardless of description language.
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'deepseek-reasoner',
+          'model': AppConfig.deepSeekReasonerModel,
           'messages': [
             {'role': 'system', 'content': prompt},
             {'role': 'user', 'content': description},

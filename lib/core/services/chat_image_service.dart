@@ -41,13 +41,10 @@ class ChatImageService {
     // 2. Build scene part using SceneSnapshot.toImagePrompt()
     final sceneStr = scene.toImagePrompt();
 
-    // Add clothing anchor for low intimacy
-    final clothingAnchor =
-        scene.intimacyLevel <= 1 ? ', properly dressed' : '';
 
     final prompt = baseDescription.isNotEmpty
-        ? '$baseDescription, $sceneStr$clothingAnchor'
-        : '$sceneStr$clothingAnchor';
+        ? '$baseDescription, $sceneStr'
+        : sceneStr;
 
     // Log for debugging — save to DB
     debugPrint('[ChatImageService] Final prompt: $prompt');

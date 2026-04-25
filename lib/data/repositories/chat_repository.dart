@@ -105,7 +105,7 @@ class ChatRepository {
       final summary = await _summarizationService.summarize(
         toSummarize,
         apiKey,
-        AppConfig.deepSeekModel,
+        AppConfig.deepSeekChatModel,
       );
 
       final nextBlockNumber = await _db.getNextBlockNumber(branchId);
@@ -240,7 +240,7 @@ class ChatRepository {
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
       final requestBody = {
-        'model': AppConfig.deepSeekModel,
+        'model': AppConfig.deepSeekChatModel,
         'messages': messages,
         'max_tokens': maxTokens,
         'temperature': temperature,
@@ -362,7 +362,7 @@ class ChatRepository {
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
       final requestBody = {
-        'model': AppConfig.deepSeekModel,
+        'model': AppConfig.deepSeekChatModel,
         'messages': messages,
         'max_tokens': maxTokens,
         'temperature': temperature,

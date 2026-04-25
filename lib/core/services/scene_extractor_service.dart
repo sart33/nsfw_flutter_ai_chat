@@ -117,6 +117,16 @@ class SceneSnapshot {
       parts.add(safeActivity);
     }
     if (clothingDetails != null) parts.add(clothingDetails!);
+    if (charactersPositioning != null) {
+      final safePos = charactersPositioning!
+          .replaceAll(RegExp(r'\b(with user|beside user|next to user|toward user)\b',
+          caseSensitive: false), '')
+          .replaceAll(RegExp(r'\buser\b', caseSensitive: false), '')
+          .replaceAll(RegExp(r'  +'), ' ')
+          .trim();
+      if (safePos.isNotEmpty) parts.add(safePos);
+    }
+    if (timeOfDay != null) parts.add(timeOfDay!);
     return parts.join(', ');
   }
 
@@ -305,7 +315,25 @@ class SceneExtractorService {
       r'après un moment)\b',
       caseSensitive: false,
     ),
-
+    // === HINGLISH (Hindi transliterated) ===
+    RegExp(
+      r'(?:chalo|chale|gaye|pahunche|aa gaye|'
+      r'hum gaye|woh gayi|chal rahe|ghoomne gaye|'
+      r'nikal chale|aa jao|chalte hain)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:cafe mein|restaurant mein|'
+      r'room mein|bedroom mein|bathroom mein|'
+      r'beach par|park mein|sadak par|'
+      r'ghar mein|bahar|andar)\b',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:baad mein|phir|ab|achanak|'
+      r'is waqt|abhi|tab)\b',
+      caseSensitive: false,
+    ),
     // === HINDI / URDU / BENGALI (Unicode) — remove this block if not needed ===
     // Hindi
     RegExp(
@@ -321,6 +349,18 @@ class SceneExtractorService {
       r'\b(?:बाद में|फिर|अब|अचानक|इस समय|अभी हम|वह अब)\b',
       caseSensitive: false,
     ),
+    // === ROMAN URDU ===
+    RegExp(
+      r'(?:chalo|gaye|pahunche|hum gaye|'
+      r'woh gayi|chal rahe|ghumne gaye)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:cafe mein|restaurant mein|'
+      r'kamre mein|bedroom mein|bathroom mein|'
+      r'beach par|park mein|bahar|andar)\b',
+      caseSensitive: false,
+    ),
     // Urdu
     RegExp(
       r'(?:چلو|گئے|پہنچے|ہم گئے|وہ گئی|چل رہے|گھومنے گئے)',
@@ -333,6 +373,18 @@ class SceneExtractorService {
     ),
     RegExp(
       r'\b(?:بعد میں|پھر|اب|اچانک|اس وقت|اب ہم|وہ اب)\b',
+      caseSensitive: false,
+    ),
+    // === BANGLISH (Bengali transliterated) ===
+    RegExp(
+      r'(?:cholo|gelam|eshe gechi|'
+      r'amra gelam|she gelo|hatchhi|ghurte gelam)',
+      caseSensitive: false,
+    ),
+    RegExp(
+      r'\b(?:cafe te|restaurant e|ghore|'
+      r'bedroom e|bathroom e|beach e|'
+      r'park e|raste|baaire)\b',
       caseSensitive: false,
     ),
     // Bengali
@@ -356,69 +408,68 @@ class SceneExtractorService {
   static String _buildExtractionPrompt(String current, String context) => '''
 You are a scene extraction engine for image generation.
 
-You receive TWO parts:
-1) CURRENT MESSAGE (highest priority)
-2) PREVIOUS CONTEXT (lower priority)
-
-Your task is to extract the CURRENT visual state.
+INPUT STRUCTURE:
+1) CURRENT MESSAGE — highest priority
+2) PREVIOUS CONTEXT — fallback for missing fields only
 
 ────────────────────
-PRIORITY RULES (CRITICAL):
+PRIORITY RULES:
 
-- ALWAYS prioritize CURRENT MESSAGE over PREVIOUS CONTEXT
-- If there is ANY conflict → use CURRENT MESSAGE
-- PREVIOUS CONTEXT is only for missing data
-
-- Activity MUST be taken from CURRENT MESSAGE if present
-- Pose can persist from context IF not redefined
-- Location usually persists unless changed explicitly
+- ALWAYS use CURRENT MESSAGE over PREVIOUS CONTEXT
+- Conflict → CURRENT MESSAGE wins
+- activity → MUST come from CURRENT MESSAGE
+- pose, location → persist from context only if not redefined
 
 ────────────────────
 STRICT RULES:
 
-1. Use ONLY the provided text
-2. NEVER invent details
-3. If missing → return null
-4. Output ONLY valid JSON
+1. Use ONLY provided text. NEVER invent.
+2. Missing data → null
+3. Output ONLY valid JSON, no commentary
+4. Do NOT translate or modify text inside double quotes
+5. ALL text fields MUST be in English only
+6. Do NOT include "confidence" field
+────────────────────
+ALLOWED VALUES:
+
+clothingState: "fully_dressed" | "partially_undressed" | "underwear" | "topless" | "nude"
+
+intimacyLevel:
+  0 — neutral, no physical contact
+  1 — light contact (holding hands, hugging, kissing)
+  2 — intimate contact, partially undressed, foreplay
+  3 — explicit sexual activity
+
+pose: "sitting" | "standing" | "lying_on_back" | "lying_on_side" |
+      "lying_on_stomach" | "kneeling" | "bending_over" | "crouching"
+
+location: "cafe" | "restaurant" | "bar" | "street" | "park" | "car" |
+          "lobby" | "elevator" | "bedroom" | "room" | "bathroom" |
+          "shower" | "sofa" | "kitchen" | "balcony" | "beach" | "office"
+
+PUBLIC locations (intimacyLevel max 1):
+  cafe, restaurant, bar, street, park, lobby, beach, office
+
+timeOfDay: "morning" | "afternoon" | "evening" | "night"
+
+activity: short English phrase, what character does RIGHT NOW
+  Examples: "running into waves", "turning back to look", 
+            "kissing", "lying on stomach receiving oral"
 
 ────────────────────
-SEMANTIC RULES:
+OUTPUT — ONLY JSON:
 
-- Activity = what is happening RIGHT NOW (latest action)
-- Do NOT use outdated actions from earlier messages
-
-Examples:
-WRONG:
-- kneeling + looking_up (if later action is different)
-
-CORRECT:
-- kneeling + performing_oral (latest action)
-
-────────────────────
-Allowed values:
-
-- clothingState: "fully_dressed", "casual", "underwear", "nude"
-- intimacyLevel: 0,1,2,3
-
-- pose:
-"sitting", "standing", "lying_on_back",
-"lying_on_side", "lying_on_stomach",
-"kneeling", "bending_over"
-
-- location:
-"cafe", "bed", "bedroom", "balcony",
-"shower", "bathroom", "beach",
-"street", "sofa", "kitchen",
-"park", "room", "restaurant",
-"car", "office"
-
-────────────────────
-HARD CONSTRAINTS:
-
-- Public locations → intimacyLevel ≤ 1
-- Shower → not fully_dressed
-- Activity must describe current action toward user
-- Do NOT change, transliterate or translate ANY text inside double quotes ("...").
+{
+  "location": "...",
+  "locationDetails": "brief EN description of setting, e.g. 'dimly lit hallway, wooden door'",
+  "timeOfDay": "...",
+  "pose": "...",
+  "activity": "...",
+  "clothingState": "...",
+  "clothingDetails": "brief EN description, e.g. 'red dress, heels' or null",
+  "charactersPositioning": "brief EN spatial relation, e.g. 'she faces user, arms around his neck'",
+  "intimacyLevel": 0
+}
 
 INPUT:
 
@@ -427,20 +478,6 @@ $current
 
 PREVIOUS CONTEXT:
 $context
-
-OUTPUT — ONLY JSON:
-{
-  "location": "...",
-  "locationDetails": "...",
-  "pose": "...",
-  "activity": "...",
-  "clothingState": "...",
-  "clothingDetails": "...",
-  "intimacyLevel": 0,
-  "charactersPositioning": "...",
-  "timeOfDay": "...",
-  "confidence": 0.95
-}
 ''';
 
   // ── In-memory cache: branchId → (snapshot, messageCount) ───────────
@@ -599,7 +636,7 @@ OUTPUT — ONLY JSON:
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'model': AppConfig.deepSeekModel,
+        'model': AppConfig.deepSeekChatModel,
         'messages': [
           {
             'role': 'user',
