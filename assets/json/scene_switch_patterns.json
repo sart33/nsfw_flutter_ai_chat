@@ -1,0 +1,109 @@
+{
+  "ru": "пошли|пришли|перешли|вышли|зашли|поднялись|спустились|переместились|перебрались|отправились|поехали|полетели|пошла|пришла|вышла|зашла|выходим|идём|идем|гуляем|гулять|прогулк|заходи|добрались|доехали|приехали|прилетели|вернулись|входим|оказываемся|оказываюсь|оказались|переносимся|переношусь|перенесся|перенеслись|телепортировались|телепортируемся|попадаем|попали|очутились|очутимся|ступаем|ступили|шагнули|шагаем",
+
+  "uk": "пішли|прийшли|перейшли|вийшли|зайшли|піднялися|спустилися|переїхали|полетіли|пішла|прийшла|вийшла|зайшла|виходимо|йдемо|гуляємо|гуляти|прогулян|заходимо|дісталися|доїхали|прилетіли|повернулися|опиняємося|опинилися|опинився|опинилась|переносимося|перенеслися|телепортувалися|телепортуємося|потрапляємо|потрапили|ступаємо|ступили|крокуємо|крокнули",
+
+  "en": " to|moved to|got to|entered|came back|returned to|went inside|walked over|drove to|flew to|crossed into|came out|went up|descended|departed|stepped out|wandered into|stumbled into|slipped into|snuck into|rushed into|burst into|climbed into|teleported|transported|found ourselves|ended up|appeared in|materialized|warped to|landed in|touched down|pulled up to|made our way to|set off to|set out for",
+
+  "es": "fueron a|llegaron|entraron|se fueron a|se dirigieron|caminaron hacia|volvieron|regresaron|subieron|bajaron|se trasladaron",
+
+  "pt": "foram para|chegaram|entraram|saíram|se dirigiram|caminharam até|voltaram|retornaram|subiram|desceram",
+
+  "fr": "allèrent|arrivèrent|entrèrent|se rendirent|partirent vers|marchèrent vers|revinrent|retournèrent|montèrent|descendirent|on alla|on est allés|on est arrivés",
+
+  "de": "gingen|kamen|betraten|fuhren|flogen|stiegen|zogen um|kehrten zurück|machten sich auf den Weg",
+
+  "it": "andarono|arrivarono|entrarono|si diressero|tornarono|salirono|scesero|si spostarono",
+
+  "pl": "poszli|przyszli|weszli|wyjechali|pojechali|polecieli|wrócili|przenieśli się|przeszli|dotarli",
+
+  "hi": "गए|आए|पहुंचे|चले गए|निकले|लौटे|चढ़े|उतरे|घुसे|दाखिल हुए",
+
+  "ar": "ذهبوا|وصلوا|دخلوا|خرجوا|انتقلوا|عادوا|صعدوا|نزلوا|توجهوا",
+
+  "zh-cn": "去了|到了|进入|走进|来到|回到|出发|离开|抵达|走向|进了|来了|走到",
+
+  "zh-tw": "去了|到了|進入|走進|來到|回到|出發|離開|抵達|走向|進了|來了|走到",
+
+  "ja": "行った|来た|入った|出た|向かった|戻った|着いた|乗った|降りた|移動した|たどり着いた",
+
+  "ko": "갔다|왔다|들어갔다|나왔다|도착했다|돌아왔다|올라갔다|내려갔다|이동했다|향했다",
+
+  "tr": "gittiler|geldiler|girdiler|çıktılar|taşındılar|döndüler|çıktı|girdi|gitti|geldi|vardılar|ulaştılar",
+
+  "id": "pergi ke|tiba|masuk|keluar|menuju|kembali|naik|turun|berpindah|sampai di|tiba di",
+
+  "nl": "gingen|kwamen|betraden|vertrokken|reden|vlogen|keerden terug|verplaatsten zich|stapten in|kwamen aan",
+
+  "bg": "отидоха|дойдоха|влязоха|излязоха|пристигнаха|върнаха се|качиха се|слязоха|преместиха се|тръгнаха",
+
+  "cs": "šli|přišli|vstoupili|odešli|odjeli|odletěli|vrátili se|přesunuli se|dorazili|vystoupili",
+
+  "sk": "šli|prišli|vstúpili|odišli|odišli|vrátili sa|presunuli sa|dorazili|vystúpili",
+
+  "ro": "merseră|veniră|intrară|ieșiră|se duseră|se întoarseră|urcară|coborâră|se mutară|ajunseră",
+
+  "hr": "otišli|došli|ušli|izašli|otputovali|doletjeli|vratili se|preselili se|stigli|popeli se",
+
+  "sl": "šli|prišli|vstopili|odšli|odpotovali|vrnili se|preselili se|prispeli|povzpeli se|sestopili",
+
+  "sv": "gick|kom|gick in|lämnade|åkte|flög|kom tillbaka|flyttade|anlände|klättrade",
+
+  "da": "gik|kom|gik ind|forlod|kørte|fløj|kom tilbage|flyttede|ankom|klatrede",
+
+  "no": "gikk|kom|gikk inn|forlot|kjørte|fløy|kom tilbake|flyttet|ankom|klatret",
+
+  "fi": "menivät|tulivat|astuivat sisään|lähtivät|ajoivat|lensivät|palasivat|muuttivat|saapuivat|kiipesivät",
+
+  "et": "läksid|tulid|astusid sisse|lahkusid|sõitsid|lendasid|tulid tagasi|kolisid|saabusid",
+
+  "lv": "devās|ieradās|iegāja|izgāja|aizbrauca|atgriezās|pārcēlās|nokļuva|uzkāpa|nokāpa",
+
+  "lt": "nuėjo|atvyko|įėjo|išėjo|išvyko|grįžo|persikėlė|atvyko|užkopė|nusileido",
+
+  "el": "πήγαν|ήρθαν|μπήκαν|βγήκαν|έφτασαν|γύρισαν|ανέβηκαν|κατέβηκαν|μετακόμισαν|αναχώρησαν",
+
+  "hu": "mentek|jöttek|beléptek|kiléptek|elutaztak|visszatértek|felmentek|lementek|átköltöztek|megérkeztek",
+
+  "fa": "رفتند|آمدند|وارد شدند|خارج شدند|رسیدند|برگشتند|بالا رفتند|پایین آمدند|نقل مکان کردند",
+
+  "he": "הלכו|באו|נכנסו|יצאו|הגיעו|חזרו|עלו|ירדו|עברו|התקדמו",
+
+  "ur": "گئے|آئے|داخل ہوئے|نکلے|پہنچے|واپس آئے|چڑھے|اترے|منتقل ہوئے",
+
+  "bn": "গেল|এল|ঢুকল|বেরিয়ে গেল|পৌঁছাল|ফিরে এল|উঠল|নামল|সরে গেল",
+
+  "ta": "சென்றனர்|வந்தனர்|நுழைந்தனர்|வெளியேறினர்|வந்தடைந்தனர்|திரும்பினர்|ஏறினர்|இறங்கினர்",
+
+  "te": "వెళ్ళారు|వచ్చారు|లోపలికి వెళ్ళారు|బయటికి వెళ్ళారు|చేరుకున్నారు|తిరిగి వచ్చారు|ఎక్కారు|దిగారు",
+
+  "ml": "പോയി|വന്നു|കയറി|ഇറങ്ങി|എത്തി|തിരിച്ചുവന്നു|കടന്നുവന്നു|പോയി",
+
+  "kn": "ಹೋದರು|ಬಂದರು|ಒಳಗೆ ಹೋದರು|ಹೊರಗೆ ಹೋದರು|ತಲುಪಿದರು|ಹಿಂತಿರುಗಿದರು|ಹತ್ತಿದರು|ಇಳಿದರು",
+
+  "mr": "गेले|आले|आत शिरले|बाहेर पडले|पोहोचले|परत आले|चढले|उतरले",
+
+  "gu": "ગયા|આવ્યા|અંદર ગયા|બહાર ગયા|પહોંચ્યા|પાછા આવ્યા|ચડ્યા|ઊતર્યા",
+
+  "pa": "ਗਏ|ਆਏ|ਅੰਦਰ ਗਏ|ਬਾਹਰ ਆਏ|ਪਹੁੰਚੇ|ਵਾਪਸ ਆਏ|ਚੜ੍ਹੇ|ਉਤਰੇ",
+
+  "ne": "गए|आए|भित्र गए|बाहिर गए|पुगे|फर्किए|चढे|ओर्ले",
+
+  "th": "ไปที่|มาถึง|เข้าไป|ออกไป|กลับมา|ขึ้น|ลง|ย้ายไป|เดินไปที่|เดินทางมา",
+
+  "vi": "đi đến|đến nơi|bước vào|đi ra|quay lại|trở về|leo lên|đi xuống|chuyển đến|đến",
+
+  "tl": "pumunta|dumating|pumasok|lumabas|bumalik|umakyat|bumaba|lumipat|nakarating",
+
+  "sw": "walikwenda|walikuja|waliingia|walitoka|walifika|walirudi|walipanda|walishuka|walihamia",
+
+  "so": "tageen|yimaadeen|galeen|baxeen|gaareen|ku noqdeen|fuleen|degeen|u gureen",
+
+  "sq": "shkuan|erdhën|hynë|dolën|arritën|u kthyen|ngjitën|zbritën|u zhvendosën",
+
+  "mk": "отидоа|дојдоа|влегоа|излегоа|пристигнаа|се вратија|се качија|слегоа|се преселија",
+
+  "ca": "van anar|van arribar|van entrar|van sortir|van tornar|van pujar|van baixar|es van traslladar",
+
+  "af": "gegaan|gekom|ingegaan|uitgegaan|aangekom|teruggekeer|opgegaan|afgegaan|verskuif"
+}

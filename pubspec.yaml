@@ -39,6 +39,7 @@ dependencies:
   collection: ^1.19.0
   flutter_native_splash: ^2.4.3
   url_launcher: ^6.3.1
+  flutter_langdetect: ^0.0.1
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +52,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/json/image_templates.json
+    - assets/json/scene_switch_patterns.json
     - assets/characters/
     - assets/images/
     - assets/avatars/

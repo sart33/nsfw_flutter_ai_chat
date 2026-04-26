@@ -2,6 +2,7 @@ import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,7 @@ import 'package:nsfw_chat/presentation/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'core/config/scene_switch_patterns.dart';
 import 'core/factory/database_helper.dart';
 
 void main() async {
@@ -29,6 +31,9 @@ void main() async {
 
   // DB открывается первой — как и было
   await DatabaseHelper.instance.initDB();
+  await langdetect.initLangDetect();
+  await SceneSwitchPatterns.load(); // ← сюда
+
 
   // Прогреваем провайдеры ДО runApp, чтобы первый кадр
   // не блокировался их инициализацией

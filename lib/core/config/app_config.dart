@@ -33,6 +33,10 @@ class AppConfig {
   // Auto-delete for chat images
   static const int autoDeleteDefaultDays = 30;
 
+  //
+  static const int maxSceneWindowSize = 60;
+
+
   // Prompts / system strings — да, сюда
   static const String addToMultiChatBehavior = 'Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.';
   // ── Secure storage API key access ─────────────────────────────────────

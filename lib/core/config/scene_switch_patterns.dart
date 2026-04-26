@@ -1,0 +1,28 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class SceneSwitchPatterns {
+  static Map<String, RegExp> _patterns = {};
+
+  static Future<void> load() async {
+    debugPrint('load SceneSwitchPatterns');
+    final json = await rootBundle.loadString(
+      'assets/json/scene_switch_patterns.json',
+    );
+    final Map<String, dynamic> raw = jsonDecode(json);
+    debugPrint('raw: $raw');
+    _patterns = raw.map(
+          (lang, pattern) => MapEntry(
+        lang,
+        RegExp(pattern as String, caseSensitive: false, unicode: true),
+      ),
+    );
+    debugPrint('_patterns: ${_patterns.toString()}');
+
+    }
+
+  static RegExp? forLang(String lang) {
+    return _patterns[lang] ?? _patterns['en']; // fallback to EN
+  }
+}
