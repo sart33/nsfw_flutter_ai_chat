@@ -51,7 +51,7 @@ class _CreateEditPersonaScreenState
 
   int? _selectedTemplateId;
   String? _cachedCleanedDescription; // описание, которое уже было очищено
-  String? _cachedCleanedLevel;
+  // String? _cachedCleanedLevel;
   String? _lastSentDescription; // то, что последний раз отправляли в DeepSeek
 
   bool get _isDesktopPlatform =>
@@ -182,6 +182,22 @@ class _CreateEditPersonaScreenState
 
   // ── Core generation ──────────────────────────────────────────────────────
 
+  Future<String> _persistAvatarFile(String sourcePath) async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    // Используем уже известный id при редактировании, иначе временный
+    final personaId = widget.personaId ?? 'avatar_preview';
+    final dirPath = '${docsDir.path}/characters/$personaId/avatar';
+    await Directory(dirPath).create(recursive: true);
+    final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.webp';
+    final destPath = '$dirPath/$fileName';
+    await File(sourcePath).copy(destPath);
+    // Удаляем источник только если это не тот же файл
+    if (sourcePath != destPath) {
+      try { File(sourcePath).deleteSync(); } catch (_) {}
+    }
+    return destPath;
+  }
+
   Future<void> _generateAvatarWithStyle(AvatarStyleOption option) async {
     if (_isGeneratingAvatar) return;
 
@@ -300,7 +316,7 @@ class _CreateEditPersonaScreenState
       setState(() {
         _selectedTemplateId = option.templateId;
         _cachedCleanedDescription = cleaned;
-        _cachedCleanedLevel = option.intimacyLevel;
+        // _cachedCleanedLevel = option.intimacyLevel;
       });
 
       // Фаза 2: Novita
@@ -1134,9 +1150,9 @@ class _CreateEditPersonaScreenState
       imageQuality: 85,
     );
     if (picked == null) return;
-
+    final persistedPath = await _persistAvatarFile(picked.path);
     setState(() {
-      _avatarPath = picked.path;
+      _avatarPath = persistedPath;
       _generatedAvatarPreviewPath = null;
     });
   }
@@ -1201,10 +1217,13 @@ class _CreateEditPersonaScreenState
     );
     if (cropped != null) {
       _deleteTempPreview();
-      setState(() {
-        _avatarPath = cropped.path;
+      final persistedPath = await _persistAvatarFile(cropped.path);
+      if (mounted) {
+        setState(() {
+        _avatarPath = persistedPath;
         _generatedAvatarPreviewPath = null;
       });
+      }
     }
   }
 
@@ -1213,10 +1232,13 @@ class _CreateEditPersonaScreenState
     if (previewPath == null) return;
 
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      setState(() {
-        _avatarPath = previewPath;
+      final persistedPath = await _persistAvatarFile(previewPath);
+      if (mounted) {
+        setState(() {
+        _avatarPath = persistedPath;
         _generatedAvatarPreviewPath = null;
       });
+      }
       return;
     }
 
@@ -1236,10 +1258,13 @@ class _CreateEditPersonaScreenState
 
     if (cropped != null) {
       _deleteTempPreview();
-      setState(() {
-        _avatarPath = cropped.path;
+      final persistedPath = await _persistAvatarFile(cropped.path);
+      if (mounted) {
+        setState(() {
+        _avatarPath = persistedPath;
         _generatedAvatarPreviewPath = null;
       });
+      }
     }
   }
 
