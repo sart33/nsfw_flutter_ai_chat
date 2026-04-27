@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+import 'package:nsfw_chat/core/services/backup_service.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
@@ -301,6 +302,22 @@ class SettingsScreen extends ConsumerWidget {
       ),
     ]);
 
+    final backupCard = _SettingsCard(children: [
+      _NavTile(
+        icon: Icons.upload_outlined,
+        title: context.l10n.backupExport,
+        subtitle: context.l10n.backupExportDesc,
+        onTap: () => BackupService.exportBackup(context),
+      ),
+      _Divider(),
+      _NavTile(
+        icon: Icons.download_outlined,
+        title: context.l10n.backupImport,
+        subtitle: context.l10n.backupImportDesc,
+        onTap: () => BackupService.importBackup(context),
+      ),
+    ]);
+
     final currentLocale = settings.selectedLocale;
 
     final languageCard = _SettingsCard(children: [
@@ -355,6 +372,7 @@ class SettingsScreen extends ConsumerWidget {
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
+        backupCard: backupCard,
         languageCard: languageCard,
       )
           : _buildMobileBody(
@@ -369,6 +387,7 @@ class SettingsScreen extends ConsumerWidget {
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
+        backupCard: backupCard,
         languageCard: languageCard,
       ),
     );
@@ -390,6 +409,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget userInputCard,
     required Widget aiResponseCard,
     required Widget clearCard,
+    required Widget backupCard,
     required Widget languageCard,
   }) {
     const gap = SizedBox(height: 12);
@@ -407,6 +427,7 @@ class SettingsScreen extends ConsumerWidget {
         autoDeleteCard,  gap,
         userInputCard,   gap,
         aiResponseCard,  gap,
+        backupCard,      gap,
         languageCard,
         const SizedBox(height: 32),
       ],
@@ -429,6 +450,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget userInputCard,
     required Widget aiResponseCard,
     required Widget clearCard,
+    required Widget backupCard,
     required Widget languageCard,
   }) {
     const gap = SizedBox(height: 12);
@@ -448,6 +470,7 @@ class SettingsScreen extends ConsumerWidget {
       personalityCard,  gap,
       autoDeleteCard,   gap,
       aiResponseCard,   gap,
+      backupCard,       gap,
       languageCard,
     ];
 

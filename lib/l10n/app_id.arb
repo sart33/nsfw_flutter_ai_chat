@@ -519,6 +519,18 @@
   "characterSavedNotVerifiedDeepSeekUnavailable": "Karakter disimpan, tetapi belum diverifikasi: layanan DeepSeek sedang tidak tersedia. Coba lagi nanti.",
   "characterSavedNotVerifiedNetworkError": "Karakter disimpan, tetapi belum diverifikasi: kesalahan jaringan. Periksa koneksi dan coba lagi.",
   "characterSavedNotVerifiedGeneric": "Karakter disimpan, tetapi belum diverifikasi: verifikasi gagal. Coba lagi nanti.",
-  "characterSavedNotVerifiedContinueHint": "Anda dapat melanjutkan setelah masalah diselesaikan."
+  "characterSavedNotVerifiedContinueHint": "Anda dapat melanjutkan setelah masalah diselesaikan.",
 
+  "backupExport": "Ekspor data",
+  "backupExportDesc": "Simpan karakter dan riwayat chat",
+  "backupImport": "Impor data",
+  "backupImportDesc": "Pulihkan dari file cadangan",
+  "backupExporting": "Membuat cadangan...",
+  "backupImporting": "Memulihkan data...",
+  "backupExportSuccess": "Cadangan berhasil dibuat",
+  "backupImportSuccess": "Data berhasil dipulihkan",
+  "backupImportConfirmTitle": "Impor data",
+  "backupImportConfirmMessage": "Karakter yang sudah ada dengan ID yang sama akan diperbarui. Lanjutkan?",
+  "backupErrorInvalidFile": "Format file cadangan tidak valid",
+  "backupErrorImportFailed": "Gagal memulihkan data"
 }

@@ -428,6 +428,20 @@
   "characterSavedNotVerifiedDeepSeekUnavailable": "Персонаж збережений, але не пройшов перевірку: сервіс DeepSeek тимчасово недоступний. Будь ласка, спробуйте пізніше.",
   "characterSavedNotVerifiedNetworkError": "Персонаж збережений, але не пройшов перевірку: помилка мережі. Перевірте підключення та спробуйте знову.",
   "characterSavedNotVerifiedGeneric": "Персонаж збережений, але не пройшов перевірку: помилка перевірки. Будь ласка, спробуйте пізніше.",
-  "characterSavedNotVerifiedContinueHint": "Ви зможете продовжити після усунення проблеми."
+  "characterSavedNotVerifiedContinueHint": "Ви зможете продовжити після усунення проблеми.",
+
+  "backupExport": "Експорт даних",
+  "backupExportDesc": "Зберегти персонажів та історію чатів",
+  "backupImport": "Імпорт даних",
+  "backupImportDesc": "Відновити з файлу резервної копії",
+  "backupExporting": "Створення резервної копії...",
+  "backupImporting": "Відновлення даних...",
+  "backupExportSuccess": "Резервну копію створено",
+  "backupImportSuccess": "Дані відновлено",
+  "backupImportConfirmTitle": "Імпорт даних",
+  "backupImportConfirmMessage": "Існуючі персонажі з однаковим ID будуть оновлені. Продовжити?",
+  "backupErrorInvalidFile": "Невірний формат файлу резервної копії",
+  "backupErrorImportFailed": "Помилка під час відновлення даних",
+  "confirm": "Підтвердити"
 
 }

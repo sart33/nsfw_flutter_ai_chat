@@ -413,5 +413,20 @@
   "characterSavedNotVerifiedNoBalance": "Character saved, but not verified: insufficient DeepSeek balance. Please top up your account.",
   "characterSavedNotVerifiedDeepSeekUnavailable": "Character saved, but not verified: DeepSeek service is temporarily unavailable. Please try again later.",
   "characterSavedNotVerifiedNetworkError": "Character saved, but not verified: network error occurred. Please check your connection and try again.",
-  "characterSavedNotVerifiedContinueHint": "You can continue once the issue is resolved."
+  "characterSavedNotVerifiedContinueHint": "You can continue once the issue is resolved.",
+  "backupExport": "Export data",
+  "backupExportDesc": "Save characters and chat history",
+  "backupImport": "Import data",
+  "backupImportDesc": "Restore from backup file",
+  "backupExporting": "Creating backup...",
+  "backupImporting": "Restoring data...",
+  "backupExportSuccess": "Backup created",
+  "backupImportSuccess": "Data restored",
+  "backupImportConfirmTitle": "Import data",
+  "backupImportConfirmMessage": "Existing characters with matching IDs will be updated. Continue?",
+  "backupErrorInvalidFile": "Invalid backup file format",
+  "backupErrorImportFailed": "Failed to restore data",
+  "confirm": "Confirm"
+
+
 }

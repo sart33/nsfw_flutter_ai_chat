@@ -394,7 +394,7 @@ class _DesktopRecentChatCard extends ConsumerWidget {
                     fit: StackFit.expand,
                     children: [
                       // ── Изображение (всё что было внутри ClipRRect) ──
-                      chat.avatarPath != null && chat.avatarPath!.isNotEmpty
+                      chat.avatarPath != null && chat.avatarPath!.isNotEmpty && File(chat.avatarPath!).existsSync()
                           ? Image.file(
                         File(chat.avatarPath!),
                         fit: BoxFit.cover,

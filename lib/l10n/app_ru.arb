@@ -440,7 +440,21 @@
   "characterSavedNotVerifiedDeepSeekUnavailable": "Персонаж сохранён, но не прошёл верификацию: сервис DeepSeek временно недоступен. Пожалуйста, попробуйте позже.",
   "characterSavedNotVerifiedNetworkError": "Персонаж сохранён, но не прошёл верификацию: ошибка сети. Проверьте подключение и попробуйте снова.",
   "characterSavedNotVerifiedGeneric": "Персонаж сохранён, но не прошёл верификацию: ошибка проверки. Пожалуйста, попробуйте позже.",
-  "characterSavedNotVerifiedContinueHint": "Вы сможете продолжить после устранения проблемы."
+  "characterSavedNotVerifiedContinueHint": "Вы сможете продолжить после устранения проблемы.",
+  "backupExport": "Экспорт данных",
+  "backupExportDesc": "Сохранить персонажей и историю чатов",
+  "backupImport": "Импорт данных",
+  "backupImportDesc": "Восстановить из файла резервной копии",
+  "backupExporting": "Создание резервной копии...",
+  "backupImporting": "Восстановление данных...",
+  "backupExportSuccess": "Резервная копия создана",
+  "backupImportSuccess": "Данные восстановлены",
+  "backupImportConfirmTitle": "Импорт данных",
+  "backupImportConfirmMessage": "Существующие персонажи с совпадающим ID будут обновлены. Продолжить?",
+  "backupErrorInvalidFile": "Неверный формат файла резервной копии",
+  "backupErrorImportFailed": "Ошибка при восстановлении данных",
+  "confirm": "Подтвердить"
+
 }
 
 

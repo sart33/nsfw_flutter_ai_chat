@@ -424,5 +424,20 @@
   "characterSavedNotVerifiedDeepSeekUnavailable": "Personagem salvo, mas não verificado: serviço DeepSeek indisponível no momento. Tente novamente mais tarde.",
   "characterSavedNotVerifiedNetworkError": "Personagem salvo, mas não verificado: erro de rede. Verifique sua conexão e tente novamente.",
   "characterSavedNotVerifiedGeneric": "Personagem salvo, mas não verificado: falha na verificação. Tente novamente mais tarde.",
-  "characterSavedNotVerifiedContinueHint": "Você poderá continuar após resolver o problema."
+  "characterSavedNotVerifiedContinueHint": "Você poderá continuar após resolver o problema.",
+
+  "backupExport": "Exportar dados",
+  "backupExportDesc": "Salvar personagens e histórico de chats",
+  "backupImport": "Importar dados",
+  "backupImportDesc": "Restaurar a partir de um arquivo de backup",
+  "backupExporting": "Criando backup...",
+  "backupImporting": "Restaurando dados...",
+  "backupExportSuccess": "Backup criado",
+  "backupImportSuccess": "Dados restaurados",
+  "backupImportConfirmTitle": "Importar dados",
+  "backupImportConfirmMessage": "Personagens existentes com o mesmo ID serão atualizados. Continuar?",
+  "backupErrorInvalidFile": "Formato de arquivo de backup inválido",
+  "backupErrorImportFailed": "Erro ao restaurar os dados",
+  "confirm": "Confirmar"
+
 }
