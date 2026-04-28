@@ -417,16 +417,19 @@
   "backupExport": "Export data",
   "backupExportDesc": "Save characters and chat history",
   "backupImport": "Import data",
-  "backupImportDesc": "Restore from backup file",
-  "backupExporting": "Creating backup...",
-  "backupImporting": "Restoring data...",
-  "backupExportSuccess": "Backup created",
-  "backupImportSuccess": "Data restored",
+  "confirm": "Confirm",
+
+  "backupImportDesc": "Import from file",
+  "backupExporting": "Exporting data...",
+  "backupImporting": "Importing data...",
+  "backupExportSuccess": "Data exported successfully",
+  "backupExportDownloadDirSuccess": "Data exported successfully to the Download folder",
+  "backupImportSuccess": "Data imported successfully",
   "backupImportConfirmTitle": "Import data",
   "backupImportConfirmMessage": "Existing characters with matching IDs will be updated. Continue?",
-  "backupErrorInvalidFile": "Invalid backup file format",
-  "backupErrorImportFailed": "Failed to restore data",
-  "confirm": "Confirm"
+  "backupErrorInvalidFile": "Invalid file format",
+  "backupErrorImportFailed": "Failed to import data",
+  "storagePermissionExport": "Allow storage access to export to the Download folder"
 
 
 }

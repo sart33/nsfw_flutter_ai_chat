@@ -429,15 +429,18 @@
   "backupExport": "Exportar dados",
   "backupExportDesc": "Salvar personagens e histórico de chats",
   "backupImport": "Importar dados",
-  "backupImportDesc": "Restaurar a partir de um arquivo de backup",
-  "backupExporting": "Criando backup...",
-  "backupImporting": "Restaurando dados...",
-  "backupExportSuccess": "Backup criado",
-  "backupImportSuccess": "Dados restaurados",
+  "confirm": "Confirmar",
+
+  "backupImportDesc": "Importar de arquivo",
+  "backupExporting": "Exportando dados...",
+  "backupImporting": "Importando dados...",
+  "backupExportSuccess": "Dados exportados com sucesso",
+  "backupExportDownloadDirSuccess": "Dados exportados com sucesso para a pasta Download",
+  "backupImportSuccess": "Dados importados com sucesso",
   "backupImportConfirmTitle": "Importar dados",
   "backupImportConfirmMessage": "Personagens existentes com o mesmo ID serão atualizados. Continuar?",
-  "backupErrorInvalidFile": "Formato de arquivo de backup inválido",
-  "backupErrorImportFailed": "Erro ao restaurar os dados",
-  "confirm": "Confirmar"
+  "backupErrorInvalidFile": "Formato de arquivo inválido",
+  "backupErrorImportFailed": "Falha ao importar dados",
+  "storagePermissionExport": "Permita o acesso ao armazenamento para exportar para a pasta Download"
 
 }

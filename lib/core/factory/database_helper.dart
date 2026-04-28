@@ -1068,4 +1068,13 @@ class DatabaseHelper {
       rethrow;
     }
   }
+
+  Future<void> reopenDatabase() async {
+    if (_db != null) {
+      await _db!.close();
+      _db = null;
+      _initCompleter = null;
+    }
+    await initDB();
+  }
 }

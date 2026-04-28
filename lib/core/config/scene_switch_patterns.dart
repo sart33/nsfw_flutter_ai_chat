@@ -11,14 +11,12 @@ class SceneSwitchPatterns {
       'assets/json/scene_switch_patterns.json',
     );
     final Map<String, dynamic> raw = jsonDecode(json);
-    debugPrint('raw: $raw');
     _patterns = raw.map(
           (lang, pattern) => MapEntry(
         lang,
         RegExp(pattern as String, caseSensitive: false, unicode: true),
       ),
     );
-    debugPrint('_patterns: ${_patterns.toString()}');
 
     }
 

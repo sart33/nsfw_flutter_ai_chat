@@ -433,15 +433,19 @@
   "backupExport": "Експорт даних",
   "backupExportDesc": "Зберегти персонажів та історію чатів",
   "backupImport": "Імпорт даних",
-  "backupImportDesc": "Відновити з файлу резервної копії",
-  "backupExporting": "Створення резервної копії...",
-  "backupImporting": "Відновлення даних...",
-  "backupExportSuccess": "Резервну копію створено",
-  "backupImportSuccess": "Дані відновлено",
+
+  "confirm": "Підтвердити",
+
+  "backupImportDesc": "Імпортувати з файлу",
+  "backupExporting": "Експорт даних...",
+  "backupImporting": "Імпорт даних...",
+  "backupExportSuccess": "Дані успішно експортовано",
+  "backupExportDownloadDirSuccess": "Дані успішно експортовано в папку Download",
+  "backupImportSuccess": "Дані успішно імпортовано",
   "backupImportConfirmTitle": "Імпорт даних",
   "backupImportConfirmMessage": "Існуючі персонажі з однаковим ID будуть оновлені. Продовжити?",
-  "backupErrorInvalidFile": "Невірний формат файлу резервної копії",
-  "backupErrorImportFailed": "Помилка під час відновлення даних",
-  "confirm": "Підтвердити"
+  "backupErrorInvalidFile": "Невірний формат файлу",
+  "backupErrorImportFailed": "Не вдалося імпортувати дані",
+  "storagePermissionExport": "Надайте доступ до сховища для експорту в папку Download"
 
 }

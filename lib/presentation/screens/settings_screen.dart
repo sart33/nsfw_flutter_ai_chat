@@ -314,7 +314,7 @@ class SettingsScreen extends ConsumerWidget {
         icon: Icons.download_outlined,
         title: context.l10n.backupImport,
         subtitle: context.l10n.backupImportDesc,
-        onTap: () => BackupService.importBackup(context),
+        onTap: () => BackupService.importBackup(context, ref),
       ),
     ]);
 

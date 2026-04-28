@@ -456,16 +456,19 @@
   "backupExport": "डेटा Export",
   "backupExportDesc": "Characters और chat history सहेजें",
   "backupImport": "डेटा Import",
-  "backupImportDesc": "Backup file से restore करें",
-  "backupExporting": "Backup बनाया जा रहा है...",
-  "backupImporting": "डेटा restore किया जा रहा है...",
-  "backupExportSuccess": "Backup सफलतापूर्वक बनाया गया",
-  "backupImportSuccess": "डेटा सफलतापूर्वक restore किया गया",
-  "backupImportConfirmTitle": "डेटा Import",
+  "confirm": "पुष्टि करें",
+
+  "backupImportDesc": "File से import करें",
+  "backupExporting": "Data export किया जा रहा है...",
+  "backupImporting": "Data import किया जा रहा है...",
+  "backupExportSuccess": "Data सफलतापूर्वक export किया गया",
+  "backupExportDownloadDirSuccess": "Data सफलतापूर्वक Download folder में export किया गया",
+  "backupImportSuccess": "Data सफलतापूर्वक import किया गया",
+  "backupImportConfirmTitle": "Data import",
   "backupImportConfirmMessage": "Same ID वाले existing characters update किए जाएंगे. Continue?",
-  "backupErrorInvalidFile": "Invalid backup file format",
-  "backupErrorImportFailed": "डेटा restore करते समय त्रुटि",
-  "confirm": "पुष्टि करें"
+  "backupErrorInvalidFile": "Invalid file format",
+  "backupErrorImportFailed": "Data import नहीं हो सका",
+  "storagePermissionExport": "Download folder में export करने के लिए storage access की अनुमति दें"
 
 }
 

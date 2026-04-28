@@ -121,6 +121,7 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
     if (p1 == null || p2 == null) return; // personas not seeded yet, skip
 
     final preset = MultiPresetModel(
+      id: '00000000-0000-0000-0000-000000000003',
       name: isRu ? 'Наташа + Аня' : 'Natasha + Anna',
       personaIds: [p1.id, p2.id],
       greeting: isRu
