@@ -397,34 +397,6 @@ class SceneExtractorService {
     ),
   ];
 
-  Future<void> debugTestLangDetect() async {
-    final samples = [
-      ('ru', '(Облегчённо выдыхает и наконец-то надевает свитер) Смотри! Как думаешь, он подходит к моим глазам? Просто чтобы почувствовать себя нормальной девушкой, а не беглянкой.'),
-      ('uk', '(Полегшено видихає і нарешті вдягає светр) Дивись! Як думаєш, він пасує до моїх очей? Просто щоб відчути себе звичайною дівчиною, а не втікачкою.'),
-      ('en', '(Exhales with relief and finally puts on the sweater) Look! Do you think it matches my eyes? Just to feel like a normal girl, not a fugitive.'),
-      ('de', '(Atmet erleichtert aus und zieht den Pullover an) Schau! Meinst du, er passt zu meinen Augen? Nur um mich wie ein normales Mädchen zu fühlen.'),
-      ('fr', '(Souffle de soulagement et enfile le pull) Regarde! Tu crois qu\'il va avec mes yeux? Juste pour me sentir une fille normale.'),
-      ('es', '(Exhala aliviada y se pone el suéter) ¡Mira! ¿Crees que combina con mis ojos? Solo para sentirme una chica normal.'),
-      ('tr', '(Rahatlamış bir nefes verir ve kazağı giyer) Bak! Sence gözlerimle uyuşuyor mu? Sadece normal bir kız gibi hissetmek için.'),
-      ('id', '(Menghela napas lega dan memakai sweater) Lihat! Menurutmu, cocok dengan mataku? Hanya untuk merasa seperti gadis normal.'),
-      ('vi', '(Thở phào nhẹ nhõm và mặc chiếc áo len) Nhìn này! Theo bạn, nó có hợp với mắt tôi không?'),
-      ('tl', '(Huminga nang may kaginhawahan at isinuot ang sweater) Tingnan mo! Sa tingin mo, bagay ba ito sa aking mga mata?'),
-      ('hi', '(I... मुझे माफ करना. (क्रिस्टी ने अपनी नज़रें नीची कर लीं और उसका चेहरा थोड़ा लाल हो गया।) मैं आपके सामने इस तरह आने के लिए माफी चाहता हूँ। मैं शराब पी रहा था और... मैं वास्तव में इसके बारे में बात करना चाहता था।'),
-      ('hi-latn', '(Sukoon se saans leti hai aur sweater pehenti hai) Dekho! Tumhe kya lagta hai, yeh meri aankhon se match karta hai?'),
-      ('hi-mix', 'Ko-fi के जरिए support करें — cards & PayPal. Minimum \$2. Small fee (~3%). आपको «USouls AI» page पर redirect किया जाएगा — यह Uncensored Souls का official payment page है।'),
-    ];
-
-    debugPrint('[LangDetect] === TEST START ===');
-    int correct = 0;
-    for (final (expected, text) in samples) {
-      final detected = langdetect.detect(text);
-      final ok = detected == expected ? '✓' : '✗';
-      if (detected == expected) correct++;
-      debugPrint('[LangDetect] $ok expected=$expected detected=$detected | ${text.substring(0, 40)}...');
-    }
-    debugPrint('[LangDetect] Score: $correct/${samples.length}');
-    debugPrint('[LangDetect] === TEST END ===');
-  }
 
   // ── DeepSeek prompt ─────────────────────────────────────────────────
 
@@ -558,8 +530,6 @@ $context
     final currentText = _formatMessage(lastMsg);
     final contextText = previousMsgs.map(_formatMessage).join('\n');
 
-    debugPrint('[SceneExtractor] CURRENT: $currentText');
-    debugPrint('[SceneExtractor] CONTEXT: $contextText');
 
     try {
       final rawSnapshot = await _extractWithLLM(currentText, contextText);
@@ -619,7 +589,6 @@ $context
     final detectedLang = lastCharMsg != null
         ? langdetect.detect(lastCharMsg.content)
         : 'en';
-    debugPrint('[SceneExtractor] Detected language: $detectedLang');
 
     final pattern = SceneSwitchPatterns.forLang(detectedLang);
     if (pattern == null) {
