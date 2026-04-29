@@ -175,12 +175,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
       if (_disposed) return;
 
       if (result.hasConflict && (result.severity == 'high' || result.severity == 'medium')) {
+        final reason = result.severity == 'high'
+            ? AgeCheckFailReason.conflictHigh
+            : AgeCheckFailReason.conflictMedium;
         state = state.copyWith(
           verifyingCount: state.verifyingCount - 1,
           failedPersonas: state.failedPersonas.any((p) => p.id == persona.id)
               ? state.failedPersonas
               : [...state.failedPersonas, persona],
-          error: const AgeVerificationException(AgeCheckFailReason.conflict),
+          error: AgeVerificationException(reason),
         );
         return;
       }

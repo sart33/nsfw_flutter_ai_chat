@@ -965,67 +965,70 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                 if (!chatState.isLoading)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        _QuickActionButton(
-                          label: context.l10n.continueAction,
-                          icon: Icons.play_arrow,
-                          onTap:
-                              isVerifyingOrFailed
-                                  ? null
-                                  : () => _sendQuick(
-                                    context.l10n.continueAction,
-                                    settings,
-                                    quickActionType:
-                                        QuickActionType.continueStory,
-                                  ),
-                        ),
-                        const SizedBox(width: 8),
-                        _QuickActionButton(
-                          label: context.l10n.moreDetails,
-                          icon: Icons.auto_stories,
-                          onTap:
-                              isVerifyingOrFailed
-                                  ? null
-                                  : () => _sendQuick(
-                                    context.l10n.moreDetailsPrompt,
-                                    settings,
-                                    quickActionType:
-                                        QuickActionType.moreDetails,
-                                    tokenOverride: (_maxTokens(settings) * 2)
-                                        .clamp(500, 2000),
-                                    hiddenResetContent:
-                                        context.l10n.resetNormalStyle,
-                                  ),
-                        ),
-                        const SizedBox(width: 8),
-                        if (useDesktop)
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
                           _QuickActionButton(
-                            label: context.l10n.shorterAction,
+                            label: context.l10n.continueAction,
+                            icon: Icons.play_arrow,
                             onTap:
                                 isVerifyingOrFailed
                                     ? null
                                     : () => _sendQuick(
-                                      context.l10n.shorterPrompt,
+                                      context.l10n.continueAction,
                                       settings,
-                                      quickActionType: QuickActionType.shorter,
-                                      tokenOverride: 150,
-                                      hiddenResetContent:
-                                          context.l10n.resetNormalStyle,
+                                      quickActionType:
+                                          QuickActionType.continueStory,
                                     ),
-                            icon: Icons.compress,
                           ),
-                        const SizedBox(width: 8),
-                        if (!widget.isMulti)
+                          const SizedBox(width: 8),
                           _QuickActionButton(
-                            label: context.l10n.photo,
-                            icon: Icons.camera_alt_outlined,
+                            label: context.l10n.moreDetails,
+                            icon: Icons.auto_stories,
                             onTap:
                                 isVerifyingOrFailed
                                     ? null
-                                    : () => _generateSceneImage(),
+                                    : () => _sendQuick(
+                                      context.l10n.moreDetailsPrompt,
+                                      settings,
+                                      quickActionType:
+                                          QuickActionType.moreDetails,
+                                      tokenOverride: (_maxTokens(settings) * 2)
+                                          .clamp(500, 2000),
+                                      hiddenResetContent:
+                                          context.l10n.resetNormalStyle,
+                                    ),
                           ),
-                      ],
+                          const SizedBox(width: 8),
+                          if (useDesktop)
+                            _QuickActionButton(
+                              label: context.l10n.shorterAction,
+                              onTap:
+                                  isVerifyingOrFailed
+                                      ? null
+                                      : () => _sendQuick(
+                                        context.l10n.shorterPrompt,
+                                        settings,
+                                        quickActionType: QuickActionType.shorter,
+                                        tokenOverride: 150,
+                                        hiddenResetContent:
+                                            context.l10n.resetNormalStyle,
+                                      ),
+                              icon: Icons.compress,
+                            ),
+                          const SizedBox(width: 8),
+                          if (!widget.isMulti)
+                            _QuickActionButton(
+                              label: context.l10n.photo,
+                              icon: Icons.camera_alt_outlined,
+                              onTap:
+                                  isVerifyingOrFailed
+                                      ? null
+                                      : () => _generateSceneImage(),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 Row(

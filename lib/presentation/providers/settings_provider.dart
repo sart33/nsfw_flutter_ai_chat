@@ -101,8 +101,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final userLimit = prefs.getInt(_keyUserInput) ?? 400;
-    final aiLimit = prefs.getInt(_keyAiResponse) ?? 4000;
+    final userLimit = prefs.getInt(_keyUserInput) ?? 4000;
+    final aiLimit = prefs.getInt(_keyAiResponse) ?? 400;
     final fontSize = prefs.getDouble(_keyChatFontSize) ?? 18.0;
     final reminderInterval = prefs.getInt(_keyReminderInterval) ?? 10;
     final reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;

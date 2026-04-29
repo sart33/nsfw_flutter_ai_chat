@@ -12,12 +12,11 @@ import '../config/app_theme.dart'; // for scaffoldMessengerKey
 
 class AppSnackBar {
 
-
-
   static void show(
       String message, {
         bool isError = false,
         bool withSettings = false,
+        int isDuration = 0,
       }) {
     final messenger = scaffoldMessengerKey.currentState;
     if (messenger == null) return;
@@ -28,7 +27,11 @@ class AppSnackBar {
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
       backgroundColor: isError ? AppTheme.error : AppTheme.warning,
-      duration: Duration(seconds: isError ? 8 : 6),
+      duration: Duration(seconds:
+      isDuration == 0
+          ? isError
+          ? 8 : 6
+          : isDuration),
       content: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -92,7 +95,7 @@ class AppSnackBar {
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
       backgroundColor: isError ? AppTheme.error : AppTheme.warning,
-      duration: Duration(seconds: withSettings ? 12 : 9),
+      duration: Duration(seconds: withSettings ? 16 : 12),
       content: Column(
         children: [
           Row(
@@ -261,9 +264,9 @@ class AppSnackBar {
     if (messenger == null) return;
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      backgroundColor: reason == AgeCheckFailReason.missing
-      ? AppTheme.warning
-      : AppTheme.error, // красный для конфликтов
+      backgroundColor: reason == AgeCheckFailReason.conflictHigh
+          ? AppTheme.error
+          : AppTheme.warning,
       duration: const Duration(seconds: 15),
       // action убираем совсем
       content: Row(
@@ -271,9 +274,11 @@ class AppSnackBar {
         children: [
           Expanded(
             child: Text(
-              reason == AgeCheckFailReason.missing
-                  ? l10n.personaAgeMissing      // жёлтый текст
-                  : l10n.personaDescriptionConflict,  // красный текст
+                switch (reason) {
+                  AgeCheckFailReason.conflictHigh   => l10n.personaDescriptionConflictHigh,
+                  AgeCheckFailReason.conflictMedium => l10n.personaDescriptionConflictMedium,
+                  AgeCheckFailReason.missing        => l10n.personaAgeMissing,
+                },
               style: TextStyle(fontSize: isDesktop ? 14 : 14, color: AppTheme.textPrimary, fontWeight: FontWeight.w600)
             ),
           ),
@@ -322,10 +327,10 @@ class AppSnackBar {
         : '';
     messenger.removeCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      backgroundColor: reason == AgeCheckFailReason.missing
-          ? AppTheme.warning
-          : AppTheme.error,
-      duration: const Duration(seconds: 15),
+      backgroundColor: reason == AgeCheckFailReason.conflictHigh
+          ? AppTheme.error
+          : AppTheme.warning,
+      duration: const Duration(seconds: 12),
       content: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -335,9 +340,11 @@ class AppSnackBar {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  reason == AgeCheckFailReason.missing
-                      ? l10n.personaAgeMissing
-                      : l10n.personaDescriptionConflict,
+                  switch (reason) {
+                    AgeCheckFailReason.conflictHigh   => l10n.personaDescriptionConflictHigh,
+                    AgeCheckFailReason.conflictMedium => l10n.personaDescriptionConflictMedium,
+                    AgeCheckFailReason.missing        => l10n.personaAgeMissing,
+                  },
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w600,
