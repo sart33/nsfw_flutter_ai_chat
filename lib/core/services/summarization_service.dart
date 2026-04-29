@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -55,15 +54,11 @@ class SummarizationService {
         ],
       };
 
-      log(jsonEncode(requestBody), name: 'SUMMARIZATION_REQUEST');
-
       final response = await _dio.post(
         '${AppConfig.deepSeekBaseUrl}/v1/chat/completions',
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
-
-      log(jsonEncode(response.data), name: 'SUMMARIZATION_RESPONSE');
 
       // 3. Extract and return summary
       final content = response.data['choices'][0]['message']['content'] as String;

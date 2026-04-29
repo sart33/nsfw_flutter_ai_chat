@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 
@@ -25,6 +24,5 @@ class ChatImageCleanupService {
     }
     final ids = rows.map((r) => r['id'] as String).toList();
     await DatabaseHelper.instance.deleteMessagesByIds(ids);
-    debugPrint('[ChatImageCleanup] Deleted ${ids.length} old chat images');
   }
 }

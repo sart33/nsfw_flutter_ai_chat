@@ -77,7 +77,6 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           if (next.error == null || next.error == prev?.error) return;
 
           final l10n = context.l10n;
-          debugPrint('Gallery error 1: ${next.error}');
           switch (next.error) {
             case DeepSeekApiException():
               AppSnackBar.showPersonaValidationError(next.error as DeepSeekApiException, l10n);
