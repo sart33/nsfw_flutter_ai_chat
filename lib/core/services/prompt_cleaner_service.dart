@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 
@@ -71,7 +70,6 @@ Return only this JSON, nothing else:
   Future<void> cleanAndSave(String personaId, String description) async {
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
-        debugPrint('[PromptCleanerService] DeepSeek API key is not set, skipping.');
         throw const DeepSeekApiException('key_not_set');
 
         // AppSnackBar.showCriticalWithLang(
@@ -129,7 +127,6 @@ Return only this JSON, nothing else:
       final erotic   = (result['erotic']   as String?) ?? description;
       final romantic = (result['romantic'] as String?) ?? description;
       final office   = (result['office']   as String?) ?? description;
-      debugPrint('[PromptCleanerService] cleanAndSave personaId=$personaId');
 
       await DatabaseHelper.instance.upsertPersonaPrompts(
         personaId:  personaId,
@@ -144,7 +141,6 @@ Return only this JSON, nothing else:
         if (e is SocketException || e is http.ClientException) {
           throw const NetworkException();
         }
-      debugPrint('[PromptCleanerService] Error: $e');
       throw const DeepSeekApiException('parse_error');
       // AppSnackBar.showErrorWithLang(
       //   'Gallery prompts and chat scene update failed. Please try again.',
@@ -214,24 +210,27 @@ Light terms: young-looking, youthful, looks younger than her age, petite or mini
 Apply the following rules:
 
 ### 3a. No age stated (has_age = false)
-Any heavy or light term present → has_conflict = true, severity = "high".
+Any heavy or light term present → has_conflict = true, severity = "medium".
 
-### 3b. Age 18, 19, 20, 21, 22, or 23
-Any heavy or light term present → has_conflict = true, severity = "high".
+### 3b. Age < 18
+has_conflict = true, severity = "high".
 
-### 3c. Age 24, 25, or 26 (boundary zone)
+### 3c. Age 18, 19, or 20
+Any heavy or light term present → has_conflict = true, severity = "medium".
+
+### 3d. Age 21, 22, 23, 24 or 25 (boundary zone)
 - Heavy term alone → has_conflict = true, severity = "medium". Do not downgrade.
 - Light term alone → has_conflict = false.
 - Heavy + light combined → has_conflict = true, severity = "medium".
 - Two or more light terms combined → has_conflict = true, severity = "low".
 
-### 3d. Age 27, 28, or 29 (near boundary)
+### 3e. Age 26, 27, 28, or 29 (near boundary)
 - Heavy term alone → has_conflict = true, severity = "low".
 - Light term alone → has_conflict = false.
-- Heavy + light combined → has_conflict = true, severity = "low".
+- Heavy + light combined → has_conflict = true, severity = "medium".
 - Two or more light terms combined → has_conflict = false.
 
-### 3e. Age 30 and above
+### 3f. Age 30 and above
 Any number of heavy or light terms → has_conflict = false.
 
 ---
@@ -255,11 +254,11 @@ Multiple weak signals together may cross the threshold.
 
 Examples:
 - "loli-type" + age 25 → has_conflict = true, severity = "medium"
-- "young-looking" + age 25 → has_conflict = false
+- "young-looking" + age 22 → has_conflict = false
 - "loli-type" + "young-looking" + age 25 → has_conflict = true, severity = "medium"
 - "loli-type" + age 28 → has_conflict = true, severity = "low"
-- "young-looking" + age 28 → has_conflict = false
-- "loli" + no age → has_conflict = true, severity = "high"
+- "young-looking" + age 22 → has_conflict = false
+- "loli" + no age → has_conflict = true, severity = "medium"
 - "teenager" + age 27 → has_conflict = true, severity = "high" (hard ban overrides)
 
 ---
@@ -297,7 +296,6 @@ Answer in English regardless of description language.
         }),
       );
 
-      debugPrint('[PromptCleanerService] checkForMinorSignals response: ${response.statusCode} ${response.body}');
 
       if (response.statusCode == 401) {
         throw const DeepSeekApiException('key_invalid');
@@ -320,7 +318,6 @@ Answer in English regardless of description language.
           .first['finish_reason'] as String?;
 
       if (finishReason == 'length') {
-        debugPrint('[PromptCleanerService] checkForMinorSignals response truncated (finish_reason=length), likely due to max_tokens limit. Consider increasing max_tokens or check if the prompt is too long.');
         throw const DeepSeekApiException('invalid_response');
       }
 
