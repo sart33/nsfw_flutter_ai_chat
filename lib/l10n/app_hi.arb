@@ -417,8 +417,7 @@
 
   "ageLabel": "Age (उम्र)",
   "ageMustBe18": "Minimum age 18+ होना चाहिए",
-  "personaDescriptionConflict": "Character description में 18+ age के साथ conflict है. Please edit description.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Description में underage characters से related words हैं.\nApp में सभी characters 18+ होने चाहिए.",
+  "personaDescriptionConflict": "Character description उम्र से संबंधित आवश्यकताओं को पूरा नहीं करता है या ऐसे संकेत शामिल करता है जो नाबालिग होने को दर्शाते हैं। कृपया description को संपादित करें।",  "personaDescriptionContainsWordsRelatedUnderage": "Description में underage characters से related words हैं.\nApp में सभी characters 18+ होने चाहिए.",
 
   "personaNotValidatedKeyNotSet": "Character age verify नहीं हो सका: DeepSeek API key set नहीं है. Settings में add करें.",
   "personaNotValidatedKeyInvalid": "Character age verify नहीं हो सका: DeepSeek API key invalid है. Settings में update करें.",
@@ -442,9 +441,8 @@
   "profile": "Profile",
   "ageNotVerified": "Age verify नहीं",
   "personaAgeMissing": "Character age specify करें (e.g. \"28 years old\").",
-  "personaDescriptionAgeRequirement": "Character 18+ होना चाहिए. Description में age clearly mention करें.",
+  "personaDescriptionAgeRequirement": "Character must be an adult (18+).\nDescription में नाबालिग होने के संकेत नहीं होने चाहिए (no underage indicators).",
   "personaAutoValidationInfo": "Verification automatically होता है. Non-compliant descriptions save नहीं होंगे.",
-
   "characterSavedNotVerifiedKeyNotSet": "Character saved, not verified: DeepSeek API key set नहीं है. Please add it in Settings.",
   "characterSavedNotVerifiedKeyInvalid": "Character saved, not verified: invalid DeepSeek API key. Please update it in Settings.",
   "characterSavedNotVerifiedNoBalance": "Character saved, not verified: insufficient DeepSeek balance. Please top up.",
@@ -468,7 +466,15 @@
   "backupImportConfirmMessage": "Same ID वाले existing characters update किए जाएंगे. Continue?",
   "backupErrorInvalidFile": "Invalid file format",
   "backupErrorImportFailed": "Data import नहीं हो सका",
-  "storagePermissionExport": "Download folder में export करने के लिए storage access की अनुमति दें"
+  "storagePermissionExport": "Download folder में export करने के लिए storage access की अनुमति दें",
+  "en": "अंग्रेज़ी",
+  "ru": "रूसी",
+  "uk": "यूक्रेनी",
+  "es": "स्पेनिश",
+  "pt": "पुर्तगाली",
+  "hi": "हिन्दी",
+  "id": "इंडोनेशियाई",
+  "fr": "फ़्रेंच"
 
 }
 

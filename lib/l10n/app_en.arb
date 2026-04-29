@@ -379,9 +379,7 @@
   "personaValidated": "Character passed verification",
   "ageLabel": "Age",
   "ageMustBe18": "Minimum age is 18",
-  "personaDescriptionConflict": "The character description contains contradictions with the 18+ age. Please edit the description.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older.",
-
+  "personaDescriptionConflict": "The description does not meet the character age requirements or contains traits indicating underage characteristics. Please edit the description.",
   "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
   "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
   "personaNotValidatedNoBalance": "Unable to verify character age: insufficient DeepSeek balance. Please top up.",
@@ -405,7 +403,9 @@
   "profile": "Profile",
   "ageNotVerified": "Age not verified",
   "personaAgeMissing": "Please specify the character's age (e.g. \"28 years old\").",
-  "personaDescriptionAgeRequirement": "Character must be 18 or older. Please specify the age clearly in the description.",
+  "personaDescriptionConflictHigh": "The character must be an adult (18+). The description contains prohibited indicators.",
+  "personaDescriptionConflictMedium": "The description does not meet age requirements. Please edit it.",
+  "personaDescriptionAgeRequirement": "The character must be an adult (18+).\nAvoid underage indicators in the description.",
   "personaAutoValidationInfo": "Verification runs automatically. Non-compliant descriptions will not be saved.",
 
   "characterSavedNotVerifiedKeyNotSet": "Character saved, but not verified: DeepSeek API key not set. Please add it in settings.",
@@ -429,7 +429,13 @@
   "backupImportConfirmMessage": "Existing characters with matching IDs will be updated. Continue?",
   "backupErrorInvalidFile": "Invalid file format",
   "backupErrorImportFailed": "Failed to import data",
-  "storagePermissionExport": "Allow storage access to export to the Download folder"
-
-
+  "storagePermissionExport": "Allow storage access to export to the Download folder",
+  "en": "English",
+  "ru": "Russian",
+  "uk": "Ukrainian",
+  "es": "Spanish",
+  "pt": "Portuguese",
+  "hi": "Hindi",
+  "id": "Indonesian",
+  "fr": "French"
 }

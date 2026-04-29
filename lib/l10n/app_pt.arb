@@ -390,7 +390,7 @@
 
   "ageLabel": "Idade",
   "ageMustBe18": "A idade mínima é 18 anos",
-  "personaDescriptionConflict": "A descrição do personagem contém contradições com a idade 18+. Por favor, edite a descrição.",
+  "personaDescriptionConflict": "A descrição não atende aos requisitos de idade do personagem ou contém características que indicam menoridade.\nPor favor, edite a descrição.",
   "personaDescriptionContainsWordsRelatedUnderage": "A descrição contém palavras relacionadas a personagens menores de idade.\nTodos os personagens no aplicativo devem ter 18 anos ou mais.",
 
   "personaNotValidatedKeyNotSet": "Não foi possível verificar a idade do personagem: a chave da API do DeepSeek não está configurada. Adicione-a nas configurações.",
@@ -415,9 +415,9 @@
   "profile": "Perfil",
   "ageNotVerified": "Idade não verificada",
   "personaAgeMissing": "Especifique a idade do personagem (por exemplo, \"28 anos\").",
-  "personaDescriptionAgeRequirement": "O personagem deve ter 18+. Especifique a idade explicitamente na descrição.",
-  "personaAutoValidationInfo": "A verificação é realizada automaticamente. Descrições que não atendam aos requisitos não serão salvas.",
-
+  "personaDescriptionConflictHigh": "O personagem deve ser maior de idade (18+).\nA descrição contém indicadores proibidos.",
+  "personaDescriptionConflictMedium": "A descrição não atende aos requisitos de idade.\nPor favor, edite-a.",
+  "personaDescriptionAgeRequirement": "O personagem deve ser maior de idade (18+).\nA descrição não deve conter indícios de menoridade.",
   "characterSavedNotVerifiedKeyNotSet": "Personagem salvo, mas não verificado: chave de API do DeepSeek não definida. Adicione nas configurações.",
   "characterSavedNotVerifiedKeyInvalid": "Personagem salvo, mas não verificado: chave de API do DeepSeek inválida. Atualize nas configurações.",
   "characterSavedNotVerifiedNoBalance": "Personagem salvo, mas não verificado: saldo insuficiente no DeepSeek. Recarregue sua conta.",
@@ -441,6 +441,14 @@
   "backupImportConfirmMessage": "Personagens existentes com o mesmo ID serão atualizados. Continuar?",
   "backupErrorInvalidFile": "Formato de arquivo inválido",
   "backupErrorImportFailed": "Falha ao importar dados",
-  "storagePermissionExport": "Permita o acesso ao armazenamento para exportar para a pasta Download"
+  "storagePermissionExport": "Permita o acesso ao armazenamento para exportar para a pasta Download",
+  "en": "Inglês",
+  "ru": "Russo",
+  "uk": "Ucraniano",
+  "es": "Espanhol",
+  "pt": "Português",
+  "hi": "Hindi",
+  "id": "Indonésio",
+  "fr": "Francês"
 
 }
