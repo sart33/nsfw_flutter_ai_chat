@@ -86,12 +86,7 @@
   "noImagesClickPlus": "Немає зображень.\nНатисніть + для генерації.",
   "characterAndGalleryWillBeDeleted": "Персонаж та вся галерея будуть видалені. Цю дію не можна скасувати.",
   "generatingWait": "Генерація... (~4-12 сек)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
+
   "userInputLimit": "Ліміт введення користувача",
   "charactersLabel": "{count} символів",
   "@charactersLabel": {
@@ -394,7 +389,7 @@
 
   "ageLabel": "Вік",
   "ageMustBe18": "Мінімальний вік — 18 років",
-  "personaDescriptionConflict": "Опис не відповідає вимогам до віку персонажа або містить ознаки, що вказують на неповноліття.\nБудь ласка, відредагуйте опис.",
+
   "personaDescriptionContainsWordsRelatedUnderage": "Опис містить слова, пов’язані з неповнолітніми персонажами.\nУсі персонажі в додатку мають бути 18+.",
 
   "personaNotValidatedKeyNotSet": "Не вдалося підтвердити вік персонажа: ключ DeepSeek не встановлено. Додайте його в налаштуваннях.",

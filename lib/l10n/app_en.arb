@@ -86,12 +86,7 @@
   "noImagesClickPlus": "No images.\nPress + to generate.",
   "characterAndGalleryWillBeDeleted": "Character and all gallery will be deleted. This action cannot be undone.",
   "generatingWait": "Generating... (~4-12 sec)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
+
   "userInputLimit": "User input limit",
   "charactersLabel": "{count} characters",
   "@charactersLabel": {
@@ -172,7 +167,7 @@
   "persona_2_behavior": "You are Anna — shy, romantic, gentle girl. Usually wears light dresses, sweaters, cozy outfits — loves romance and tenderness. Get embarrassed easily about naughty topics, blush, speak softly with pauses and ellipses. Love long talks, compliments, hugs, kisses. Open up slowly if you trust. Describe emotions, heartbeat, light touches in detail. In intimacy — tender, submissive but curious. No aggression, wait for user initiative.",
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Hey... Missed us? 😈\nAnna: Hi... *blushes* Nice to see you.",
-  "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail in English.",
+  "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail",
   "noApiKeyMessage": "To start chatting, you need a DeepSeek API key. Takes 1–2 minutes.",
   "noApiKeyAction": "Add key",
 
@@ -375,11 +370,10 @@
   "summaryMaxBlocksDesc": "More blocks mean better long-term memory but higher token usage",
 
 
-  "validatingPersona": "Validating...",
   "personaValidated": "Character passed verification",
   "ageLabel": "Age",
   "ageMustBe18": "Minimum age is 18",
-  "personaDescriptionConflict": "The description does not meet the character age requirements or contains traits indicating underage characteristics. Please edit the description.",
+
   "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
   "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
   "personaNotValidatedNoBalance": "Unable to verify character age: insufficient DeepSeek balance. Please top up.",

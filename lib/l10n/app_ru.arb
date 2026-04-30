@@ -86,12 +86,6 @@
   "noImagesClickPlus": "Нет изображений.\nНажмите + для генерации.",
   "characterAndGalleryWillBeDeleted": "Персонаж и вся галерея будут удалены. Это действие нельзя отменить.",
   "generatingWait": "Генерация... (~4-12 сек)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
   "userInputLimit": "Лимит ввода пользователя",
   "charactersLabel": "{count} символов",
   "@charactersLabel": {
@@ -400,11 +394,10 @@
   "summaryMaxBlocks": "Блоков саммари",
   "summaryMaxBlocksDesc": "Больше блоков — лучше память на давние события, выше расход токенов",
 
-  "validatingPersona": "Валидация...",
   "personaValidated": "Персонаж прошёл проверку",
   "ageLabel": "Возраст",
   "ageMustBe18": "Минимальный возраст — 18 лет",
-  "personaDescriptionConflict": "Описание не соответствует требованиям к возрасту персонажа или содержит признаки несовершеннолетия.\nПожалуйста, отредактируйте описание.",
+
   "personaNotValidated": "Персонаж не прошёл проверку возраста. Подключите DeepSeek API для валидации.",
   "personaDescriptionContainsWordsRelatedUnderage": "Описание содержит слова, связанные с несовершеннолетними персонажами.\nВсе персонажи в приложении должны быть 18+.",
 

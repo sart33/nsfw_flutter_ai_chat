@@ -86,12 +86,7 @@
   "noImagesClickPlus": "Nenhuma imagem.\nToque em + para gerar.",
   "characterAndGalleryWillBeDeleted": "O personagem e toda a galeria serão excluídos. Esta ação não pode ser desfeita.",
   "generatingWait": "Gerando... (~4-12 seg)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
+
   "userInputLimit": "Limite de entrada do usuário",
   "charactersLabel": "{count} personagens",
   "@charactersLabel": {

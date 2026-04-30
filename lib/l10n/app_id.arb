@@ -111,8 +111,6 @@
 
   "generatingWait": "Membuat... (~4-12 detik)",
 
-  "slashCount": "/{count}",
-
   "userInputLimit": "Batas input pengguna",
 
   "charactersLabel": "{count} karakter",
@@ -485,7 +483,7 @@
 
   "ageLabel": "Usia",
   "ageMustBe18": "Usia minimum adalah 18 tahun",
-  "personaDescriptionConflict": "Deskripsi tidak memenuhi persyaratan usia karakter atau mengandung ciri-ciri yang menunjukkan bahwa karakter tersebut masih di bawah umur.\nMohon edit deskripsi.",  "personaDescriptionContainsWordsRelatedUnderage": "Deskripsi mengandung kata-kata yang terkait dengan karakter di bawah umur.\nSemua karakter di aplikasi harus berusia 18 tahun atau lebih.",
+
   "personaNotValidatedKeyNotSet": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek belum diatur. Tambahkan di pengaturan.",
   "personaNotValidatedKeyInvalid": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek tidak valid. Perbarui di pengaturan.",
   "personaNotValidatedNoBalance": "Tidak dapat memverifikasi usia karakter: saldo DeepSeek tidak mencukupi. Isi ulang saldo.",

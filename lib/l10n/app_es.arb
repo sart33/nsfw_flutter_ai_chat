@@ -87,12 +87,7 @@
   "noImagesClickPlus": "No hay imágenes.\nPulsa + para generar.",
   "characterAndGalleryWillBeDeleted": "El personaje y toda la galería serán eliminados. Esta acción no se puede deshacer.",
   "generatingWait": "Generando... (~4-12 seg)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-  "placeholders": {
-  "count": {}
-  }
-  },
+
   "userInputLimit": "Límite de entrada del usuario",
   "charactersLabel": "{count} personajes",
   "@charactersLabel": {
@@ -392,7 +387,7 @@
 
   "ageLabel": "Edad",
   "ageMustBe18": "La edad mínima es 18 años",
-  "personaDescriptionConflict": "La descripción no cumple con los requisitos de edad del personaje o contiene rasgos que indican que es menor de edad.\nPor favor, edite la descripción.",  "personaDescriptionContainsWordsRelatedUnderage": "La descripción contiene palabras relacionadas con personajes menores de edad.\nTodos los personajes en la aplicación deben tener 18 años o más.",
+
 
   "personaNotValidatedKeyNotSet": "No se pudo verificar la edad del personaje: la clave de API de DeepSeek no está configurada. Agrégala en la configuración.",
   "personaNotValidatedKeyInvalid": "No se pudo verificar la edad del personaje: la clave de API de DeepSeek no es válida. Actualízala en la configuración.",
