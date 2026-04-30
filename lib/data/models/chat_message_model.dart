@@ -13,6 +13,8 @@ class ChatMessageModel {
   final bool isQuickAction;
   final String? imageLocalPath;
   final bool isHidden;
+  final bool isGreeting;
+
 
   ChatMessageModel({
     String? id,
@@ -25,6 +27,8 @@ class ChatMessageModel {
     this.isQuickAction = false,
     this.imageLocalPath,
     this.isHidden = false,
+    this.isGreeting = false,
+
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -43,7 +47,9 @@ class ChatMessageModel {
         'is_quick_action': isQuickAction ? 1 : 0,
         'imageLocalPath': imageLocalPath,
         'is_hidden': isHidden ? 1 : 0,
-      };
+        'is_greeting': isGreeting ? 1 : 0,
+
+  };
 
   /// Creates a model from a SQLite row map.
   /// Handles [is_user] as int (0/1) or bool for backward compat.
@@ -81,6 +87,8 @@ class ChatMessageModel {
       isQuickAction: (map['is_quick_action'] as int? ?? 0) == 1,
       imageLocalPath: map['imageLocalPath'] as String?,
       isHidden: (map['is_hidden'] as int? ?? 0) == 1,
+      isGreeting: (map['is_greeting'] as int? ?? 0) == 1,
+
     );
   }
 
@@ -102,6 +110,8 @@ class ChatMessageModel {
     bool? isQuickAction,
     String? imageLocalPath,
     bool? isHidden,
+    bool? isGreeting,
+
   }) =>
       ChatMessageModel(
         id: id ?? this.id,
@@ -114,5 +124,7 @@ class ChatMessageModel {
         isQuickAction: isQuickAction ?? this.isQuickAction,
         imageLocalPath: imageLocalPath ?? this.imageLocalPath,
         isHidden: isHidden ?? this.isHidden,
+        isGreeting: isGreeting ?? this.isGreeting,
+
       );
 }

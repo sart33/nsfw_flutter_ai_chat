@@ -121,6 +121,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
               : (personaName ?? ChatConstants.aiSender),
           content: greeting,
           isUser: false,
+          isGreeting: true,  // ← добавить
+
         );
         await repo.saveMessage(msg, _branchId);
         state = state.copyWith(messages: [msg]);

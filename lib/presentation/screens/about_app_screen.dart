@@ -10,6 +10,7 @@ import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 import '../../core/config/app_theme.dart';
+import '../../core/services/engagement_service.dart';
 
 class AboutAppScreen extends StatelessWidget {
   const AboutAppScreen({Key? key}) : super(key: key);
@@ -579,8 +580,23 @@ class _KofiButton extends StatelessWidget {
 }
 
 
-class AboutAppContent extends StatelessWidget {
+class AboutAppContent extends StatefulWidget {
   const AboutAppContent({Key? key}) : super(key: key);
+
+  @override
+  State<AboutAppContent> createState() => _AboutAppContentState();
+}
+
+class _AboutAppContentState extends State<AboutAppContent> {
+  bool? _isRealUser;
+
+  @override
+  void initState() {
+    super.initState();
+    EngagementService.instance.isRealUser().then((v) {
+      if (mounted) setState(() => _isRealUser = v);
+    });
+  }
 
 
   static const _bodyStyleBold = TextStyle(
@@ -662,8 +678,10 @@ class AboutAppContent extends StatelessWidget {
                         _Divider(),
                         _buildWaysToSupportSection(context),
                         _Divider(),
-                        _buildWaysToSupportSectionKofiCard(context),
-                        _Divider(),
+                        if (_isRealUser == true) ...[
+                          _buildWaysToSupportSectionKofiCard(context),
+                          _Divider(),
+                        ],
                         Center(
                           child: _buildParagraphBold(
                             context.l10n.supportCryptoTitle,
