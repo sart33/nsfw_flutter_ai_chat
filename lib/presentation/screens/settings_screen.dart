@@ -24,7 +24,7 @@ const _supportedLocales = [
   (code: 'pt',  name: 'Português'),
   (code: 'hi',  name: 'हिन्दी'),
   (code: 'id',  name: 'Indonesia'),
-  (code: 'fr',  name: 'Français'),
+
 ];
 
 class SettingsScreen extends ConsumerWidget {
@@ -44,7 +44,6 @@ class SettingsScreen extends ConsumerWidget {
       (code: 'pt',  nameKey: context.l10n.pt, nameNative: 'Português'),
       (code: 'hi',  nameKey: context.l10n.hi,      nameNative: 'हिन्दी'),
       (code: 'id',  nameKey: context.l10n.id, nameNative: 'Indonesia'),
-      (code: 'fr',  nameKey: context.l10n.fr,     nameNative: 'Français'),
     ];
 
     final isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
