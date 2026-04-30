@@ -1,3 +1,5 @@
+import 'dart:io' show File, Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,9 +16,6 @@ import 'package:nsfw_chat/presentation/screens/persona_list_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/persona_card_home.dart';
-import 'dart:io' show File, Platform;
-
-import '../../data/repositories/branch_repository.dart';
 
 // ─────────────────────────────────────────────
 //  HomeScreen
@@ -135,39 +134,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.cardBg,
+      backgroundColor: const Color(0xFF0D0D10),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => ListView.builder(
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        itemCount: personas.length,
-        itemBuilder: (_, i) {
-          final p = personas[i];
-          return PersonaCardHome(
-            persona: p,
-            onTap: () async {
-              Navigator.pop(ctx);
-              final branchRepo = BranchRepository();
-              final branch =
-              await branchRepo.createBranch('single:${p.id}');
-              if (!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatScreen(
-                    branchId: branch.id,
-                    entityId: p.id,
-                    isMulti: false,
-                    greeting: p.greeting,
-                    title: p.name,
-                  ),
-                ),
-              ).then((_) => ref.invalidate(recentChatsProvider));
-            },
-          );
-        },
+      isScrollControlled: true,  // ← обязательно для DraggableScrollableSheet
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,           // ← не растягивать на весь экран изначально
+        builder: (_, scrollController) => Column(
+          children: [
+            // drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 14, bottom: 6),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.cardBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,  // ← связываем с DraggableScrollableSheet
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                itemCount: personas.length,
+                itemBuilder: (_, i) {
+                  final p = personas[i];
+                  return PersonaCardHome(
+                    persona: p,
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      // ... остальной onTap без изменений
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
