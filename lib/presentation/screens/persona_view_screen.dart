@@ -846,7 +846,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               );
               if (!context.mounted) return;
               if (ref.read(galleryProvider(galleryKey)).error == null) {
-                Fluttertoast.showToast(msg: context.l10n.savedToGallery);
+                if (!_isDesktopPlatform) {
+                  Fluttertoast.showToast(msg: context.l10n.savedToGallery);
+                }
               }
             },
             onRegenerate:

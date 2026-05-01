@@ -52,6 +52,7 @@ class NovitaAvatarService {
       }),
       data: {'seed': seed, 'size': '768*1024', 'prompt': prompt},
     );
+debugPrint('[NovitaAvatarService] submit response: ${submitResp.statusCode} ${submitResp.data}');
     if (submitResp.statusCode == 401) {
       throw NovitaApiException('api_key_invalid');
     }

@@ -82,9 +82,9 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
       nsfw:      'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts with nipple piercings, thin waist, intricate tattoos on arms and below panty line, tongue and navel piercings).',
       erotic:    'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts, thin waist, intricate tattoos on arms and below panty line, navel piercing). properly dressed',
       beach:     'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts, thin waist, intricate tattoos on arms and below panty line, navel piercing). properly dressed',
-      romantic:  'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, thin waist, tattoos on arms). properly dressed',
-      romantic2: 'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, thin waist). properly dressed',
-      office:    'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, thin waist). properly dressed',
+      romantic:  'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure, tattoos on arms. properly dressed',
+      romantic2: 'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure. properly dressed',
+      office:    'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure. properly dressed',
     );
 
     await DatabaseHelper.instance.upsertPersonaPrompts(
@@ -92,9 +92,9 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
       nsfw:      'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure (thin waist, perky B-cup breasts with pink nipples, soft skin). ',
       erotic:    'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure (thin waist, perky B-cup breasts, soft skin). properly dressed',
       beach:     'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure (thin waist, perky B-cup breasts, soft skin). properly dressed',
-      romantic:  'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure (thin waist, soft skin). properly dressed',
-      romantic2: 'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure (thin waist, soft skin). properly dressed',
-      office:    'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure (thin waist, soft skin). properly dressed',
+      romantic:  'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure, soft skin. properly dressed',
+      romantic2: 'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure, soft skin. properly dressed',
+      office:    'Sweet shy 20-year-old girl, blonde with long hair, blue eyes, light freckles. Slim figure, soft skin. properly dressed',
     );
   }
 

@@ -99,7 +99,7 @@ class ChatRepository {
       final summary = await _summarizationService.summarize(
         toSummarize,
         apiKey,
-        AppConfig.deepSeekChatModel,
+        AppConfig.deepSeekV4FlashModel,
       );
 
       final nextBlockNumber = await _db.getNextBlockNumber(branchId);
@@ -229,15 +229,16 @@ class ChatRepository {
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
       final requestBody = {
-        'model': AppConfig.deepSeekChatModel,
+        'model': AppConfig.deepSeekV4FlashModel,
         'messages': messages,
         'max_tokens': maxTokens,
         'temperature': temperature,
+        'thinking': {'type': 'disabled'},  // <-- вот это
+
       };
       log(jsonEncode(requestBody), name: 'API_REQUEST');
 
-      final response = await _dio.post(
-        '/v1/chat/completions',
+      final response = await _dio.post('/chat/completions',
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
@@ -347,15 +348,17 @@ class ChatRepository {
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
       final requestBody = {
-        'model': AppConfig.deepSeekChatModel,
+        'model': AppConfig.deepSeekV4FlashModel,
         'messages': messages,
+        "thinking": {"type": "disabled"},
+        "stream": false,
         'max_tokens': maxTokens,
         'temperature': temperature,
       };
       log(jsonEncode(requestBody), name: 'API_REQUEST');
 
       final response = await _dio.post(
-        '/v1/chat/completions',
+          '/chat/completions',
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );

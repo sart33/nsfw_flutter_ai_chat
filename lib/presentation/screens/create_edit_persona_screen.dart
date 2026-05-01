@@ -430,6 +430,7 @@ class _CreateEditPersonaScreenState
         if (persona != null) {
           _nameCtrl.text = persona.name;
           _descCtrl.text = persona.description;
+          _lastSentDescription = persona.description; // <-- добавить
           _greetCtrl.text = persona.greeting;
           _behaviorCtrl.text = persona.behavior ?? '';
           setState(() {
@@ -1473,17 +1474,19 @@ class _CreateEditPersonaScreenState
       }
 
       if (mounted) Navigator.pop(context, true);
-
-      PromptCleanerService.instance
-          .cleanAndSave(entity.id, entity.description)
-          .catchError((e) {
-        if (e is NetworkException) {
-          AppSnackBar.show(l10n.characterSavedNotVerifiedNetworkError);
-        }
-            if (e is DeepSeekApiException) {
-              AppSnackBar.showCreatePersonaValidationError(e, l10n);
-            }
-          });
+      final currentDesc = entity.description;
+      if (currentDesc != _lastSentDescription) {
+        PromptCleanerService.instance
+            .cleanAndSave(entity.id, entity.description)
+            .catchError((e) {
+          if (e is NetworkException) {
+            AppSnackBar.show(l10n.characterSavedNotVerifiedNetworkError);
+          }
+          if (e is DeepSeekApiException) {
+            AppSnackBar.showCreatePersonaValidationError(e, l10n);
+          }
+        });
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

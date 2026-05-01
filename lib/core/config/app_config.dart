@@ -13,8 +13,8 @@ class AppConfig {
   static const String novitaBaseUrl = 'https://api.novita.ai/v3/async';
 
   /// Model identifier sent in every request.
-  static const String deepSeekChatModel = 'deepseek-chat';
-  static const String deepSeekReasonerModel = 'deepseek-reasoner';
+  static const String deepSeekV4FlashModel = 'deepseek-v4-flash';
+  static const String deepSeekV4RroModel = 'deepseek-v4-pro';
 
   // ── Input / output limits ─────────────────────────────────────────────
   /// Maximum number of characters a user may type in a single message.
