@@ -86,12 +86,7 @@
   "noImagesClickPlus": "No images.\nPress + to generate.",
   "characterAndGalleryWillBeDeleted": "Character and all gallery will be deleted. This action cannot be undone.",
   "generatingWait": "Generating... (~4-12 sec)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
+
   "userInputLimit": "User input limit",
   "charactersLabel": "{count} characters",
   "@charactersLabel": {
@@ -172,7 +167,7 @@
   "persona_2_behavior": "You are Anna — shy, romantic, gentle girl. Usually wears light dresses, sweaters, cozy outfits — loves romance and tenderness. Get embarrassed easily about naughty topics, blush, speak softly with pauses and ellipses. Love long talks, compliments, hugs, kisses. Open up slowly if you trust. Describe emotions, heartbeat, light touches in detail. In intimacy — tender, submissive but curious. No aggression, wait for user initiative.",
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Hey... Missed us? 😈\nAnna: Hi... *blushes* Nice to see you.",
-  "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail in English.",
+  "multi_1_behavior": "You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, occasionally flirting. Natasha leads and teases, Anna blushes and follows. 'Describe everything in detail",
   "noApiKeyMessage": "To start chatting, you need a DeepSeek API key. Takes 1–2 minutes.",
   "noApiKeyAction": "Add key",
 
@@ -375,12 +370,9 @@
   "summaryMaxBlocksDesc": "More blocks mean better long-term memory but higher token usage",
 
 
-  "validatingPersona": "Validating...",
   "personaValidated": "Character passed verification",
   "ageLabel": "Age",
   "ageMustBe18": "Minimum age is 18",
-  "personaDescriptionConflict": "The character description contains contradictions with the 18+ age. Please edit the description.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Description contains words related to underage characters.\nAll characters in the app must be 18 or older.",
 
   "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
   "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
@@ -405,7 +397,9 @@
   "profile": "Profile",
   "ageNotVerified": "Age not verified",
   "personaAgeMissing": "Please specify the character's age (e.g. \"28 years old\").",
-  "personaDescriptionAgeRequirement": "Character must be 18 or older. Please specify the age clearly in the description.",
+  "personaDescriptionConflictHigh": "The character must be an adult (18+). The description contains prohibited indicators.",
+  "personaDescriptionConflictMedium": "The description does not meet age requirements. Please edit it.",
+  "personaDescriptionAgeRequirement": "The character must be an adult (18+).\nAvoid underage indicators in the description.",
   "personaAutoValidationInfo": "Verification runs automatically. Non-compliant descriptions will not be saved.",
 
   "characterSavedNotVerifiedKeyNotSet": "Character saved, but not verified: DeepSeek API key not set. Please add it in settings.",
@@ -429,7 +423,13 @@
   "backupImportConfirmMessage": "Existing characters with matching IDs will be updated. Continue?",
   "backupErrorInvalidFile": "Invalid file format",
   "backupErrorImportFailed": "Failed to import data",
-  "storagePermissionExport": "Allow storage access to export to the Download folder"
-
-
+  "storagePermissionExport": "Allow storage access to export to the Download folder",
+  "en": "English",
+  "ru": "Russian",
+  "uk": "Ukrainian",
+  "es": "Spanish",
+  "pt": "Portuguese",
+  "hi": "Hindi",
+  "id": "Indonesian",
+  "fr": "French"
 }

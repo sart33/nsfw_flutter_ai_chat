@@ -72,7 +72,7 @@ abstract interface class GalleryException implements Exception {
 
 /// Thrown when age verification fails.
 ///
-enum AgeCheckFailReason { conflict, missing }
+enum AgeCheckFailReason { conflictHigh, conflictMedium, missing }
 class AgeVerificationException extends AppException {
   final AgeCheckFailReason reason;
   const AgeVerificationException(this.reason) : super('age_verification_failed');

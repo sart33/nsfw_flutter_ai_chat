@@ -10,6 +10,7 @@ import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_theme.dart';
+import '../../core/services/engagement_service.dart';
 
 class SupportProjectScreen extends StatelessWidget {
   const SupportProjectScreen({Key? key}) : super(key: key);
@@ -620,8 +621,24 @@ class _KofiButton extends StatelessWidget {
 //   }
 // }
 
-class SupportProjectContent extends StatelessWidget {
+class SupportProjectContent extends StatefulWidget {
   const SupportProjectContent({Key? key}) : super(key: key);
+
+  @override
+  State<SupportProjectContent> createState() => _SupportProjectContentState();
+}
+
+class _SupportProjectContentState extends State<SupportProjectContent> {
+  bool? _isRealUser;
+
+  @override
+  void initState() {
+    super.initState();
+    EngagementService.instance.isRealUser().then((v) {
+      if (mounted) setState(() => _isRealUser = v);
+    });
+  }
+
 
 
   static const _sectionTitleStyle = TextStyle(
@@ -688,8 +705,10 @@ class SupportProjectContent extends StatelessWidget {
                         _Divider(),
                         _buildSupportOptionsSection(context),
                         _Divider(),
-                        _buildWaysToSupportSectionKofiCard(context),
-                        _Divider(),
+                        if (_isRealUser == true) ...[
+                          _buildWaysToSupportSectionKofiCard(context),
+                          _Divider(),
+                        ],
                         Center(
                           child: _buildParagraphBold(
                             context.l10n.supportCryptoTitle,
@@ -1158,30 +1177,6 @@ class SupportProjectContent extends StatelessWidget {
     );
   }
 
-  // Widget _buildWaysToSupportSection(BuildContext context) {
-  //   return _buildSection(
-  //     context.l10n.supportWaysTitle,
-  //     children: [
-  //       _buildParagraph(context.l10n.supportQuickSupport),
-  //       _buildBulletList([context.l10n.supportKofi]),
-  //       const SizedBox(height: 8),
-  //       _buildParagraph(context.l10n.supportCrypto),
-  //       _buildBulletList([
-  //         context.l10n.supportUsdt,
-  //         context.l10n.supportTon,
-  //       ]),
-  //       const SizedBox(height: 8),
-  //       _buildParagraph(context.l10n.supportInternational),
-  //       _buildBulletList([context.l10n.supportPaypal]),
-  //       const SizedBox(height: 8),
-  //       _buildParagraph(context.l10n.supportBankTransfer),
-  //       _buildBulletList([context.l10n.supportIban]),
-  //       const SizedBox(height: 8),
-  //       _buildParagraph(context.l10n.supportAlternative),
-  //       _buildBulletList([context.l10n.supportBoosty]),
-  //     ],
-  //   );
-  // }
 
   Widget _buildSupportSection(BuildContext context) {
     return _buildSection(

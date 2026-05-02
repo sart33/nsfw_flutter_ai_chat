@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:path_provider/path_provider.dart';
@@ -54,7 +52,6 @@ class NovitaImageService {
       // 0. Get API key from secure storage
       final apiKey = await AppConfig.getNovitaApiKey();
       if (apiKey.isEmpty) {
-        debugPrint('Novita API key is not set. Please add it in settings.');
         throw NovitaApiException('api_key_not_set');
       }
 
@@ -77,7 +74,6 @@ class NovitaImageService {
       );
       final submitJson =
       jsonDecode(submitResponse.body) as Map<String, dynamic>;
-      debugPrint('Novita API key error: ${submitResponse.statusCode} ${submitJson['reason']}');
 
       if (submitResponse.statusCode == 401) {
         throw NovitaApiException('api_key_invalid');
@@ -131,7 +127,6 @@ class NovitaImageService {
 
       if (resultJson == null) throw NovitaApiException('timeout');
 
-      // debugPrint('Novita generation succeeded: $resultJson');
       // 5. Extract image URL
       final images = resultJson['images'] as List<dynamic>?;
       if (images == null || images.isEmpty) throw NovitaApiException('no_images');

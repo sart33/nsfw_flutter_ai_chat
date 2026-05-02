@@ -15,18 +15,64 @@ import 'about_app_screen.dart';
 bool get _isDesktopPlatform =>
     Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
-final _supportedLocales = [
-  (code: 'en', name: 'English'),
-  (code: 'ru', name: 'Русский'),
-  (code: 'uk', name: 'Українська'),
-  (code: 'es', name: 'Español'),
-  (code: 'pt', name: 'Português'),
-  (code: 'hi', name: 'हिन्दी'),
+
+const _supportedLocales = [
+  (code: 'en',  name: 'English'),
+  (code: 'ru',  name: 'Русский'),
+  (code: 'uk',  name: 'Українська'),
+  (code: 'es',  name: 'Español'),
+  (code: 'pt',  name: 'Português'),
+  (code: 'hi',  name: 'हिन्दी'),
+  (code: 'id',  name: 'Indonesia'),
+
 ];
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  void _showLanguageSheet(
+      BuildContext context,
+      String? currentLocale,
+      SettingsNotifier notifier,
+      ) {
+    final locales = [
+      (code: null as String?,  nameKey: context.l10n.systemLanguage, nameNative: ''),
+      (code: 'en',  nameKey: context.l10n.en,    nameNative: 'English'),
+      (code: 'ru',  nameKey: context.l10n.ru,    nameNative: 'Русский'),
+      (code: 'uk',  nameKey: context.l10n.uk,  nameNative: 'Українська'),
+      (code: 'es',  nameKey: context.l10n.es,    nameNative: 'Español'),
+      (code: 'pt',  nameKey: context.l10n.pt, nameNative: 'Português'),
+      (code: 'hi',  nameKey: context.l10n.hi,      nameNative: 'हिन्दी'),
+      (code: 'id',  nameKey: context.l10n.id, nameNative: 'Indonesia'),
+    ];
+
+    final isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+    if (isDesktop) {
+      showDialog(
+        context: context,
+        builder: (_) => _LanguageDialog(
+          locales: locales,
+          currentLocale: currentLocale,
+          notifier: notifier,
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: const Color(0xFF0D0D10),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        isScrollControlled: true,
+        builder: (_) => _LanguageSheet(
+          locales: locales,
+          currentLocale: currentLocale,
+          notifier: notifier,
+        ),
+      );
+    }
+  }
   void _showTokenInfoDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -320,75 +366,56 @@ class SettingsScreen extends ConsumerWidget {
 
     final currentLocale = settings.selectedLocale;
 
+    final currentLocaleName = currentLocale == null
+        ? context.l10n.systemLanguage
+        : _supportedLocales
+        .firstWhere(
+          (l) => l.code == currentLocale,
+      orElse: () => (code: currentLocale, name: currentLocale),
+    )
+        .name;
+
     final languageCard = _SettingsCard(children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.language, // добавь в ARB
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                // «Системный» чип
-                _LocaleChip(
-                  label: context.l10n.systemLanguage, // добавь в ARB
-                  selected: currentLocale == null,
-                  onTap: () => notifier.setLocale(null),
-                ),
-                ..._supportedLocales.map((loc) => _LocaleChip(
-                  label: loc.name,
-                  selected: currentLocale == loc.code,
-                  onTap: () => notifier.setLocale(loc.code),
-                )),
-              ],
-            ),
-          ],
-        ),
+      _NavTile(
+        icon: Icons.language,
+        title: context.l10n.language,
+        subtitle: currentLocaleName,
+        onTap: () => _showLanguageSheet(context, currentLocale, notifier),
       ),
     ]);
-
     return Scaffold(
       appBar: CustomAppBar(title: context.l10n.settings),
       body: useDesktop
           ? _buildDesktopBody(
         aboutCard: aboutCard,
-        supportCard: supportCard,
         apiKeysCard: apiKeysCard,
+        supportCard: supportCard,
+        languageCard: languageCard,
         chatFontCard: chatFontCard,
-        personalityCard: personalityCard,
+        backupCard: backupCard,
         creativityCard: creativityCard,
+        personalityCard: personalityCard,
         summarizationCard: summarizationCard,
         autoDeleteCard: autoDeleteCard,
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
-        backupCard: backupCard,
-        languageCard: languageCard,
+
       )
           : _buildMobileBody(
         aboutCard: aboutCard,
-        supportCard: supportCard,
         apiKeysCard: apiKeysCard,
+        supportCard: supportCard,
+        languageCard: languageCard,
         chatFontCard: chatFontCard,
-        personalityCard: personalityCard,
+        backupCard: backupCard,
         creativityCard: creativityCard,
+        personalityCard: personalityCard,
         summarizationCard: summarizationCard,
         autoDeleteCard: autoDeleteCard,
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
-        backupCard: backupCard,
-        languageCard: languageCard,
       ),
     );
   }
@@ -417,18 +444,18 @@ class SettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         aboutCard,       gap,
-        supportCard,     gap,
         apiKeysCard,     gap,
+        languageCard,    gap,
+        supportCard,     gap,
+        backupCard,      gap,
         chatFontCard,    gap,
-        personalityCard, gap,
         creativityCard,  gap,
+        personalityCard, gap,
         summarizationCard, gap,
         clearCard,       gap,
         autoDeleteCard,  gap,
         userInputCard,   gap,
-        aiResponseCard,  gap,
-        backupCard,      gap,
-        languageCard,
+        aiResponseCard,
         const SizedBox(height: 32),
       ],
     );
@@ -460,18 +487,20 @@ class SettingsScreen extends ConsumerWidget {
       supportCard,       gap,
       chatFontCard,      gap,
       creativityCard,    gap,
-      summarizationCard, gap,
-      clearCard,         gap,
-      userInputCard,
+      personalityCard,   gap,
+      autoDeleteCard,    gap,
+      userInputCard,     gap,
+      aiResponseCard,
+
     ];
 
     final rightColumn = <Widget>[
       apiKeysCard,      gap,
-      personalityCard,  gap,
-      autoDeleteCard,   gap,
-      aiResponseCard,   gap,
+      languageCard,     gap,
       backupCard,       gap,
-      languageCard,
+      summarizationCard,gap,
+      clearCard,
+
     ];
 
     return Align(
@@ -779,14 +808,17 @@ class _SliderTile extends StatelessWidget {
     );
   }
 }
+// ── Общий тип для записи локали ──────────────────────────────────────────
+typedef _LocaleEntry = ({String? code, String nameKey, String nameNative});
 
-class _LocaleChip extends StatelessWidget {
-  final String label;
+// ── Карточка языка (общая для шита и диалога) ────────────────────────────
+class _LangCard extends StatelessWidget {
+  final _LocaleEntry loc;
   final bool selected;
   final VoidCallback onTap;
 
-  const _LocaleChip({
-    required this.label,
+  const _LangCard({
+    required this.loc,
     required this.selected,
     required this.onTap,
   });
@@ -796,21 +828,191 @@ class _LocaleChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? AppTheme.primaryAccent : AppTheme.iconBg,
-          borderRadius: BorderRadius.circular(20),
+          color: selected
+              ? AppTheme.primaryAccent.withValues(alpha: 0.12)
+              : AppTheme.cardBg,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected ? AppTheme.primaryAccent : AppTheme.cardBorder,
+            width: selected ? 1.5 : 1,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.white : AppTheme.textSecondary,
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    loc.nameKey,
+                    style: TextStyle(
+                      color: selected
+                          ? AppTheme.primaryAccent
+                          : AppTheme.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (loc.nameNative.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      loc.nameNative,
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (selected)
+              const Icon(Icons.check_rounded,
+                  color: AppTheme.primaryAccent, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Мобильный bottom sheet ────────────────────────────────────────────────
+class _LanguageSheet extends StatelessWidget {
+  final List<_LocaleEntry> locales;
+  final String? currentLocale;
+  final SettingsNotifier notifier;
+
+  const _LanguageSheet({
+    required this.locales,
+    required this.currentLocale,
+    required this.notifier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // drag handle
+          Container(
+            margin: const EdgeInsets.only(top: 14, bottom: 6),
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppTheme.cardBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: locales.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, i) {
+                final loc = locales[i];
+                return _LangCard(
+                  loc: loc,
+                  selected: loc.code == currentLocale,
+                  onTap: () {
+                    notifier.setLocale(loc.code);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Десктопный диалог ─────────────────────────────────────────────────────
+class _LanguageDialog extends StatelessWidget {
+  final List<_LocaleEntry> locales;
+  final String? currentLocale;
+  final SettingsNotifier notifier;
+
+  const _LanguageDialog({
+    required this.locales,
+    required this.currentLocale,
+    required this.notifier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF0D0D10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 560),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    context.l10n.language,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppTheme.iconBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.close,
+                          color: AppTheme.textSecondary, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 2.8,
+                  ),
+                  itemCount: locales.length,
+                  itemBuilder: (_, i) {
+                    final loc = locales[i];
+                    return _LangCard(
+                      loc: loc,
+                      selected: loc.code == currentLocale,
+                      onTap: () {
+                        notifier.setLocale(loc.code);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -111,8 +111,6 @@
 
   "generatingWait": "Membuat... (~4-12 detik)",
 
-  "slashCount": "/{count}",
-
   "userInputLimit": "Batas input pengguna",
 
   "charactersLabel": "{count} karakter",
@@ -485,8 +483,6 @@
 
   "ageLabel": "Usia",
   "ageMustBe18": "Usia minimum adalah 18 tahun",
-  "personaDescriptionConflict": "Deskripsi karakter bertentangan dengan usia 18+. Silakan perbaiki deskripsi.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Deskripsi mengandung kata-kata yang terkait dengan karakter di bawah umur.\nSemua karakter di aplikasi harus berusia 18 tahun atau lebih.",
 
   "personaNotValidatedKeyNotSet": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek belum diatur. Tambahkan di pengaturan.",
   "personaNotValidatedKeyInvalid": "Tidak dapat memverifikasi usia karakter: kunci API DeepSeek tidak valid. Perbarui di pengaturan.",
@@ -510,9 +506,9 @@
   "profile": "Profil",
   "ageNotVerified": "Usia belum diverifikasi",
   "personaAgeMissing": "Tentukan usia karakter (misalnya, \"28 tahun\").",
-  "personaDescriptionAgeRequirement": "Karakter harus berusia 18+. Cantumkan usia secara jelas dalam deskripsi.",
-  "personaAutoValidationInfo": "Verifikasi dilakukan secara otomatis. Deskripsi yang tidak sesuai tidak akan disimpan.",
-
+  "personaDescriptionConflictHigh": "Karakter harus berusia dewasa (18+).\nDeskripsi mengandung indikator yang dilarang.",
+  "personaDescriptionConflictMedium": "Deskripsi tidak memenuhi persyaratan usia.\nSilakan edit.",
+  "personaDescriptionAgeRequirement": "Karakter harus berusia dewasa (18+).\nDeskripsi tidak boleh mengandung indikator bahwa karakter di bawah umur.",
   "characterSavedNotVerifiedKeyNotSet": "Karakter disimpan, tetapi belum diverifikasi: kunci API DeepSeek belum diatur. Tambahkan di pengaturan.",
   "characterSavedNotVerifiedKeyInvalid": "Karakter disimpan, tetapi belum diverifikasi: kunci API DeepSeek tidak valid. Perbarui di pengaturan.",
   "characterSavedNotVerifiedNoBalance": "Karakter disimpan, tetapi belum diverifikasi: saldo DeepSeek tidak cukup. Silakan isi ulang.",
@@ -536,5 +532,13 @@
   "backupImportConfirmMessage": "Karakter yang sudah ada dengan ID yang sama akan diperbarui. Lanjutkan?",
   "backupErrorInvalidFile": "Format file tidak valid",
   "backupErrorImportFailed": "Gagal mengimpor data",
-  "storagePermissionExport": "Izinkan akses penyimpanan untuk mengekspor ke folder Download"
+  "storagePermissionExport": "Izinkan akses penyimpanan untuk mengekspor ke folder Download",
+  "en": "Inggris",
+  "ru": "Rusia",
+  "uk": "Ukraina",
+  "es": "Spanyol",
+  "pt": "Portugis",
+  "hi": "Hindi",
+  "id": "Bahasa Indonesia",
+  "fr": "Prancis"
 }

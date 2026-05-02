@@ -228,7 +228,11 @@ class _CreateEditPersonaScreenState
             (check.severity == 'high' || check.severity == 'medium')) {
           if (!mounted) return;
           _earlyExit = true;
-          AppSnackBar.show(context.l10n.personaDescriptionConflict);
+          if (check.severity == 'high') {
+            AppSnackBar.show(context.l10n.personaDescriptionConflictHigh, isDuration: 10, isError: true);
+          } else {
+            AppSnackBar.show(context.l10n.personaDescriptionConflictMedium, isDuration: 10);
+          }
           return;
         }
 
@@ -426,6 +430,7 @@ class _CreateEditPersonaScreenState
         if (persona != null) {
           _nameCtrl.text = persona.name;
           _descCtrl.text = persona.description;
+          _lastSentDescription = persona.description; // <-- добавить
           _greetCtrl.text = persona.greeting;
           _behaviorCtrl.text = persona.behavior ?? '';
           setState(() {
@@ -513,6 +518,32 @@ class _CreateEditPersonaScreenState
       ),
     );
   }
+ Widget _buildInfoHintPreSave(String text) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDesktop =
+        _isDesktopPlatform && screenWidth >= AppTheme.kDesktopBreakpoint;
+    return Container(
+
+      padding: EdgeInsets.symmetric(horizontal: useDesktop ? 28 : 0, vertical: useDesktop ? 6 : 6 ),
+
+    child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: useDesktop ? 14 : 13,
+
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // ── Build ────────────────────────────────────────────────────────────────
 
@@ -544,7 +575,7 @@ class _CreateEditPersonaScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildAvatarSection(),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             _buildInfoHint(context.l10n.personaDescriptionAgeRequirement),
 
             const SizedBox(height: 16),
@@ -587,7 +618,9 @@ class _CreateEditPersonaScreenState
                 context.l10n.behaviorOptional,
               ).copyWith(hintText: context.l10n.aiInstructions),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 4),
+            _buildInfoHintPreSave(context.l10n.personaAutoValidationInfo),
+            const SizedBox(height: 16),
 
             SizedBox(
               height: 52,
@@ -796,7 +829,8 @@ class _CreateEditPersonaScreenState
                   context.l10n.behaviorOptional,
                 ).copyWith(hintText: context.l10n.aiInstructions),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 8),
+              _buildInfoHintPreSave(context.l10n.personaAutoValidationInfo),
 
               const SizedBox(height: 16),
               // Кнопка Save — фиксированная ширина, центр
@@ -1379,9 +1413,12 @@ class _CreateEditPersonaScreenState
               (check.severity == 'high' || check.severity == 'medium')) {
             // Реальный конфликт возраста — блокируем
             if (!mounted) return;
-            AppSnackBar.show(
-                l10n.personaDescriptionConflict); // красный
-            return; // ← единственный случай когда не сохраняем
+            if (check.severity == 'high') {
+              AppSnackBar.show(context.l10n.personaDescriptionConflictHigh, isDuration: 10, isError: true);
+            } else {
+              AppSnackBar.show(context.l10n.personaDescriptionConflictMedium, isDuration: 10);
+            }
+            return;
           } else {
             if (!check.hasAge) {
               if (!mounted) return;
@@ -1437,17 +1474,19 @@ class _CreateEditPersonaScreenState
       }
 
       if (mounted) Navigator.pop(context, true);
-
-      PromptCleanerService.instance
-          .cleanAndSave(entity.id, entity.description)
-          .catchError((e) {
-        if (e is NetworkException) {
-          AppSnackBar.show(l10n.characterSavedNotVerifiedNetworkError);
-        }
-            if (e is DeepSeekApiException) {
-              AppSnackBar.showCreatePersonaValidationError(e, l10n);
-            }
-          });
+      final currentDesc = entity.description;
+      if (currentDesc != _lastSentDescription) {
+        PromptCleanerService.instance
+            .cleanAndSave(entity.id, entity.description)
+            .catchError((e) {
+          if (e is NetworkException) {
+            AppSnackBar.show(l10n.characterSavedNotVerifiedNetworkError);
+          }
+          if (e is DeepSeekApiException) {
+            AppSnackBar.showCreatePersonaValidationError(e, l10n);
+          }
+        });
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

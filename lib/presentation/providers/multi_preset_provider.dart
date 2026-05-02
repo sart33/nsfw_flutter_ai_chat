@@ -131,11 +131,11 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
           ? 'Ты играешь за двух девушек: активную Наташу и стеснительную Аню. '
             'Чередуй реплики — они общаются между собой и с пользователем, '
             'иногда флиртуют друг с другом. Наташа ведёт и дразнит, '
-            'Аня краснеет и следует. Описывай подробно на русском.'
+            'Аня краснеет и следует. Описывай подробно.'
           : 'You play two girls: bold Natasha and shy Anna. Alternate their lines — '
             'they talk to each other and to the user, occasionally flirting. '
             'Natasha leads and teases, Anna blushes and follows. '
-            'Describe everything in detail in English.',
+            'Describe everything in detail.',
     );
 
     await _repo.create(preset);

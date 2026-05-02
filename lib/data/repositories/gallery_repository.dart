@@ -229,7 +229,6 @@ class GalleryRepository {
 
       final prompt = (template['prompt_template'] as String)
           .replaceAll('{description}', effectiveDescription);
-      debugPrint('Regenerating with prompt: $prompt');
       final saveId = _uuid.v4();
       final localPath =
           await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed());

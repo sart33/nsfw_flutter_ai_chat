@@ -59,7 +59,6 @@ class ChatRepository {
 
   Future<void> setReminderCounter(int value) async {
     await _prefs.setInt('reminder_counter', value);
-    // debugPrint('[Reminder] Counter set to $value');
   }
 
   int _getReminderCounter() => _prefs.getInt('reminder_counter') ?? 0;
@@ -67,11 +66,7 @@ class ChatRepository {
   void _setReminderCounter(int value) =>
       _prefs.setInt('reminder_counter', value);
 
-  // /// Resets the reminder counter to 0. Call on chat init.
-  // void resetReminderCounter() {
-  //   _setReminderCounter(0);
-  //   debugPrint('[Reminder] Counter reset to 0');
-  // }
+
 
   // ── SUMMARIZATION ──────────────────────────────────────────────────────
 
@@ -88,7 +83,6 @@ class ChatRepository {
     final alreadyCovered = await _db.getCoveredMessageCount(branchId);
     final newMessages = allMessages.length - alreadyCovered;
 
-    debugPrint('[Summary] alreadyCovered=$alreadyCovered total=${allMessages.length} new=$newMessages threshold=$threshold');
 
     if (newMessages < threshold) return;
 
@@ -105,7 +99,7 @@ class ChatRepository {
       final summary = await _summarizationService.summarize(
         toSummarize,
         apiKey,
-        AppConfig.deepSeekChatModel,
+        AppConfig.deepSeekV4FlashModel,
       );
 
       final nextBlockNumber = await _db.getNextBlockNumber(branchId);
@@ -120,7 +114,6 @@ class ChatRepository {
         DateTime.now().millisecondsSinceEpoch,
         messagesCovered,
       );
-      debugPrint('[Summary] Saved block #$nextBlockNumber covering messages 1-$messagesCovered');
     } catch (e) {
       debugPrint('[Summary] Failed silently: $e');
     }
@@ -139,7 +132,6 @@ class ChatRepository {
     final covered = await _db.getCoveredMessageCount(branchId);
 
     // Keep only the most recent [maxBlocks] summary blocks to avoid hitting token limits.
-    debugPrint('[SUMMARY_READ] branchId=$branchId blocks=${summaryBlocks.length} covered=$covered');
 
     final messages = <Map<String, dynamic>>[];
     messages.add({'role': 'system', 'content': systemPrompt});
@@ -187,7 +179,6 @@ class ChatRepository {
     bool suppressHidden = false,
   }) async {
     try {
-      debugPrint('Preparing to send message.');
       final apiKey = await AppConfig.getDeepSeekApiKey();
       if (apiKey.isEmpty) {
         throw DeepSeekApiException('key_not_set');
@@ -227,33 +218,31 @@ class ChatRepository {
           persona.behavior!.isNotEmpty) {
         final counter = _getReminderCounter() + 1;
         _setReminderCounter(counter);
-        debugPrint('[Reminder] Counter: $counter / $reminderInterval');
         if (counter >= reminderInterval) {
           _setReminderCounter(0);
           final reminderText =
               'Remember your identity and behavior: ${persona.behavior}\n';
           messages.add({'role': 'system', 'content': reminderText});
-          debugPrint('[Reminder] Injected reminder for counter=$counter: $reminderText');
         }
       }
 
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
       final requestBody = {
-        'model': AppConfig.deepSeekChatModel,
+        'model': AppConfig.deepSeekV4FlashModel,
         'messages': messages,
         'max_tokens': maxTokens,
         'temperature': temperature,
+        'thinking': {'type': 'disabled'},  // <-- вот это
+
       };
       log(jsonEncode(requestBody), name: 'API_REQUEST');
 
-      final response = await _dio.post(
-        '/v1/chat/completions',
+      final response = await _dio.post('/chat/completions',
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );
 
-      debugPrint('API response status: ${response.statusCode}');
       if (response.statusCode == 401) {
         throw const DeepSeekApiException('key_invalid');
       }
@@ -280,7 +269,6 @@ class ChatRepository {
 
       return content.trim();
     } catch (e) {
-      debugPrint('sendMessage error: $e');
       if (e is SocketException ||
           e is http.ClientException ||
           e is DioException && e.type == DioExceptionType.connectionError) {
@@ -349,28 +337,28 @@ class ChatRepository {
       if (reminderEnabled && behaviorReminder.isNotEmpty) {
         final counter = _getReminderCounter() + 1;
         _setReminderCounter(counter);
-        debugPrint('[Reminder] Counter: $counter / $reminderInterval');
         if (counter >= reminderInterval) {
           _setReminderCounter(0);
           final reminderText =
               'Remember your identity and behavior: $behaviorReminder\n';
           messages.add({'role': 'system', 'content': reminderText});
-          debugPrint('[Reminder] Injected reminder for counter=$counter');
         }
       }
 
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
       final requestBody = {
-        'model': AppConfig.deepSeekChatModel,
+        'model': AppConfig.deepSeekV4FlashModel,
         'messages': messages,
+        "thinking": {"type": "disabled"},
+        "stream": false,
         'max_tokens': maxTokens,
         'temperature': temperature,
       };
       log(jsonEncode(requestBody), name: 'API_REQUEST');
 
       final response = await _dio.post(
-        '/v1/chat/completions',
+          '/chat/completions',
         data: requestBody,
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
       );

@@ -23,7 +23,6 @@ import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
-import 'package:photo_view/photo_view.dart';
 
 import '../../core/factory/database_helper.dart';
 import '../../core/utils/app_snack_bar.dart';
@@ -31,6 +30,7 @@ import '../../data/models/persona_model.dart';
 import '../../domain/mappers/persona_mapper.dart';
 import '../widgets/avatar_widget.dart';
 import 'about_app_screen.dart';
+import 'chat_image_fullscreen_screen.dart';
 import 'home_screen.dart';
 
 bool get _isDesktopPlatform =>
@@ -965,67 +965,70 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                 if (!chatState.isLoading)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        _QuickActionButton(
-                          label: context.l10n.continueAction,
-                          icon: Icons.play_arrow,
-                          onTap:
-                              isVerifyingOrFailed
-                                  ? null
-                                  : () => _sendQuick(
-                                    context.l10n.continueAction,
-                                    settings,
-                                    quickActionType:
-                                        QuickActionType.continueStory,
-                                  ),
-                        ),
-                        const SizedBox(width: 8),
-                        _QuickActionButton(
-                          label: context.l10n.moreDetails,
-                          icon: Icons.auto_stories,
-                          onTap:
-                              isVerifyingOrFailed
-                                  ? null
-                                  : () => _sendQuick(
-                                    context.l10n.moreDetailsPrompt,
-                                    settings,
-                                    quickActionType:
-                                        QuickActionType.moreDetails,
-                                    tokenOverride: (_maxTokens(settings) * 2)
-                                        .clamp(500, 2000),
-                                    hiddenResetContent:
-                                        context.l10n.resetNormalStyle,
-                                  ),
-                        ),
-                        const SizedBox(width: 8),
-                        if (useDesktop)
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
                           _QuickActionButton(
-                            label: context.l10n.shorterAction,
+                            label: context.l10n.continueAction,
+                            icon: Icons.play_arrow,
                             onTap:
                                 isVerifyingOrFailed
                                     ? null
                                     : () => _sendQuick(
-                                      context.l10n.shorterPrompt,
+                                      context.l10n.continueAction,
                                       settings,
-                                      quickActionType: QuickActionType.shorter,
-                                      tokenOverride: 150,
-                                      hiddenResetContent:
-                                          context.l10n.resetNormalStyle,
+                                      quickActionType:
+                                          QuickActionType.continueStory,
                                     ),
-                            icon: Icons.compress,
                           ),
-                        const SizedBox(width: 8),
-                        if (!widget.isMulti)
+                          const SizedBox(width: 8),
                           _QuickActionButton(
-                            label: context.l10n.photo,
-                            icon: Icons.camera_alt_outlined,
+                            label: context.l10n.moreDetails,
+                            icon: Icons.auto_stories,
                             onTap:
                                 isVerifyingOrFailed
                                     ? null
-                                    : () => _generateSceneImage(),
+                                    : () => _sendQuick(
+                                      context.l10n.moreDetailsPrompt,
+                                      settings,
+                                      quickActionType:
+                                          QuickActionType.moreDetails,
+                                      tokenOverride: (_maxTokens(settings) * 2)
+                                          .clamp(500, 2000),
+                                      hiddenResetContent:
+                                          context.l10n.resetNormalStyle,
+                                    ),
                           ),
-                      ],
+                          const SizedBox(width: 8),
+                          if (useDesktop)
+                            _QuickActionButton(
+                              label: context.l10n.shorterAction,
+                              onTap:
+                                  isVerifyingOrFailed
+                                      ? null
+                                      : () => _sendQuick(
+                                        context.l10n.shorterPrompt,
+                                        settings,
+                                        quickActionType: QuickActionType.shorter,
+                                        tokenOverride: 150,
+                                        hiddenResetContent:
+                                            context.l10n.resetNormalStyle,
+                                      ),
+                              icon: Icons.compress,
+                            ),
+                          const SizedBox(width: 8),
+                          if (!widget.isMulti)
+                            _QuickActionButton(
+                              label: context.l10n.photo,
+                              icon: Icons.camera_alt_outlined,
+                              onTap:
+                                  isVerifyingOrFailed
+                                      ? null
+                                      : () => _generateSceneImage(),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 Row(
@@ -1400,7 +1403,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                   onTap: () {
                     Navigator.pop(ctx);
                     Clipboard.setData(ClipboardData(text: currentContent));
-                    Fluttertoast.showToast(msg: context.l10n.copiedToClipboard);
+                    if (!_isDesktopPlatform) {
+                      Fluttertoast.showToast(
+                          msg: context.l10n.copiedToClipboard);
+                    }
                   },
                 ),
                 ListTile(
@@ -1524,7 +1530,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
         ),
       );
     } else {
-      Fluttertoast.showToast(msg: context.l10n.galleryEmpty);
+      if (!_isDesktopPlatform) {
+        Fluttertoast.showToast(msg: context.l10n.galleryEmpty);
+      }
     }
   }
 
@@ -1550,29 +1558,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
         ),
       );
     } else {
-      Fluttertoast.showToast(msg: context.l10n.galleryNameEmpty(persona.name));
+      if (!_isDesktopPlatform) {
+        Fluttertoast.showToast(
+            msg: context.l10n.galleryNameEmpty(persona.name));
+      }
     }
   }
 
   void _openImageFullscreen(BuildContext context, String imagePath) {
+    final chatState = ref.read(chatProvider(widget.branchId));
+    final imagePaths = chatState.messages
+        .where((m) => m.imageLocalPath != null)
+        .map((m) => m.imageLocalPath!)
+        .toList();
+    final initialIndex = imagePaths.indexOf(imagePath);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (_) => Scaffold(
-              backgroundColor: Colors.black,
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: const BackButton(color: Colors.white),
-              ),
-              body: PhotoView(
-                imageProvider: FileImage(File(imagePath)),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered * 4.0,
-                backgroundDecoration: const BoxDecoration(color: Colors.black),
-              ),
-            ),
+        builder: (_) => ChatImageFullscreenScreen(
+          imagePaths: imagePaths,
+          initialIndex: initialIndex < 0 ? 0 : initialIndex,
+        ),
       ),
     );
   }

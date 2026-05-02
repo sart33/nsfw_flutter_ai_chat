@@ -86,12 +86,6 @@
   "noImagesClickPlus": "Нет изображений.\nНажмите + для генерации.",
   "characterAndGalleryWillBeDeleted": "Персонаж и вся галерея будут удалены. Это действие нельзя отменить.",
   "generatingWait": "Генерация... (~4-12 сек)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-    "placeholders": {
-      "count": {}
-    }
-  },
   "userInputLimit": "Лимит ввода пользователя",
   "charactersLabel": "{count} символов",
   "@charactersLabel": {
@@ -400,11 +394,10 @@
   "summaryMaxBlocks": "Блоков саммари",
   "summaryMaxBlocksDesc": "Больше блоков — лучше память на давние события, выше расход токенов",
 
-  "validatingPersona": "Валидация...",
   "personaValidated": "Персонаж прошёл проверку",
   "ageLabel": "Возраст",
   "ageMustBe18": "Минимальный возраст — 18 лет",
-  "personaDescriptionConflict": "Описание персонажа содержит противоречия возрасту (18+). Пожалуйста, отредактируйте описание.",
+
   "personaNotValidated": "Персонаж не прошёл проверку возраста. Подключите DeepSeek API для валидации.",
   "personaDescriptionContainsWordsRelatedUnderage": "Описание содержит слова, связанные с несовершеннолетними персонажами.\nВсе персонажи в приложении должны быть 18+.",
 
@@ -431,7 +424,10 @@
   "profile": "Профиль",
   "ageNotVerified": "Возраст не подтверждён",
   "personaAgeMissing": "Укажите возраст персонажа (например, \"28 лет\").",
-  "personaDescriptionAgeRequirement": "Персонаж должен быть совершеннолетним (18+). Указывайте возраст в описании.",
+  "personaDescriptionConflictHigh": "Персонаж должен быть совершеннолетним (18+). Описание содержит недопустимые признаки.",
+  "personaDescriptionConflictMedium": "Описание не соответствует возрастным требованиям. Пожалуйста, отредактируйте его.",
+  "personaDescriptionAgeRequirement": "Персонаж должен быть совершеннолетним (18+).\nИзбегайте признаков несовершеннолетия в описании.",
+
   "personaAutoValidationInfo": "Проверка выполняется автоматически. Несоответствующие описания не будут сохранены.",
 
   "characterSavedNotVerifiedKeyNotSet": "Персонаж сохранён, но не прошёл верификацию: API-ключ DeepSeek не задан. Пожалуйста, добавьте его в настройках.",
@@ -457,8 +453,15 @@
   "backupImportConfirmMessage": "Существующие персонажи с совпадающим ID будут обновлены. Продолжить?",
   "backupErrorInvalidFile": "Неверный формат файла",
   "backupErrorImportFailed": "Не удалось импортировать данные",
-  "storagePermissionExport": "Дайте доступ к хранилищу для экспорта в папку Download"
-
+  "storagePermissionExport": "Дайте доступ к хранилищу для экспорта в папку Download",
+  "en": "Английский",
+  "ru": "Русский",
+  "uk": "Украинский",
+  "es": "Испанский",
+  "pt": "Португальский",
+  "hi": "Хинди",
+  "id": "Индонезийский",
+  "fr": "Французский"
 }
 
 

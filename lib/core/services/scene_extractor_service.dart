@@ -87,50 +87,145 @@ class SceneSnapshot {
     );
   }
 
+  int get selectLevel {
+    if (clothingState?.toLowerCase() == 'nude' || clothingDetails == null) {
+      return 3;
+    }
+    //if (intimacyLevel >= 3) return 2;
+    final cl = (clothingState ?? '').toLowerCase();
+    if (cl.contains('lingerie') ||
+        cl.contains('bikini') ||
+        cl.contains('swimsuit')) {
+      return 2;
+    }
+    return intimacyLevel.clamp(0, 1);
+  }
+
   // Builds the scene part of the image generation prompt
   String toImagePrompt() {
     final parts = <String>[];
     if (location != null) parts.add(location!);
     if (locationDetails != null) parts.add(locationDetails!);
+
     if (pose != null) {
-      final safePose = pose!
-          .replaceAll(
-            RegExp(
-              r'\b(together|sitting together|with user|'
-              r'holding user|beside user)\b',
-              caseSensitive: false,
-            ),
-            'alone',
-          )
-          .replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
-      parts.add(safePose);
+      var s = pose!;
+      s = s.replaceAll(
+          RegExp(r'\b(together|sitting together|with user|holding user|beside user)\b',
+              caseSensitive: false), 'alone');
+      s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
+      parts.add(s);
     }
+
     if (activity != null) {
-      final safeActivity = activity!
-          .replaceAll(
-            RegExp(
-              r'\b(together|sitting together|with user|'
-              r'talking with|holding arm with)\b',
-              caseSensitive: false,
-            ),
-            'alone',
-          )
-          .replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
-      parts.add(safeActivity);
+      var s = activity!;
+      s = s.replaceAll(
+          RegExp(r'\b(together|sitting together|with user|talking with|holding arm with)\b',
+              caseSensitive: false), 'alone');
+      s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
+      parts.add(s);
     }
+
     if (clothingDetails != null) parts.add(clothingDetails!);
+
     if (charactersPositioning != null) {
-      final safePos = charactersPositioning!
-          .replaceAll(RegExp(r'\b(with user|beside user|next to user|toward user)\b',
-          caseSensitive: false), '')
-          .replaceAll(RegExp(r'\buser\b', caseSensitive: false), '')
-          .replaceAll(RegExp(r'  +'), ' ')
-          .trim();
-      if (safePos.isNotEmpty) parts.add(safePos);
+      final cleaned = _cleanPositioning(charactersPositioning!);
+      if (cleaned.isNotEmpty) parts.add(cleaned);
     }
+
     if (timeOfDay != null) parts.add(timeOfDay!);
     return parts.join(', ');
   }
+
+  static String _cleanPositioning(String raw) {
+    var s = raw;
+
+      // 1. Физконтакт с user/him — вся клауза
+      s = s.replaceAll(
+        RegExp(
+          r'\b(holds?|grabs?|pulls?|pushes?|leads?|drags?|guides?|takes?|wraps?|climbs?|presses?|pins?)\s[^,]*\b(users?|him)\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
+
+      // 2. holding his hand
+      s = s.replaceAll(
+        RegExp(r'\bholding\s+his\s+hand\b[^,]*', caseSensitive: false),
+        '',
+      );
+
+      // 3. holding user's/users hand
+      s = s.replaceAll(
+        RegExp(r'\bholding\s+users?\s+hand\b[^,]*', caseSensitive: false),
+        '',
+      );
+
+      // 4. hand in hand / holding hands
+      s = s.replaceAll(
+        RegExp(r'\b(holding hands?|hand in hand)\b', caseSensitive: false),
+        '',
+      );
+
+      // 5. Объятия с user/him — вся клауза
+      s = s.replaceAll(
+        RegExp(r'\b(hugs?|embraces?)\s[^,]*\b(users?|him)\b[^,]*',
+            caseSensitive: false),
+        '',
+      );
+
+      // 6. Поцелуй user/him — вся клауза
+      s = s.replaceAll(
+        RegExp(r'\bkisses?\s+(users?|him|his\s+\w+)\b[^,]*',
+            caseSensitive: false),
+        '',
+      );
+
+      // 7. jumps into user's/the user's arms — вся клауза
+      s = s.replaceAll(
+        RegExp(r'\bjumps?\s+into\s+(the\s+)?users?\s+\w+\b[^,]*',
+            caseSensitive: false),
+        '',
+      );
+
+      // 8. sits on user's/the user's lap — вся клауза
+      s = s.replaceAll(
+        RegExp(r'\bsits?\s+on\s+(the\s+)?users?\s+\w+\b[^,]*',
+            caseSensitive: false),
+        '',
+      );
+      s = s.replaceAll(RegExp(r"user's", caseSensitive: false), 'user');
+      // 9. Убираем user/him везде где остались
+      s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), '');
+      s = s.replaceAll(RegExp(r'\bhim\b', caseSensitive: false), '');
+
+      // 10. Танцевальный контекст — восстанавливаем партнёра
+      // "dancing closely with the ," → "dancing closely with a partner,"
+      s = s.replaceAll(
+        RegExp(r'\b(dancing[\w\s]+with)\s+(the\s+)?,', caseSensitive: false),
+        r'$1 a partner,',
+      );
+      s = s.replaceAll(
+        RegExp(r'\b(dancing[\w\s]+with)\s*$', caseSensitive: false),
+        r'$1 a partner',
+      );
+
+      // 11. Висячие предлоги/союзы перед запятой или концом
+      s = s.replaceAll(
+        RegExp(
+          r'\b(and|but|while|in front of|on top of|of|at|to|for|with|by|the|into|onto|behind|against)\s*(?=,|$)',
+          caseSensitive: false,
+        ),
+        '',
+      );
+
+      // 12. Зачистка мусора
+      s = s.replaceAll(RegExp(r'\s{2,}'), ' ');
+      s = s.replaceAll(RegExp(r',\s*,'), ',');
+      s = s.trim().replaceAll(RegExp(r'^,+|,+$'), '');
+
+      return s;
+    }
+
 
   Map<String, dynamic> toMap() => {
     'location': location,
@@ -156,275 +251,6 @@ class SceneExtractorService {
   // Everything before the first matching pattern is considered part of the previous scene
   // and will be ignored for image generation. This helps keep the image prompt relevant
   // to the current location, time and context.
-
-  static final List<RegExp> sceneSwitchPatterns = [
-    // === RUSSIAN ===
-    RegExp(
-      r'(?:пошли|пришли|перешли|вышли|зашли|поднялись|спустились|'
-      r'переместились|перебрались|отправились|поехали|полетели|'
-      r'пошла|пришла|вышла|зашла|выходим|выходи|идём|идем|идёшь|'
-      r'гуляем|гулять|гуляешь|прогулк|парк|улиц|под руку|заходи|'
-      // добавить:
-      r'добрались|доехали|доплыли|долетели|приехали|прилетели|'
-      r'приплыли|приземлились|причалили|вернулись|свернули|'
-      r'поднялась|спустилась|перебралась|переместилась|'
-      r'заходим|заходите|зайдём|зайдем|войдём|войдем|входим)',
-      caseSensitive: false,
-    ),
-
-    // === ENGLISH ===
-    RegExp(
-      r'(?:went to|arrived at|moved to|headed to|got to|'
-      r'we are in|now in|we went to|she went to|arrived in|'
-      r'walked to|running to|drove to|we are going|'
-      r'we are walking|strolling|heading to|going for a walk)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:in the (?:cafe|room|bed|shower|balcony|street|beach|'
-      r'park|car|kitchen|office)|on the (?:street|park|beach|'
-      r'balcony|sofa)|walking in|going to the park|'
-      r'under arm|holding arm)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:later|after that|then|now|suddenly|next moment|'
-      r'after a while|we are now|she is now|we moved|'
-      r'we arrived|walking|strolling|park|street)\b',
-      caseSensitive: false,
-    ),
-
-    // === SPANISH (Latin America / Mexico) ===
-    RegExp(
-      r'(?:fuimos a|llegamos a|nos dirigimos a|nos movimos a|ella fue a|'
-      r'fuimos al|caminamos a|caminando hacia|corriendo a|condujimos a|'
-      r'vamos a|estamos yendo|estamos caminando|paseando|'
-      r'passamos a|entramos a)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:en el (?:café|restaurante|bar|habitación|dormitorio|baño|ducha|cama|'
-      r'cocina|oficina|playa|parque|calle|balcón|terraza|auto|sofá)|'
-      r'en la (?:habitación|cama|ducha|playa|calle|terraza)|'
-      r'caminando en|yendo al parque|en el parque|en la calle)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:más tarde|después|después de eso|entonces|ahora|de repente|'
-      r'en este momento|ahora estamos|ella está ahora|pasado un rato|luego)\b',
-      caseSensitive: false,
-    ),
-
-    // === PORTUGUESE (Brazil) ===
-    RegExp(
-      r'(?:fomos para|chegamos em|nos mudamos para|ela foi para|'
-      r'caminhamos para|andando para|dirigimos para|'
-      r'vamos para|estamos indo|estamos caminhando|passeando|'
-      r'passamos para|entramos em)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:no (?:café|restaurante|bar|quarto|banheiro|chuveiro|cama|cozinha|'
-      r'escritório|praia|parque|rua|varanda|sofá|carro)|'
-      r'na (?:cama|praia|rua|varanda)|'
-      r'caminhando em|indo ao parque|no parque|na rua)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:mais tarde|depois|depois disso|então|agora|de repente|'
-      r'neste momento|agora estamos|ela está agora|depois de um tempo)\b',
-      caseSensitive: false,
-    ),
-
-    // === INDONESIAN ===
-    RegExp(
-      r'(?:pergi ke|tiba di|pindah ke|dia pergi ke|berjalan ke|'
-      r'kami pergi|sedang berjalan|menuju ke|mengarah ke)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:di (?:kafe|restoran|bar|kamar|kamar mandi|kamar tidur|dapur|kantor|'
-      r'pantai|taman|jalan|teras|sofa|mobil)|'
-      r'berjalan di|menuju ke taman|di taman|di jalan)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:nanti|kemudian|setelah itu|lalu|sekarang|tiba-tiba|'
-      r'sekarang kami|dia sekarang|setelah beberapa saat)\b',
-      caseSensitive: false,
-    ),
-
-    // === VIETNAMESE ===
-    RegExp(
-      r'(?:đi đến|đến|chuyển đến|cô ấy đi|cùng đi|đang đi|'
-      r'di bộ đến|lái xe đến|đi dạo|chạy đến)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:ở (?:quán cà phê|nhà hàng|quán bar|phòng|phòng ngủ|phòng tắm|'
-      r'nhà bếp|văn phòng|bãi biển|công viên|đường|ban công|ghế sofa|xe)|'
-      r'đang đi dạo ở|đi đến công viên|ở công viên|ở đường)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:sau đó|sau|thì|bây giờ|đột nhiên|lúc này|'
-      r'bây giờ chúng ta|cô ấy bây giờ|sau một lúc)\b',
-      caseSensitive: false,
-    ),
-
-    // === TAGALOG (Philippines) ===
-    RegExp(
-      r'(?:pumunta sa|dumating sa|lumipat sa|siya ay pumunta|'
-      r'naglalakad patungo|nagmamaneho patungo|naglalakad)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:sa (?:cafe|restawran|bar|kwarto|kwarto ng tulog|paliguan|'
-      r'kusina|opisina|beach|parke|kalye|balkonahe|sofa|kotse)|'
-      r'naglalakad sa|papunta sa parke|sa parke|sa kalye)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:mamaya|pagkatapos|pagkatapos nito|ngayon|bigla|'
-      r'sa ngayon|ngayon kami|siya ngayon|pagkatapos ng ilang sandali)\b',
-      caseSensitive: false,
-    ),
-
-    // === FRENCH ===
-    RegExp(
-      r'(?:allons à|arrivés à|nous sommes allés|elle est allée|'
-      r'nous nous sommes dirigés|marchons vers|conduisons vers|'
-      r'nous allons|nous marchons|se promener)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:dans le (?:café|restaurant|bar|chambre|salle de bain|douche|lit|'
-      r'cuisine|bureau|plage|parc|rue|balcon|terrasse|voiture|canapé)|'
-      r'en marchant dans|allant au parc|dans le parc|dans la rue)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:plus tard|après|ensuite|maintenant|soudain|'
-      r'à ce moment|nous sommes maintenant|elle est maintenant|'
-      r'après un moment)\b',
-      caseSensitive: false,
-    ),
-    // === HINGLISH (Hindi transliterated) ===
-    RegExp(
-      r'(?:chalo|chale|gaye|pahunche|aa gaye|'
-      r'hum gaye|woh gayi|chal rahe|ghoomne gaye|'
-      r'nikal chale|aa jao|chalte hain)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:cafe mein|restaurant mein|'
-      r'room mein|bedroom mein|bathroom mein|'
-      r'beach par|park mein|sadak par|'
-      r'ghar mein|bahar|andar)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:baad mein|phir|ab|achanak|'
-      r'is waqt|abhi|tab)\b',
-      caseSensitive: false,
-    ),
-    // === HINDI / URDU / BENGALI (Unicode) — remove this block if not needed ===
-    // Hindi
-    RegExp(
-      r'(?:चलो|गए|पहुँचे|हम गए|वह गई|चल रहे|घूमने गए)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:कैफे में|रेस्तरां में|कमरे में|बेडरूम में|बाथरूम में|'
-      r'बीच पर|पार्क में|सड़क पर|बालकनी पर)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:बाद में|फिर|अब|अचानक|इस समय|अभी हम|वह अब)\b',
-      caseSensitive: false,
-    ),
-    // === ROMAN URDU ===
-    RegExp(
-      r'(?:chalo|gaye|pahunche|hum gaye|'
-      r'woh gayi|chal rahe|ghumne gaye)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:cafe mein|restaurant mein|'
-      r'kamre mein|bedroom mein|bathroom mein|'
-      r'beach par|park mein|bahar|andar)\b',
-      caseSensitive: false,
-    ),
-    // Urdu
-    RegExp(
-      r'(?:چلو|گئے|پہنچے|ہم گئے|وہ گئی|چل رہے|گھومنے گئے)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:کیفے میں|ریسٹورنٹ میں|کمرے میں|بیڈروم میں|باتھ روم میں|'
-      r'بیچ پر|پارک میں|سڑک پر)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:بعد میں|پھر|اب|اچانک|اس وقت|اب ہم|وہ اب)\b',
-      caseSensitive: false,
-    ),
-    // === BANGLISH (Bengali transliterated) ===
-    RegExp(
-      r'(?:cholo|gelam|eshe gechi|'
-      r'amra gelam|she gelo|hatchhi|ghurte gelam)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:cafe te|restaurant e|ghore|'
-      r'bedroom e|bathroom e|beach e|'
-      r'park e|raste|baaire)\b',
-      caseSensitive: false,
-    ),
-    // Bengali
-    RegExp(
-      r'(?:চলো|গেলাম|পৌঁছেছি|আমরা গেলাম|সে গেল|হাঁটছি|ঘুরতে গেলাম)',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:ক্যাফেতে|রেস্টুরেন্টে|ঘরে|বেডরুমে|বাথরুমে|'
-      r'বিচে|পার্কে|রাস্তায়|বারান্দায়)\b',
-      caseSensitive: false,
-    ),
-    RegExp(
-      r'\b(?:পরে|তারপর|এখন|হঠাৎ|এই মুহূর্তে|এখন আমরা|সে এখন)\b',
-      caseSensitive: false,
-    ),
-  ];
-
-  Future<void> debugTestLangDetect() async {
-    final samples = [
-      ('ru', '(Облегчённо выдыхает и наконец-то надевает свитер) Смотри! Как думаешь, он подходит к моим глазам? Просто чтобы почувствовать себя нормальной девушкой, а не беглянкой.'),
-      ('uk', '(Полегшено видихає і нарешті вдягає светр) Дивись! Як думаєш, він пасує до моїх очей? Просто щоб відчути себе звичайною дівчиною, а не втікачкою.'),
-      ('en', '(Exhales with relief and finally puts on the sweater) Look! Do you think it matches my eyes? Just to feel like a normal girl, not a fugitive.'),
-      ('de', '(Atmet erleichtert aus und zieht den Pullover an) Schau! Meinst du, er passt zu meinen Augen? Nur um mich wie ein normales Mädchen zu fühlen.'),
-      ('fr', '(Souffle de soulagement et enfile le pull) Regarde! Tu crois qu\'il va avec mes yeux? Juste pour me sentir une fille normale.'),
-      ('es', '(Exhala aliviada y se pone el suéter) ¡Mira! ¿Crees que combina con mis ojos? Solo para sentirme una chica normal.'),
-      ('tr', '(Rahatlamış bir nefes verir ve kazağı giyer) Bak! Sence gözlerimle uyuşuyor mu? Sadece normal bir kız gibi hissetmek için.'),
-      ('id', '(Menghela napas lega dan memakai sweater) Lihat! Menurutmu, cocok dengan mataku? Hanya untuk merasa seperti gadis normal.'),
-      ('vi', '(Thở phào nhẹ nhõm và mặc chiếc áo len) Nhìn này! Theo bạn, nó có hợp với mắt tôi không?'),
-      ('tl', '(Huminga nang may kaginhawahan at isinuot ang sweater) Tingnan mo! Sa tingin mo, bagay ba ito sa aking mga mata?'),
-      ('hi', '(I... मुझे माफ करना. (क्रिस्टी ने अपनी नज़रें नीची कर लीं और उसका चेहरा थोड़ा लाल हो गया।) मैं आपके सामने इस तरह आने के लिए माफी चाहता हूँ। मैं शराब पी रहा था और... मैं वास्तव में इसके बारे में बात करना चाहता था।'),
-      ('hi-latn', '(Sukoon se saans leti hai aur sweater pehenti hai) Dekho! Tumhe kya lagta hai, yeh meri aankhon se match karta hai?'),
-      ('hi-mix', 'Ko-fi के जरिए support करें — cards & PayPal. Minimum \$2. Small fee (~3%). आपको «USouls AI» page पर redirect किया जाएगा — यह Uncensored Souls का official payment page है।'),
-    ];
-
-    debugPrint('[LangDetect] === TEST START ===');
-    int correct = 0;
-    for (final (expected, text) in samples) {
-      final detected = langdetect.detect(text);
-      final ok = detected == expected ? '✓' : '✗';
-      if (detected == expected) correct++;
-      debugPrint('[LangDetect] $ok expected=$expected detected=$detected | ${text.substring(0, 40)}...');
-    }
-    debugPrint('[LangDetect] Score: $correct/${samples.length}');
-    debugPrint('[LangDetect] === TEST END ===');
-  }
 
   // ── DeepSeek prompt ─────────────────────────────────────────────────
 
@@ -531,15 +357,19 @@ $context
             )
             .toList();
     if (textOnly.isEmpty) return SceneSnapshot.fallback;
+    // Step 1: detect language
+    final lastCharMsg = _getLastCharacterMessage(textOnly);
+    final detectedLang = lastCharMsg != null
+        ? langdetect.detect(lastCharMsg.content)
+        : 'en';
+    // Step 2: find current scene window
+    final sceneWindow = _extractCurrentSceneWindow(textOnly, detectedLang);
 
-    // Step 1: find current scene window
-    final sceneWindow = _extractCurrentSceneWindow(textOnly);
-
-    // Step 2: check cache
+    // Step 3: check cache
     final cached = _cache[branchId];
     if (cached != null) {
       final windowText = sceneWindow.map((m) => m.content).join(' ');
-      final hasNewSignal = _hasSceneSwitchSignal(windowText);
+      final hasNewSignal = _hasSceneSwitchSignal(windowText, detectedLang);
       if (!hasNewSignal && cached.$2 == textOnly.length) {
         debugPrint('[SceneExtractor] Using cached scene');
         return cached.$1;
@@ -558,8 +388,6 @@ $context
     final currentText = _formatMessage(lastMsg);
     final contextText = previousMsgs.map(_formatMessage).join('\n');
 
-    debugPrint('[SceneExtractor] CURRENT: $currentText');
-    debugPrint('[SceneExtractor] CONTEXT: $contextText');
 
     try {
       final rawSnapshot = await _extractWithLLM(currentText, contextText);
@@ -609,21 +437,17 @@ $context
   /// If no switch found, returns last 6 messages.
   List<ChatMessageModel> _extractCurrentSceneWindow(
       List<ChatMessageModel> messages,
+      String lang,
       ) {
     final textMessages = messages
         .where((m) => m.imageLocalPath == null && m.content.trim().isNotEmpty)
         .toList();
     if (textMessages.isEmpty) return [];
 
-    final lastCharMsg = _getLastCharacterMessage(messages);
-    final detectedLang = lastCharMsg != null
-        ? langdetect.detect(lastCharMsg.content)
-        : 'en';
-    debugPrint('[SceneExtractor] Detected language: $detectedLang');
 
-    final pattern = SceneSwitchPatterns.forLang(detectedLang);
+    final pattern = SceneSwitchPatterns.forLang(lang);
     if (pattern == null) {
-      debugPrint('[SceneExtractor] No pattern for lang: $detectedLang');
+      debugPrint('[SceneExtractor] No pattern for lang: $lang');
       return textMessages.length > 6
           ? textMessages.sublist(textMessages.length - 6)
           : textMessages;
@@ -636,7 +460,7 @@ $context
             ? window.sublist(window.length - AppConfig.maxSceneWindowSize)
             : window;
         debugPrint(
-          '[SceneExtractor] Scene switch at index $i ($detectedLang), '
+          '[SceneExtractor] Scene switch at index $i ($lang), '
               'window: ${limited.length}',
         );
         return limited;
@@ -655,8 +479,10 @@ $context
     return '$role: ${m.content}';
   }
 
-  bool _hasSceneSwitchSignal(String text) =>
-      sceneSwitchPatterns.any((p) => p.hasMatch(text));
+  bool _hasSceneSwitchSignal(String text, String lang) {
+    final pattern = SceneSwitchPatterns.forLang(lang);
+    return pattern?.hasMatch(text) ?? false;
+  }
 
   // ── LLM extraction ──────────────────────────────────────────────────
 
@@ -675,7 +501,7 @@ $context
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'model': AppConfig.deepSeekChatModel,
+        'model': 'deepseek-chat',
         'messages': [
           {
             'role': 'user',
@@ -719,56 +545,24 @@ $context
   SceneSnapshot _validateAndFix(SceneSnapshot raw) {
     var s = raw;
 
-    // Public locations: cap intimacy and fix impossible poses
-    final publicLocations = {'cafe', 'street', 'park', 'restaurant', 'office'};
+    // Public locations: intimacyLevel 3 → cap to 1
+    final publicLocations = {
+      'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
+    };
     if (s.location != null &&
         publicLocations.contains(s.location!.toLowerCase())) {
-      if (s.intimacyLevel > 1) {
+      if (s.intimacyLevel >= 3) {
         s = s.copyWith(intimacyLevel: 1);
       }
-      // Public poses should be standing or sitting, not intimate poses
-      if (s.pose != null &&
-          [
-            'lying_on_back',
-            'lying_on_side',
-            'lying_on_stomach',
-            'kneeling',
-            'bending_over',
-          ].contains(s.pose!.toLowerCase())) {
-        s = s.copyWith(pose: 'standing');
-      }
     }
 
-    // Shower/bathroom: cannot be fully dressed
+    // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
     if (s.location != null &&
-        (s.location!.toLowerCase().contains('shower') ||
-            s.location!.toLowerCase().contains('bathroom'))) {
-      if (s.clothingState == 'fully_dressed') {
-        s = s.copyWith(clothingState: 'casual');
-      }
-    }
-
-    // Bedroom: intimacy can be higher
-    if (s.location != null &&
-        (s.location!.toLowerCase().contains('bed') ||
+        (s.location!.toLowerCase() == 'bed' ||
             s.location!.toLowerCase().contains('bedroom'))) {
-      if (s.intimacyLevel < 2) {
+      if (s.intimacyLevel == 0) {
         s = s.copyWith(intimacyLevel: 2);
       }
-    }
-
-    // Ensure confidence is within bounds
-    if (s.confidence < 0.0) {
-      s = s.copyWith(confidence: 0.0);
-    } else if (s.confidence > 1.0) {
-      s = s.copyWith(confidence: 1.0);
-    }
-
-    // Ensure intimacy level is within bounds
-    if (s.intimacyLevel < 0) {
-      s = s.copyWith(intimacyLevel: 0);
-    } else if (s.intimacyLevel > 4) {
-      s = s.copyWith(intimacyLevel: 4);
     }
 
     return s;

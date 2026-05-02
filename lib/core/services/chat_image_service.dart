@@ -13,6 +13,81 @@ class ChatImageService {
   ChatImageService._();
   static final ChatImageService instance = ChatImageService._();
 
+  SceneSnapshot _validateAndFix(SceneSnapshot raw) {
+    var s = raw;
+
+    // Public locations: intimacyLevel 3 → cap to 1
+    final publicLocations = {
+      'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
+    };
+    if (s.location != null &&
+        publicLocations.contains(s.location!.toLowerCase())) {
+      if (s.intimacyLevel >= 3) {
+        s = s.copyWith(intimacyLevel: 1);
+      }
+    }
+
+    // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
+    if (s.location != null &&
+        (s.location!.toLowerCase() == 'bed' ||
+            s.location!.toLowerCase().contains('bedroom'))) {
+      if (s.intimacyLevel == 0) {
+        s = s.copyWith(intimacyLevel: 2);
+      }
+    }
+
+    return s;
+  }
+
+  Future<void> debugRunSceneBatch({
+    required String personaId,
+    required String personaName,
+    required List<Map<String, dynamic>> rawSnapshots,
+  }) async {
+    final prompts = await DatabaseHelper.instance.getPersonaPrompts(personaId);
+    if (prompts == null) {
+      debugPrint('[BatchTest] ERROR: no persona prompts found for $personaId');
+      return;
+    }
+
+    debugPrint('[BatchTest] ══════════════════════════════════════');
+    debugPrint('[BatchTest] persona: $personaName ($personaId)');
+    debugPrint('[BatchTest] total cases: ${rawSnapshots.length}');
+    debugPrint('[BatchTest] ══════════════════════════════════════');
+
+    for (int i = 0; i < rawSnapshots.length; i++) {
+      final raw = SceneSnapshot.fromJson(rawSnapshots[i]);
+      final validated = _validateAndFix(raw);
+      final level = validated.selectLevel;
+
+      final String baseDescription = switch (level) {
+        0 => (prompts['romantic'] as String?) ?? '',
+        1 => (prompts['romantic'] as String?) ?? '',
+        2 => (prompts['erotic']   as String?) ?? '',
+        _ => (prompts['nsfw']     as String?) ?? '',
+      };
+
+      final sceneStr = validated.toImagePrompt();
+      final finalPrompt = baseDescription.isNotEmpty
+          ? '$baseDescription, $sceneStr'
+          : sceneStr;
+
+      debugPrint('[BatchTest] 615843129 ── case ${i + 1} ──────────────────────');
+      debugPrint('[BatchTest] RAW    clothingState: ${raw.clothingState}  '
+          'clothingDetails: ${raw.clothingDetails}  '
+          'intimacyLevel: ${raw.intimacyLevel}');
+      debugPrint('[BatchTest] VALID  clothingState: ${validated.clothingState}  '
+          'pose: ${validated.pose}  '
+          'intimacyLevel: ${validated.intimacyLevel}');
+      debugPrint('[BatchTest] selectLevel: $level  '
+          '(prompt key: ${level <= 1 ? "romantic" : level == 2 ? "erotic" : "nsfw"})');
+      debugPrint('[BatchTest] sceneStr:  $sceneStr');
+      debugPrint('[BatchTest] FINAL:     $finalPrompt');
+    }
+
+    debugPrint('[BatchTest] ══════════════════════════════════════');
+    debugPrint('[BatchTest] done.');
+  }
   /// Builds prompt and generates image.
   /// Returns local file path of saved image.
   Future<String> generateFromScene({
@@ -28,7 +103,7 @@ class ChatImageService {
 
     final String baseDescription;
     if (prompts != null) {
-      baseDescription = switch (scene.intimacyLevel) {
+      baseDescription = switch (scene.selectLevel) {
         0 => (prompts['romantic'] as String?) ?? '',
         1 => (prompts['romantic'] as String?) ?? '',
         2 => (prompts['erotic']   as String?) ?? '',

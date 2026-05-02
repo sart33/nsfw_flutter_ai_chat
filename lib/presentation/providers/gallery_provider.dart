@@ -188,9 +188,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       if (check.hasConflict == true &&
           (check.severity == 'high' || check.severity == 'medium')) {
+        final reason = check.severity == 'high'
+            ? AgeCheckFailReason.conflictHigh
+            : AgeCheckFailReason.conflictMedium;
         state = state.copyWith(
           isGenerating: false,
-          error: const AgeVerificationException(AgeCheckFailReason.conflict),
+          error: AgeVerificationException(reason),
         );
         return;
       }

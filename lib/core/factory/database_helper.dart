@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -9,8 +10,8 @@ import '../../data/models/persona_model.dart';
 /// Singleton helper that owns the SQLite database for branches & messages.
 class DatabaseHelper {
   DatabaseHelper._();
-  static final DatabaseHelper instance = DatabaseHelper._();
 
+  static final DatabaseHelper instance = DatabaseHelper._();
 
   Database? _db;
 
@@ -33,9 +34,10 @@ class DatabaseHelper {
     try {
       final dbPath = await getDatabasesPath();
       final path = p.join(dbPath, 'chat_history.db');
+      debugPrint('[DB_PATH] $path');
       _db = await openDatabase(
         path,
-        version: 16,
+        version: 18,
         onCreate: (db, version) async {
           await _createAllTables(db);
         },
@@ -53,6 +55,7 @@ class DatabaseHelper {
       rethrow;
     }
   }
+
   // -- Migration helper to move persona data from SharedPreferences to the new 'personas' table.
 
   Future<void> _createAllTables(Database db) async {
@@ -79,6 +82,7 @@ class DatabaseHelper {
       is_quick_action INTEGER NOT NULL DEFAULT 0,
       imageLocalPath  TEXT,
       is_hidden       INTEGER NOT NULL DEFAULT 0,
+      is_greeting INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY (branch_id) REFERENCES branches(id)
     )
   ''');
@@ -168,7 +172,8 @@ class DatabaseHelper {
 
   /// Returns all branches for a given entity, newest-updated first.
   Future<List<Map<String, dynamic>>> getBranchesForEntity(
-      String entityId) async {
+    String entityId,
+  ) async {
     try {
       final db = await database;
       log('SELECT branches WHERE entity_id=$entityId ORDER BY updated_at DESC', name: 'DB_READ');
@@ -189,11 +194,17 @@ class DatabaseHelper {
 
   /// Returns up to [limit] most recently updated branches
   /// whose entity_id starts with 'single:'.
-  Future<List<Map<String, dynamic>>> getRecentSingleBranches({int limit = 5}) async {
+  Future<List<Map<String, dynamic>>> getRecentSingleBranches({
+    int limit = 5,
+  }) async {
     try {
       final db = await database;
-      log('SELECT branches with real_updated_at FROM messages JOIN WHERE entity_id LIKE \'single:%\' ORDER BY real_updated_at DESC LIMIT $limit', name: 'DB_READ');
-      final results = await db.rawQuery('''
+      log(
+        'SELECT branches with real_updated_at FROM messages JOIN WHERE entity_id LIKE \'single:%\' ORDER BY real_updated_at DESC LIMIT $limit',
+        name: 'DB_READ',
+      );
+      final results = await db.rawQuery(
+        '''
     SELECT 
       b.id,
       b.entity_id,
@@ -216,14 +227,20 @@ class DatabaseHelper {
       ON p.id = REPLACE(b.entity_id, 'single:', '')
     
     WHERE b.entity_id LIKE 'single:%'
+    AND p.id IS NOT NULL
     
     GROUP BY b.id
     
     ORDER BY real_updated_at DESC
     
     LIMIT ?
-  ''', [limit]);
-      log('getRecentSingleBranches result count: ${results.length}', name: 'DB_READ');
+  ''',
+        [limit],
+      );
+      log(
+        'getRecentSingleBranches result count: ${results.length}',
+        name: 'DB_READ',
+      );
       return results;
     } catch (e) {
       log('getRecentSingleBranches error: $e', name: 'DB_ERROR');
@@ -233,8 +250,7 @@ class DatabaseHelper {
   }
 
   /// Inserts a new branch row.
-  Future<void> insertBranch(
-      String id, String entityId, String? preview) async {
+  Future<void> insertBranch(String id, String entityId, String? preview) async {
     try {
       final db = await database;
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -421,6 +437,19 @@ class DatabaseHelper {
       print('DatabaseHelper.insertMessage error: $e');
       rethrow;
     }
+  }
+
+  Future<int> countRealCharacterMessages() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as cnt FROM messages '
+      'WHERE is_user = 0 '
+      'AND is_hidden = 0 '
+      'AND is_greeting = 0 '
+      'AND imageLocalPath IS NULL '
+      "AND trim(content) != ''",
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 
   /// Deletes a single message by id.
@@ -636,7 +665,10 @@ class DatabaseHelper {
           orderBy: 'block_number ASC',
         );
       }
-      log('getSummaryBlocks branchId=$branchId returned=${results.length}', name: 'DB_READ');
+      log(
+        'getSummaryBlocks branchId=$branchId returned=${results.length}',
+        name: 'DB_READ',
+      );
       return results;
     } catch (e) {
       log('getSummaryBlocks error: $e', name: 'DB_ERROR');
@@ -648,7 +680,10 @@ class DatabaseHelper {
   Future<int> getNextBlockNumber(String branchId) async {
     try {
       final db = await database;
-      log('SELECT MAX(block_number) FROM summaries WHERE branch_id=$branchId', name: 'DB_READ');
+      log(
+        'SELECT MAX(block_number) FROM summaries WHERE branch_id=$branchId',
+        name: 'DB_READ',
+      );
       final rows = await db.rawQuery(
         'SELECT MAX(block_number) as max_num FROM summaries WHERE branch_id = ?',
         [branchId],
@@ -697,7 +732,10 @@ class DatabaseHelper {
   Future<int> getCoveredMessageCount(String branchId) async {
     try {
       final db = await database;
-      log('SELECT MAX(messages_covered) FROM summaries WHERE branch_id=$branchId', name: 'DB_READ');
+      log(
+        'SELECT MAX(messages_covered) FROM summaries WHERE branch_id=$branchId',
+        name: 'DB_READ',
+      );
       final rows = await db.rawQuery(
         'SELECT MAX(messages_covered) as covered FROM summaries WHERE branch_id = ?',
         [branchId],
@@ -746,7 +784,10 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getPersonaPrompts(String personaId) async {
     try {
       final db = await database;
-      log('SELECT persona_prompts WHERE persona_id=$personaId', name: 'DB_READ');
+      log(
+        'SELECT persona_prompts WHERE persona_id=$personaId',
+        name: 'DB_READ',
+      );
       final rows = await db.query(
         'persona_prompts',
         where: 'persona_id = ?',
@@ -774,12 +815,12 @@ class DatabaseHelper {
       final db = await database;
       final data = {
         'persona_id': personaId,
-        'nsfw':       nsfw,
-        'erotic':     erotic,
-        'beach':      beach,
-        'romantic':   romantic,
-        'romantic2':  romantic2,
-        'office':     office,
+        'nsfw': nsfw,
+        'erotic': erotic,
+        'beach': beach,
+        'romantic': romantic,
+        'romantic2': romantic2,
+        'office': office,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
       log('UPSERT persona_prompts: $data', name: 'DB_WRITE');
@@ -798,7 +839,10 @@ class DatabaseHelper {
   Future<void> deletePersonaPrompts(String personaId) async {
     try {
       final db = await database;
-      log('DELETE persona_prompts WHERE persona_id=$personaId', name: 'DB_DELETE');
+      log(
+        'DELETE persona_prompts WHERE persona_id=$personaId',
+        name: 'DB_DELETE',
+      );
       await db.delete(
         'persona_prompts',
         where: 'persona_id = ?',
@@ -840,9 +884,12 @@ class DatabaseHelper {
   }
 
   /// Returns all messages where imageLocalPath IS NOT NULL and timestamp < cutoffMs
-  Future<List<Map<String, dynamic>>> getOldChatImageMessages(int cutoffMs) async {
+  Future<List<Map<String, dynamic>>> getOldChatImageMessages(
+    int cutoffMs,
+  ) async {
     final db = await database;
-    return db.query('messages',
+    return db.query(
+      'messages',
       where: 'imageLocalPath IS NOT NULL AND timestamp < ?',
       whereArgs: [cutoffMs],
     );
@@ -853,14 +900,10 @@ class DatabaseHelper {
     if (ids.isEmpty) return;
     final db = await database;
     final placeholders = ids.map((_) => '?').join(',');
-    await db.delete('messages',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids,
-    );
+    await db.delete('messages', where: 'id IN ($placeholders)', whereArgs: ids);
   }
 
   // ── PERSONAS ────────────────────────────────────────────────────────────
-
 
   /// Returns all personas from the database.
   Future<List<Map<String, dynamic>>> getAllPersonas() async {
@@ -936,7 +979,10 @@ class DatabaseHelper {
         'age_verified': persona.ageVerified ? 1 : 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
-      log('UPDATE personas WHERE id=${persona.id}, data: $data', name: 'DB_WRITE');
+      log(
+        'UPDATE personas WHERE id=${persona.id}, data: $data',
+        name: 'DB_WRITE',
+      );
       await db.update(
         'personas',
         data,
@@ -965,16 +1011,40 @@ class DatabaseHelper {
     try {
       final db = await database;
       log('DELETE personas WHERE id=$id', name: 'DB_DELETE');
-      await db.delete('personas', where: 'id = ?', whereArgs: [id]);
+      await db.transaction((txn) async {
+        final branches = await txn.query(
+          'branches',
+          columns: ['id'],
+          where: "entity_id = ?",
+          whereArgs: ['single:$id'],
+        );
+        for (final branch in branches) {
+          final branchId = branch['id'] as String;
+          await txn.delete(
+            'messages',
+            where: 'branch_id = ?',
+            whereArgs: [branchId],
+          );
+          await txn.delete(
+            'summaries',
+            where: 'branch_id = ?',
+            whereArgs: [branchId],
+          );
+        }
+        await txn.delete(
+          'branches',
+          where: "entity_id = ?",
+          whereArgs: ['single:$id'],
+        );
+        await txn.delete('personas', where: 'id = ?', whereArgs: [id]);
+      });
     } catch (e) {
       log('deletePersona error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deletePersona error: $e');
       rethrow;
     }
   }
 
   // ── MULTI PRESETS ───────────────────────────────────────────────────────
-
 
   /// Returns all multi-presets from the database.
   Future<List<Map<String, dynamic>>> getAllMultiPresets() async {
@@ -1042,7 +1112,10 @@ class DatabaseHelper {
         'behavior': preset['behavior'],
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
-      log('UPDATE multi_presets WHERE id=${preset['id']}, data: $data', name: 'DB_WRITE');
+      log(
+        'UPDATE multi_presets WHERE id=${preset['id']}, data: $data',
+        name: 'DB_WRITE',
+      );
       await db.update(
         'multi_presets',
         data,

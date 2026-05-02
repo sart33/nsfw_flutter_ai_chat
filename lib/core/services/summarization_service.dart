@@ -49,6 +49,8 @@ class SummarizationService {
         'model': model,
         'max_tokens': 300,
         'temperature': 0.3,
+        "thinking": {"type": "disabled"},
+        "stream": false,
         'messages': [
           {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': historyText}
@@ -58,9 +60,12 @@ class SummarizationService {
       log(jsonEncode(requestBody), name: 'SUMMARIZATION_REQUEST');
 
       final response = await _dio.post(
-        '${AppConfig.deepSeekBaseUrl}/v1/chat/completions',
+        '${AppConfig.deepSeekBaseUrl}/chat/completions',
         data: requestBody,
-        options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
+        options: Options(
+            headers: {
+              'Authorization': 'Bearer $apiKey'
+            }),
       );
 
       log(jsonEncode(response.data), name: 'SUMMARIZATION_RESPONSE');

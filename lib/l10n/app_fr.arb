@@ -1,0 +1,70 @@
+{
+  "personaValidated": "Personnage validé avec succès",
+  "ageLabel": "Âge",
+  "ageMustBe18": "Âge minimum : 18 ans",
+
+  "personaDescriptionConflict": "La description ne respecte pas les exigences d’âge du personnage ou contient des éléments indiquant une possible minorité. Veuillez modifier la description.",
+
+  "personaNotValidatedKeyNotSet": "Impossible de vérifier l’âge du personnage : clé API DeepSeek non configurée. Veuillez l’ajouter dans les paramètres.",
+  "personaNotValidatedKeyInvalid": "Impossible de vérifier l’âge du personnage : clé API DeepSeek invalide. Veuillez la mettre à jour dans les paramètres.",
+  "personaNotValidatedNoBalance": "Impossible de vérifier l’âge du personnage : solde DeepSeek insuffisant. Veuillez recharger votre compte.",
+  "personaNotValidatedDeepseekUnavailable": "Impossible de vérifier l’âge du personnage : le service DeepSeek est temporairement indisponible. Veuillez réessayer plus tard.",
+  "personaNotValidatedGeneric": "Impossible de vérifier l’âge du personnage : vérification indisponible.",
+  "personaNotValidatedNetworkError": "Impossible de vérifier l’âge du personnage : erreur réseau. Veuillez vérifier votre connexion Internet et réessayer.",
+
+  "networkError": "Erreur réseau. Veuillez vérifier votre connexion Internet et réessayer.",
+
+  "verifyingPersona": "Vérification du personnage...",
+  "preparingPrompts": "Préparation des prompts...",
+
+  "personaAgeConflictHint": "Corriger la description du personnage (18+)",
+  "personaAgeConflictHintPlural": "Corriger les descriptions des personnages (18+)",
+
+  "andMore": "et {count} de plus",
+
+  "profile": "Profil",
+  "ageNotVerified": "Âge non vérifié",
+
+  "personaAgeMissing": "Veuillez indiquer l’âge du personnage (par exemple : « 28 ans »).",
+  "personaDescriptionConflictHigh": "Le personnage doit être majeur (18+).\nLa description contient des éléments interdits.",
+  "personaDescriptionConflictMedium": "La description ne respecte pas les exigences d’âge.\nVeuillez la modifier.",
+  "personaDescriptionAgeRequirement": "Le personnage doit être majeur (18+).\nÉvitez les éléments indiquant une minorité dans la description.",
+
+  "personaAutoValidationInfo": "La vérification s’effectue automatiquement. Les descriptions non conformes ne seront pas enregistrées.",
+
+  "characterSavedNotVerifiedKeyNotSet": "Personnage enregistré, mais non vérifié : clé API DeepSeek non configurée. Veuillez l’ajouter dans les paramètres.",
+  "characterSavedNotVerifiedKeyInvalid": "Personnage enregistré, mais non vérifié : clé API DeepSeek invalide. Veuillez la mettre à jour dans les paramètres.",
+  "characterSavedNotVerifiedNoBalance": "Personnage enregistré, mais non vérifié : solde DeepSeek insuffisant. Veuillez recharger votre compte.",
+  "characterSavedNotVerifiedDeepSeekUnavailable": "Personnage enregistré, mais non vérifié : service DeepSeek temporairement indisponible. Veuillez réessayer plus tard.",
+  "characterSavedNotVerifiedNetworkError": "Personnage enregistré, mais non vérifié : erreur réseau. Veuillez vérifier votre connexion et réessayer.",
+  "characterSavedNotVerifiedContinueHint": "Vous pourrez continuer une fois le problème résolu.",
+
+  "backupExport": "Exporter les données",
+  "backupExportDesc": "Sauvegarder les personnages et l’historique des discussions",
+  "backupImport": "Importer les données",
+  "backupImportDesc": "Importer depuis un fichier",
+
+  "backupExporting": "Exportation des données...",
+  "backupImporting": "Importation des données...",
+
+  "backupExportSuccess": "Données exportées avec succès",
+  "backupExportDownloadDirSuccess": "Données exportées avec succès dans le dossier Download",
+
+  "backupImportSuccess": "Données importées avec succès",
+
+  "backupImportConfirmTitle": "Importer les données",
+  "backupImportConfirmMessage": "Les personnages existants avec les mêmes identifiants seront mis à jour. Continuer ?",
+
+  "backupErrorInvalidFile": "Format de fichier invalide",
+  "backupErrorImportFailed": "Échec de l’importation des données",
+
+  "storagePermissionExport": "Autoriser l’accès au stockage pour exporter vers le dossier Download",
+  "en": "Inggris",
+  "ru": "Rusia",
+  "uk": "Ukraina",
+  "es": "Spanyol",
+  "pt": "Portugis",
+  "hi": "Hindi",
+  "id": "Bahasa Indonesia",
+  "fr": "Prancis"
+}

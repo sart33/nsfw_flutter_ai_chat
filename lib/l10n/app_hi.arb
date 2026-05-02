@@ -45,7 +45,7 @@
 
   "editPreset": "Preset edit करें",
   "newMultiPreset": "नया multi preset",
-  "presetNameLabel": "Preset name *",
+  "presetNameLabel": "Preset का नाम *",
   "enterName": "Name दर्ज करें",
   "selectCharacters": "Characters चुनें:",
   "greeting": "Greeting",
@@ -189,7 +189,7 @@
 
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Hey... हमें miss किया? 😈\nAnna: Hi... *blush करती है* तुम्हें देखकर अच्छा लगा।",
-  "multi_1_behavior": "तुम दो लड़कियों का रोल निभाते हो: bold Natasha और shy Anna। उनके lines alternate करो — वे आपस में और user से बात करती हैं, कभी-कभी flirt भी करती हैं। Natasha lead करती है और tease करती है, Anna blush करती है और follow करती है। सब कुछ detail में English में describe करो।",
+  "multi_1_behavior": "तुम दो लड़कियों का रोल निभाते हो: bold Natasha और shy Anna। उनके lines alternate करो — वे आपस में और user से बात करती हैं, कभी-कभी flirt भी करती हैं। Natasha lead करती है और tease करती है, Anna blush करती है और follow करती है। सब कुछ detail में Hindi में describe करो।",
 
   "noApiKeyMessage": "Chat शुरू करने के लिए DeepSeek API key चाहिए। 1–2 मिनट लगते हैं।",
   "noApiKeyAction": "Key जोड़ें",
@@ -335,7 +335,7 @@
 
   "mainTitle": "Uncensored AI Roleplay",
   "mainSubtitle": "Characters बनाएं और कोई भी scenario create करें। Scenes सीधे chat में generate करें.",
-  "mainText": "• Fully local\n• No subscription\n• बहुत कम cost",
+  "mainText": "• Fully local\n• No subscription\n• Very low cost",
 
   "aboutNoCensorshipTitle": "🔓 No censorship",
   "aboutNoCensorshipText": "आप किसी भी topic पर, किसी भी style में बात कर सकते हैं — बिना किसी restriction के.",
@@ -357,7 +357,7 @@
   "collapsePanel": "Collapse",
   "expandPanel": "Expand",
 
-  "chooseAvatarStyle": "Choose Avatar Style",
+  "chooseAvatarStyle": "Avatar style चुनें",
 
   "avatarStyleEveningDress": "Evening elegance",
   "avatarStyleSummerDress": "Summer walk",
@@ -415,10 +415,10 @@
   "summaryMaxBlocks": "Summary blocks",
   "summaryMaxBlocksDesc": "ज़्यादा blocks — long-term memory बेहतर, token cost बढ़ेगा",
 
-  "ageLabel": "Age (उम्र)",
+  "ageLabel": "Age",
   "ageMustBe18": "Minimum age 18+ होना चाहिए",
-  "personaDescriptionConflict": "Character description में 18+ age के साथ conflict है. Please edit description.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Description में underage characters से related words हैं.\nApp में सभी characters 18+ होने चाहिए.",
+
+
 
   "personaNotValidatedKeyNotSet": "Character age verify नहीं हो सका: DeepSeek API key set नहीं है. Settings में add करें.",
   "personaNotValidatedKeyInvalid": "Character age verify नहीं हो सका: DeepSeek API key invalid है. Settings में update करें.",
@@ -442,9 +442,8 @@
   "profile": "Profile",
   "ageNotVerified": "Age verify नहीं",
   "personaAgeMissing": "Character age specify करें (e.g. \"28 years old\").",
-  "personaDescriptionAgeRequirement": "Character 18+ होना चाहिए. Description में age clearly mention करें.",
+  "personaDescriptionAgeRequirement": "Character adult (18+) होना चाहिए।\nDescription में नाबालिग होने के संकेत नहीं होने चाहिए।",
   "personaAutoValidationInfo": "Verification automatically होता है. Non-compliant descriptions save नहीं होंगे.",
-
   "characterSavedNotVerifiedKeyNotSet": "Character saved, not verified: DeepSeek API key set नहीं है. Please add it in Settings.",
   "characterSavedNotVerifiedKeyInvalid": "Character saved, not verified: invalid DeepSeek API key. Please update it in Settings.",
   "characterSavedNotVerifiedNoBalance": "Character saved, not verified: insufficient DeepSeek balance. Please top up.",
@@ -468,8 +467,40 @@
   "backupImportConfirmMessage": "Same ID वाले existing characters update किए जाएंगे. Continue?",
   "backupErrorInvalidFile": "Invalid file format",
   "backupErrorImportFailed": "Data import नहीं हो सका",
-  "storagePermissionExport": "Download folder में export करने के लिए storage access की अनुमति दें"
+  "storagePermissionExport": "Download folder में export करने के लिए storage access की अनुमति दें",
+  "en": "अंग्रेज़ी",
+  "ru": "रूसी",
+  "uk": "यूक्रेनी",
+  "es": "स्पेनिश",
+  "pt": "पुर्तगाली",
+  "hi": "हिन्दी",
+  "id": "इंडोनेशियाई",
+  "fr": "फ़्रेंच",
 
+  "charactersLabel": "{count} characters",
+  "@charactersLabel": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "tokensLabel": "{count} tokens",
+  "@tokensLabel": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "pixelsLabel": "{size}px",
+  "@pixelsLabel": {
+    "placeholders": {
+      "size": {}
+    }
+  },
+
+  "personaValidated": "Character verify हो गया",
+  "viaLightning": "Lightning के through",
+  "networkError": "Network error। Internet connection check करें और फिर try करें।",
+  "personaDescriptionConflictHigh": "Character adult (18+) होना चाहिए। Description में prohibited indicators हैं।",
+  "personaDescriptionConflictMedium": "Description age requirements को पूरा नहीं करता। कृपया edit करें।"
 }
 
 

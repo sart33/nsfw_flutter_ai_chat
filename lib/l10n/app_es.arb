@@ -87,12 +87,7 @@
   "noImagesClickPlus": "No hay imágenes.\nPulsa + para generar.",
   "characterAndGalleryWillBeDeleted": "El personaje y toda la galería serán eliminados. Esta acción no se puede deshacer.",
   "generatingWait": "Generando... (~4-12 seg)",
-  "slashCount": "/{count}",
-  "@slashCount": {
-  "placeholders": {
-  "count": {}
-  }
-  },
+
   "userInputLimit": "Límite de entrada del usuario",
   "charactersLabel": "{count} personajes",
   "@charactersLabel": {
@@ -392,8 +387,7 @@
 
   "ageLabel": "Edad",
   "ageMustBe18": "La edad mínima es 18 años",
-  "personaDescriptionConflict": "La descripción del personaje contiene contradicciones con la edad 18+. Por favor, edita la descripción.",
-  "personaDescriptionContainsWordsRelatedUnderage": "La descripción contiene palabras relacionadas con personajes menores de edad.\nTodos los personajes en la aplicación deben tener 18 años o más.",
+
 
   "personaNotValidatedKeyNotSet": "No se pudo verificar la edad del personaje: la clave de API de DeepSeek no está configurada. Agrégala en la configuración.",
   "personaNotValidatedKeyInvalid": "No se pudo verificar la edad del personaje: la clave de API de DeepSeek no es válida. Actualízala en la configuración.",
@@ -417,9 +411,10 @@
   "profile": "Perfil",
   "ageNotVerified": "Edad no verificada",
   "personaAgeMissing": "Especifica la edad del personaje (por ejemplo, \"28 años\").",
-  "personaDescriptionAgeRequirement": "El personaje debe tener 18+. Indica la edad explícitamente en la descripción.",
+  "personaDescriptionConflictHigh": "El personaje debe ser mayor de edad (18+).\nLa descripción contiene indicadores prohibidos.",
+  "personaDescriptionConflictMedium": "La descripción no cumple con los requisitos de edad.\nPor favor, edítala.",
+  "personaDescriptionAgeRequirement": "El personaje debe ser mayor de edad (18+).\nLa descripción no debe contener indicios de minoría de edad.",
   "personaAutoValidationInfo": "La verificación se realiza automáticamente. Las descripciones que no cumplan los requisitos no se guardarán.",
-
   "characterSavedNotVerifiedKeyNotSet": "Personaje guardado, pero no verificado: clave API de DeepSeek no configurada. Agréguela en ajustes.",
   "characterSavedNotVerifiedKeyInvalid": "Personaje guardado, pero no verificado: clave API de DeepSeek inválida. Actualícela en ajustes.",
   "characterSavedNotVerifiedNoBalance": "Personaje guardado, pero no verificado: saldo insuficiente en DeepSeek. Recargue su cuenta.",
@@ -443,7 +438,15 @@
   "backupImportConfirmMessage": "Los personajes existentes con el mismo ID serán actualizados. ¿Continuar?",
   "backupErrorInvalidFile": "Formato de archivo inválido",
   "backupErrorImportFailed": "No se pudieron importar los datos",
-  "storagePermissionExport": "Permite el acceso al almacenamiento para exportar a la carpeta Download"
+  "storagePermissionExport": "Permite el acceso al almacenamiento para exportar a la carpeta Download",
+  "en": "Inglés",
+  "ru": "Ruso",
+  "uk": "Ucraniano",
+  "es": "Español",
+  "pt": "Portugués",
+  "hi": "Hindi",
+  "id": "Indonesio",
+  "fr": "Francés"
 
 }
 
