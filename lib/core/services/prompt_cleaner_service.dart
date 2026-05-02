@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -18,10 +19,6 @@ class PromptCleanerService {
   // beach is NOT requested — caller copies erotic result.
   // romantic2 is NOT requested — caller copies office result.
   static String _buildPrompt(String description) => '''
-You are a prompt cleaner for AI image generation.
-Given a character description (may be in any language), return 3 cleaned versions as a single JSON object.
-No explanation, no markdown, only raw JSON.
-All output text MUST be in English only. Translate if needed.
 
 Rules:
 
@@ -86,15 +83,25 @@ Return only this JSON, nothing else:
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': AppConfig.deepSeekChatModel,
+          'model': AppConfig.deepSeekV4RroModel,
           'messages': [
+            {
+              'role': 'system',
+              'content': 'You are a prompt cleaner for AI image generation. Given a character description (may be in any language), return 3 cleaned versions as a single JSON object.',
+            },
             {
               'role': 'user',
               'content': _buildPrompt(description),
             }
           ],
-          'max_tokens': 1500,
+          'response_format':{
+            'type': 'json_object'
+          },
+         'max_tokens': 500,
           'temperature': 0.1,
+          "thinking": {"type": "disabled"},
+          "stream": false
+
         }),
       );
 
@@ -121,6 +128,7 @@ Return only this JSON, nothing else:
           .replaceAll('```json', '')
           .replaceAll('```', '')
           .trim();
+      debugPrint('[PromptCleanerService] prompts: $cleaned');
 
       final Map<String, dynamic> result =
           jsonDecode(cleaned) as Map<String, dynamic>;
@@ -286,12 +294,14 @@ Answer in English regardless of description language.
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': AppConfig.deepSeekReasonerModel,
+          'model': AppConfig.deepSeekV4FlashModel,
           'messages': [
             {'role': 'system', 'content': prompt},
             {'role': 'user', 'content': description},
           ],
           'max_tokens': 1000,
+          'thinking': {'type': 'enabled'},
+          'reasoning_effort': 'high',
           'temperature': 0.0,
         }),
       );
