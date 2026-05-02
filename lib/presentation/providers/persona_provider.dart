@@ -98,6 +98,7 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
     );
   }
 
+
   /// Returns localized default personas based on locale.
   List<PersonaModel> _getDefaultPersonas(Locale locale) {
     final lang = locale.languageCode;

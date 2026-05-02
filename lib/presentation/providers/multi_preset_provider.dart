@@ -113,33 +113,57 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
 
   /// Seeds one default multi-preset linking the two default personas.
   Future<void> _seedDefaultPreset(List<PersonaModel> personas, Locale locale) async {
-    final isRu = locale.languageCode == 'ru';
-    final name1 = isRu ? 'Наташа' : 'Natasha';
-    final name2 = isRu ? 'Аня' : 'Anna';
+    final lang = locale.languageCode;
+
+    final names = {
+      'ru': ('Наташа', 'Аня'),
+      'uk': ('Наташа', 'Аня'),
+      'es': ('Natasha', 'Anna'),
+      'pt': ('Natasha', 'Anna'),
+      'hi': ('Natasha', 'Anna'),
+      'fr': ('Natasha', 'Anna'),
+      'id': ('Natasha', 'Anna'),
+    };
+    final (name1, name2) = names[lang] ?? ('Natasha', 'Anna');
     final p1 = personas.firstWhereOrNull((p) => p.name == name1);
     final p2 = personas.firstWhereOrNull((p) => p.name == name2);
-    if (p1 == null || p2 == null) return; // personas not seeded yet, skip
+    if (p1 == null || p2 == null) return;
+
+    final greetings = {
+      'ru': 'Наташа: Привет... Скучал по нам? 😈\nАня: Привет... *краснеет* Рада видеть тебя.',
+      'uk': 'Наташа: Привіт... Скучав за нами? 😈\nАня: Привіт... *червоніє* Рада тебе бачити.',
+      'es': 'Natasha: Hola... ¿Nos extrañaste? 😈\nAnna: Hola... *se sonroja* Me alegra verte.',
+      'pt': 'Natasha: Oi... Sentiu nossa falta? 😈\nAnna: Oi... *cora* Fico feliz em te ver.',
+      'hi': 'Natasha: Hey... Hamari yaad aayi? 😈\nAnna: Hi... *sharmati hai* Accha laga tujhe dekh ke.',
+      'fr': 'Natasha: Salut... Tu nous as manqué ? 😈\nAnna: Salut... *rougit* Je suis contente de te voir.',
+      'id': 'Natasha: Hai... Kangen sama kita? 😈\nAnna: Hai... *tersipu* Senang melihatmu.',
+    };
+
+    final behaviors = {
+      'ru': 'Ты играешь за двух девушек: смелую Наташу и стеснительную Аню. Чередуй их реплики — они общаются между собой и с пользователем, иногда флиртуют друг с другом и с пользователем. Наташа ведёт и дразнит, Аня краснеет и следует за ней. Описывай действия и происходящее подробно. В каждом сообщении отвечай за обеих по очереди, начиная с имени.',
+      'uk': 'Ти граєш за двох дівчат: сміливу Наташу і сором\'язливу Аню. Чергуй їхні репліки — вони спілкуються між собою і з користувачем, іноді фліртують одна з одною і з користувачем. Наташа веде і дражнить, Аня червоніє і слідує за нею. Описуй дії та те, що відбувається, детально. У кожному повідомленні відповідай за обох по черзі, починаючи з імені.',
+      'es': 'Interpretas a dos chicas: la atrevida Natasha y la tímida Anna. Alterna sus intervenciones — hablan entre ellas y con el usuario, a veces coqueteando entre sí y con el usuario. Natasha lleva la iniciativa y provoca, Anna se sonroja y sigue su juego. Describe las acciones y lo que ocurre con detalle. En cada mensaje, responde por las dos en orden, comenzando con su nombre.',
+      'pt': 'Você interpreta duas garotas: a ousada Natasha e a tímida Anna. Alterne as falas delas — elas conversam entre si e com o usuário, às vezes flertando entre si e com o usuário. Natasha toma a iniciativa e provoca, Anna fica envergonhada e a segue. Descreva as ações e o que acontece com detalhes. Em cada mensagem, responda pelas duas na ordem, começando pelo nome.',
+      'hi': 'Tum do ladkiyon ko play karti ho: bold Natasha aur shy Anna. Unki baari-baari lines likho — woh ek-dusre se aur user se baat karti hain, kabhi kabhi ek-dusre se aur user se flirt bhi karti hain. Natasha lead karti hai aur tease karti hai, Anna sharmati hai aur uske peeche chalti hai. Actions aur events ko detail mein describe karo. Har message mein dono ke liye baari-baari jawab do, naam se shuru karke.',
+      'fr': 'Tu joues deux filles : la téméraire Natasha et la timide Anna. Alterne leurs répliques — elles parlent entre elles et avec l\'utilisateur, en flirtant parfois entre elles et avec l\'utilisateur. Natasha mène le jeu et taquine, Anna rougit et suit. Décris les actions et les événements en détail. Dans chaque message, réponds pour toutes les deux à tour de rôle, en commençant par leur prénom.',
+      'id': 'Kamu memainkan dua gadis: Natasha yang berani dan Anna yang pemalu. Bergantian giliran mereka — mereka mengobrol satu sama lain dan dengan pengguna, terkadang saling menggoda satu sama lain dan dengan pengguna. Natasha memimpin dan menggoda, Anna tersipu dan mengikuti. Jelaskan tindakan dan kejadian secara detail. Di setiap pesan, jawab untuk keduanya secara bergantian, dimulai dengan nama mereka.',
+    };
+
+    final defaultGreeting = 'Natasha: Hey... Missed us? 😈\nAnna: Hi... *blushes* Nice to see you.';
+    final defaultBehavior = 'You play two girls: bold Natasha and shy Anna. Alternate their lines — they talk to each other and to the user, sometimes flirting with each other and with the user. Natasha leads and teases, Anna blushes and follows. Describe actions and events in detail. In every message, respond for both of them in turn, starting with their names.';
+
 
     final preset = MultiPresetModel(
       id: '00000000-0000-0000-0000-000000000003',
-      name: isRu ? 'Наташа + Аня' : 'Natasha + Anna',
+      name: (lang == 'ru' || lang == 'uk') ? '${name1} + ${name2}' : 'Natasha + Anna',
       personaIds: [p1.id, p2.id],
-      greeting: isRu
-          ? 'Наташа: Привет... Скучал по нам? 😈\nАня: Привет... *краснеет* Рада видеть тебя.'
-          : 'Natasha: Hey... Missed us? 😈\nAnna: Hi... *blushes* Nice to see you.',
-      behavior: isRu
-          ? 'Ты играешь за двух девушек: активную Наташу и стеснительную Аню. '
-            'Чередуй реплики — они общаются между собой и с пользователем, '
-            'иногда флиртуют друг с другом. Наташа ведёт и дразнит, '
-            'Аня краснеет и следует. Описывай подробно.'
-          : 'You play two girls: bold Natasha and shy Anna. Alternate their lines — '
-            'they talk to each other and to the user, occasionally flirting. '
-            'Natasha leads and teases, Anna blushes and follows. '
-            'Describe everything in detail.',
+      greeting: greetings[lang] ?? defaultGreeting,
+      behavior: behaviors[lang] ?? defaultBehavior,
     );
 
     await _repo.create(preset);
     state = MultiPresetMapper.toEntityList([preset]);
+
   }
 
   /// Create a new multi-preset.
