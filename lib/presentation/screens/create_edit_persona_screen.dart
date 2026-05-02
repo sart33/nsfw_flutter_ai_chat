@@ -68,7 +68,9 @@ class _CreateEditPersonaScreenState
       'avatarStyleOffice' => context.l10n.avatarStyleOffice,
       'avatarStyleLingerie' => context.l10n.avatarStyleLingerie,
       'avatarStyleBikini' => context.l10n.avatarStyleBikini,
-      'avatarStyleSilkRobe' => context.l10n.avatarStyleSilkRobe,
+      'avatarStyleMorningCoffee'     => context.l10n.avatarStyleMorningCoffee,
+      'avatarStyleParisEvening'     => context.l10n.avatarStyleParisEvening,
+      'avatarParisianCafe' => context.l10n.avatarStyleCafeTerrace,
       'avatarStyleNude' => context.l10n.avatarStyleNude,
       _ => nameKey,
     };

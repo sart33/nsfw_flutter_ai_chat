@@ -1,4 +1,17 @@
 {
+
+
+  "chooseAvatarStyle": "Choisir le style d'avatar",
+  "avatarStyleEveningDress": "Élégance du soir",
+  "avatarStyleSummerDress": "Promenade d'été",
+  "avatarStyleOffice": "Style de bureau",
+  "avatarStyleLingerie": "Ambiance lingerie",
+  "avatarStyleBikini": "Bikini de plage",
+  "avatarStyleParisEvening": "Soirée à Paris",
+  "avatarStyleMorningCoffee": "Café du matin",
+  "avatarStyleCafeTerrace": "Café parisien",
+  "avatarStyleNude": "Nu artistique",
+
   "personaValidated": "Personnage validé avec succès",
   "ageLabel": "Âge",
   "ageMustBe18": "Âge minimum : 18 ans",
@@ -59,7 +72,6 @@
   "backupErrorImportFailed": "Échec de l’importation des données",
 
   "storagePermissionExport": "Autoriser l’accès au stockage pour exporter vers le dossier Download",
-  "avatarStyleMorningCoffee": "Café du matin",
   "en": "Anglais",
   "ru": "Russe",
   "uk": "Ukrainien",
@@ -67,7 +79,5 @@
   "pt": "Portugais",
   "hi": "Hindi",
   "id": "Indonésien",
-  "fr": "Français",
-
-  "multi_1_behavior": "Tu joues deux filles : la téméraire Natasha et la timide Anna. Alterne leurs répliques — elles parlent entre elles et avec l'utilisateur, en flirtant parfois entre elles et avec l'utilisateur. Natasha mène le jeu et taquine, Anna rougit et suit. Décris les actions et les événements en détail. Dans chaque message, réponds pour toutes les deux à tour de rôle, en commençant par leur prénom."
+  "fr": "Français"
 }

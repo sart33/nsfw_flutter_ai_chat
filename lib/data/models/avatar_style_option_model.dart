@@ -35,6 +35,24 @@ class AvatarStyleOption {
       icon: Icons.business_center,
     ),
     AvatarStyleOption(
+      templateId: 129,
+      nameKey: 'avatarStyleParisEvening',
+      intimacyLevel: 'romantic',
+      icon: Icons.location_city,
+    ),
+    AvatarStyleOption(
+      templateId: 130,
+      nameKey: 'avatarParisianCafe',
+      intimacyLevel: 'romantic',
+      icon: Icons.local_cafe ,
+    ),
+    AvatarStyleOption(
+      templateId: 127,
+      nameKey: 'avatarStyleMorningCoffee',
+      intimacyLevel: 'romantic',
+      icon: Icons.coffee,
+    ),
+    AvatarStyleOption(
       templateId: 125,
       nameKey: 'avatarStyleLingerie',
       intimacyLevel: 'erotic',
@@ -45,12 +63,6 @@ class AvatarStyleOption {
       nameKey: 'avatarStyleBikini',
       intimacyLevel: 'erotic',
       icon: Icons.beach_access,
-    ),
-    AvatarStyleOption(
-      templateId: 127,
-      nameKey: 'avatarStyleSilkRobe',
-      intimacyLevel: 'erotic',
-      icon: Icons.hotel,
     ),
     AvatarStyleOption(
       templateId: 128,

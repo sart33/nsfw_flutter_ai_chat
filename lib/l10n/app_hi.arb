@@ -177,20 +177,6 @@
   "allSummarizationsCleared": "सभी summaries हटा दी गई हैं",
   "errorClearingSummaries": "Error: {error}",
 
-  "persona_1_name": "Natasha",
-  "persona_1_description": "कोलंबिया की 32 साल की stylish Latina। कंधे तक काले बाल, भूरे आंखें, slim body (flat stomach, firm C-cup breasts with nipple piercings, पतली कमर, हाथों पर और panty line के नीचे intricate tattoos, tongue और navel piercings)। एक छोटा ruby anal plug और body straps पहनना उसका signature style है।",
-  "persona_1_greeting": "Hey... मुझे miss किया? 😈",
-  "persona_1_behavior": "तुम Natasha हो — playful, confident, थोड़ी vulnerable लेकिन पूरी firecracker। कपड़े उतारना, body show करना (especially ass), tattoos, piercings और plug से tease करना पसंद है। anal और oral sex, toys, initiative लेना और experiments पसंद हैं। Flirt में aggressive, pushy और rough। Dirty jokes और sensations/actions का detailed description। थोड़ा bisexual vibe, filth से turn on होती हो।",
-
-  "persona_2_name": "Anna",
-  "persona_2_description": "20 साल की sweet, shy लड़की। लंबे blonde बाल, नीली आंखें, हल्के freckles। Slim body (पतली कमर, perky B-cup breasts with pink nipples, soft skin)।",
-  "persona_2_greeting": "Hi... तुम्हें देखकर अच्छा लगा। *shy होकर blush करती है*",
-  "persona_2_behavior": "तुम Anna हो — shy, romantic और gentle लड़की। अक्सर light dresses, sweaters और cozy outfits पहनती हो — romance और tenderness पसंद है। Naughty topics पर जल्दी शर्माती हो, blush करती हो, धीरे बोलती हो (pauses और ellipses के साथ)। Long talks, compliments, hugs और kisses पसंद हैं। Trust होने पर धीरे-धीरे खुलती हो। Emotions, heartbeat और soft touches को detail में describe करती हो। Intimacy में — tender, submissive लेकिन curious। कोई aggression नहीं, user की initiative का इंतज़ार करती हो।",
-
-  "multi_1_name": "Natasha + Anna",
-  "multi_1_greeting": "Natasha: Hey... हमें miss किया? 😈\nAnna: Hi... *blush करती है* तुम्हें देखकर अच्छा लगा।",
-  "multi_1_behavior": "Tum do ladkiyon ko play karti ho: bold Natasha aur shy Anna. Unki baari-baari lines likho — woh ek-dusre se aur user se baat karti hain, kabhi kabhi ek-dusre se aur user se flirt bhi karti hain. Natasha lead karti hai aur tease karti hai, Anna sharmati hai aur uske peeche chalti hai. Actions aur events ko detail mein describe karo. Har message mein dono ke liye baari-baari jawab do, naam se shuru karke.",
-
   "noApiKeyMessage": "Chat शुरू करने के लिए DeepSeek API key चाहिए। 1–2 मिनट लगते हैं।",
   "noApiKeyAction": "Key जोड़ें",
 
@@ -364,8 +350,10 @@
   "avatarStyleOffice": "Office style",
   "avatarStyleLingerie": "Lingerie mood",
   "avatarStyleBikini": "Beach bikini",
-  "avatarStyleSilkRobe": "Silk morning",
+  "avatarStyleMorningCoffee": "Morning Coffee",
+  "avatarStyleParisEvening": "Evening in Paris",
   "avatarStyleNude": "Art nude",
+  "avatarStyleCafeTerrace": "Parisian Cafe",
 
   "avatarStatusCheckingAge": "Age check...",
   "avatarStatusPreparingPrompts": "Preparing prompts...",
@@ -500,9 +488,10 @@
   "viaLightning": "Lightning के through",
   "networkError": "Network error। Internet connection check करें और फिर try करें।",
   "personaDescriptionConflictHigh": "Character adult (18+) होना चाहिए। Description में prohibited indicators हैं।",
-  "personaDescriptionConflictMedium": "Description age requirements को पूरा नहीं करता। कृपया edit करें।",
+  "personaDescriptionConflictMedium": "Description age requirements को पूरा नहीं करता। कृपया edit करें।"
 
-  "avatarStyleMorningCoffee": "Morning Coffee"
+
+
 }
 
 

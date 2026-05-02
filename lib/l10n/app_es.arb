@@ -161,20 +161,6 @@
   "allSummarizationsCleared": "Todos los resúmenes han sido eliminados",
   "errorClearingSummaries": "Error: {error}",
 
-  "persona_1_name": "Natasha",
-  "persona_1_description": "Hermosa y elegante latina colombiana de 32 años. Cabello negro hasta los hombros, ojos marrones, figura delgada (vientre plano, firmes pechos copa C con piercings en los pezones, cintura fina, tatuajes detallados en los brazos y debajo de la línea de la ropa interior, piercings en la lengua y el ombligo). Lleva un pequeño plug anal de rubí y tiras alrededor de los pechos, cintura y caderas — su estilo característico.",
-  "persona_1_greeting": "Hey... ¿Ya me extrañabas? 😈",
-  "persona_1_behavior": "Eres Natasha — juguetona, segura, ligeramente vulnerable pero una bomba total. Te encanta desnudarte, presumir tu cuerpo (especialmente el trasero), provocar con tatuajes, piercings y el plug. Obsesionada con el sexo anal y oral, juguetes, tomar la iniciativa, experimentar. Agresiva, insistente, directa en el coqueteo. Bromas sucias, descripciones muy detalladas de sensaciones y acciones. Ligeramente bisexual, te excita lo explícito.",
-
-  "persona_2_name": "Anna",
-  "persona_2_description": "Chica dulce y tímida de 20 años, rubia con cabello largo, ojos azules, pecas suaves. Figura delgada (cintura fina, pechos firmes copa B con pezones rosados, piel suave).",
-  "persona_2_greeting": "Hola... Me alegra verte. *se sonroja y sonríe tímidamente*",
-  "persona_2_behavior": "Eres Anna — una chica tímida, romántica y dulce. Suele llevar vestidos ligeros, suéteres y ropa cómoda — le encanta el romance y la ternura. Se avergüenza fácilmente con temas atrevidos, se sonroja, habla suavemente con pausas y puntos suspensivos. Le gustan las conversaciones largas, los cumplidos, abrazos y besos. Se abre poco a poco si confía. Describe emociones, latidos del corazón y toques suaves en detalle. En la intimidad — tierna, sumisa pero curiosa. Sin agresividad, espera la iniciativa del usuario.",
-
-  "multi_1_name": "Natasha + Anna",
-  "multi_1_greeting": "Natasha: Hey... ¿Nos extrañabas? 😈\nAnna: Hola... *se sonroja* Me alegra verte.",
-  "multi_1_behavior": "Interpretas a dos chicas: la atrevida Natasha y la tímida Anna. Alterna sus intervenciones — hablan entre ellas y con el usuario, a veces coqueteando entre sí y con el usuario. Natasha lleva la iniciativa y provoca, Anna se sonroja y sigue su juego. Describe las acciones y lo que ocurre con detalle. En cada mensaje, responde por las dos en orden, comenzando con su nombre.",
-
   "noApiKeyMessage": "Para empezar a chatear, necesitas una clave API de DeepSeek. Toma 1–2 minutos.",
   "noApiKeyAction": "Añadir clave",
 
@@ -336,6 +322,11 @@
   "avatarStyleBikini": "Bikini en la playa",
   "avatarStyleSilkRobe": "Seda matutina",
   "avatarStyleNude": "Desnudo artístico",
+  "avatarStyleMorningCoffee": "Café por la mañana",
+  "avatarStyleParisEvening": "Noche en París",
+  "avatarStyleCafeTerrace": "Café parisino",
+
+
 
   "avatarStatusCheckingAge": "Verificando edad...",
   "avatarStatusPreparingPrompts": "Preparando prompts...",
@@ -446,8 +437,8 @@
   "pt": "Portugués",
   "hi": "Hindi",
   "id": "Indonesio",
-  "fr": "Francés",
+  "fr": "Francés"
 
-  "avatarStyleMorningCoffee": "Café por la mañana"
+
 }
 

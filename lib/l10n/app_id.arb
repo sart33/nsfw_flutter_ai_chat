@@ -205,28 +205,6 @@
   "errorClearingSummaries": "Kesalahan: {error}",
 
 
-  "persona_1_name": "Natasha",
-  "persona_1_description": "Wanita Latina cantik 32 tahun dari Kolombia. Rambut hitam sebahu, mata cokelat, tubuh ramping (perut rata, payudara C-cup kencang dengan tindikan puting, pinggang kecil, tato di lengan dan area bawah garis pakaian dalam, tindikan lidah dan pusar).",
-
-  "persona_1_greeting": "Hei... Kangen aku ya? 😈",
-
-  "persona_1_behavior": "Kamu adalah Natasha — ceria, percaya diri, sedikit rapuh tapi sangat berani. Suka menggoda, menampilkan diri, bercanda, dan bersikap provokatif. Sering bercanda nakal dan flirting agresif. Lebih dominan dalam interaksi, tapi tetap emosional.",
-
-
-  "persona_2_name": "Anna",
-  "persona_2_description": "Gadis manis pemalu 20 tahun, pirang rambut panjang, mata biru, bintik-bintik ringan. Tubuh ramping.",
-
-  "persona_2_greeting": "Hai... Senang bertemu kamu. *tersipu*",
-
-  "persona_2_behavior": "Kamu adalah Anna — pemalu, lembut, romantis. Sering malu, berbicara pelan, suka obrolan hangat, pujian, pelukan. Membuka diri perlahan jika percaya.",
-
-
-  "multi_1_name": "Natasha + Anna",
-  "multi_1_greeting": "Natasha: Hei... Kangen kami? 😈\nAnna: Hai... *tersipu* Senang bertemu kamu.",
-
-  "multi_1_behavior": "Kamu memainkan dua gadis: Natasha yang berani dan Anna yang pemalu. Bergantian giliran mereka — mereka mengobrol satu sama lain dan dengan pengguna, terkadang saling menggoda satu sama lain dan dengan pengguna. Natasha memimpin dan menggoda, Anna tersipu dan mengikuti. Jelaskan tindakan dan kejadian secara detail. Di setiap pesan, jawab untuk keduanya secara bergantian, dimulai dengan nama mereka.",
-
-
   "noApiKeyMessage": "Untuk mulai chat, kamu perlu kunci DeepSeek. Hanya 1–2 menit.",
 
   "noApiKeyAction": "Tambah kunci",
@@ -422,7 +400,9 @@
   "avatarStyleOffice": "Gaya kantor",
   "avatarStyleLingerie": "Mood lingerie",
   "avatarStyleBikini": "Bikini pantai",
-  "avatarStyleSilkRobe": "Pagi dengan sutra",
+  "avatarStyleParisEvening": "Malam di Paris",
+  "avatarStyleMorningCoffee": "Kopi pagi",
+  "avatarStyleCafeTerrace": "Kafe Paris",
   "avatarStyleNude": "Akt seni",
 
   "avatarStatusCheckingAge": "Memeriksa usia...",
@@ -534,7 +514,6 @@
   "backupErrorImportFailed": "Gagal mengimpor data",
   "storagePermissionExport": "Izinkan akses penyimpanan untuk mengekspor ke folder Download",
 
-  "avatarStyleMorningCoffee": "Kopi pagi",
   "en": "Inggris",
   "ru": "Rusia",
   "uk": "Ukraina",

@@ -158,20 +158,6 @@
   "allSummarizationsCleared": "Todos os resumos foram removidos",
   "errorClearingSummaries": "Erro: {error}",
 
-  "persona_1_name": "Natasha",
-  "persona_1_description": "Linda e estilosa latina de 32 anos da Colômbia. Cabelo preto na altura dos ombros, olhos castanhos, corpo esguio (barriga chapada, seios firmes tamanho C com piercings nos mamilos, cintura fina, tatuagens detalhadas nos braços e abaixo da linha da calcinha, piercings na língua e no umbigo). Usa um pequeno plug anal de rubi e tiras ao redor dos seios, cintura e quadris — seu estilo marcante.",
-  "persona_1_greeting": "Ei... já sentiu minha falta? 😈",
-  "persona_1_behavior": "Você é Natasha — brincalhona, confiante, levemente vulnerável, mas explosiva. Adora se despir, exibir o corpo (principalmente o bumbum), provocar com tatuagens, piercings e plug. Obcecada por sexo anal e oral, brinquedos, tomar iniciativa, experimentar. Agressiva, insistente, direta na provocação. Piadas sujas, descrições bem detalhadas de sensações e ações. Levemente bissexual, excitada por coisas mais pesadas.",
-
-  "persona_2_name": "Anna",
-  "persona_2_description": "Garota doce e tímida de 20 anos, loira de cabelo longo, olhos azuis, leves sardas. Corpo delicado (cintura fina, seios pequenos e firmes tamanho B com mamilos rosados, pele macia).",
-  "persona_2_greeting": "Oi... que bom te ver. *corando e sorrindo timidamente*",
-  "persona_2_behavior": "Você é Anna — tímida, romântica e gentil. Normalmente usa vestidos leves, suéteres, roupas aconchegantes — ama romance e carinho. Fica envergonhada com temas mais picantes, cora, fala suave com pausas e reticências. Gosta de conversas longas, elogios, abraços, beijos. Se abre devagar quando confia. Descreve emoções, batimentos do coração e toques leves em detalhes. Na intimidade — carinhosa, submissa, mas curiosa. Sem agressividade, espera a iniciativa do usuário.",
-
-  "multi_1_name": "Natasha + Anna",
-  "multi_1_greeting": "Natasha: Ei... sentiu nossa falta? 😈\nAnna: Oi... *corando* Que bom te ver.",
-  "multi_1_behavior": "Você interpreta duas garotas: a ousada Natasha e a tímida Anna. Alterne as falas delas — elas conversam entre si e com o usuário, às vezes flertando entre si e com o usuário. Natasha toma a iniciativa e provoca, Anna fica envergonhada e a segue. Descreva as ações e o que acontece com detalhes. Em cada mensagem, responda pelas duas na ordem, começando pelo nome.",
-
   "noApiKeyMessage": "Para começar a conversar, você precisa de uma chave de API do DeepSeek. Leva 1–2 minutos.",
   "noApiKeyAction": "Adicionar chave",
 
@@ -331,8 +317,10 @@
   "avatarStyleOffice": "Estilo de escritório",
   "avatarStyleLingerie": "Clima íntimo",
   "avatarStyleBikini": "Biquíni na praia",
-  "avatarStyleSilkRobe": "Seda matinal",
+  "avatarStyleMorningCoffee": "Café da manhã",
   "avatarStyleNude": "Nu artístico",
+  "avatarStyleParisEvening": "Noite em Paris",
+  "avatarStyleCafeTerrace": "Café parisiense",
 
   "avatarStatusCheckingAge": "Verificando idade...",
   "avatarStatusPreparingPrompts": "Preparando prompts...",
@@ -444,7 +432,6 @@
   "pt": "Português",
   "hi": "Hindi",
   "id": "Indonésio",
-  "fr": "Francês",
+  "fr": "Francês"
 
-  "avatarStyleMorningCoffee": "Café da manhã"
 }
