@@ -91,7 +91,7 @@ class SceneSnapshot {
     if (clothingState?.toLowerCase() == 'nude' || clothingDetails == null) {
       return 3;
     }
-    if (intimacyLevel >= 3) return 2;
+    //if (intimacyLevel >= 3) return 2;
     final cl = (clothingState ?? '').toLowerCase();
     if (cl.contains('lingerie') ||
         cl.contains('bikini') ||
@@ -545,56 +545,24 @@ $context
   SceneSnapshot _validateAndFix(SceneSnapshot raw) {
     var s = raw;
 
-    // Public locations: cap intimacy and fix impossible poses
-    final publicLocations = {'cafe', 'street', 'park', 'restaurant', 'office'};
+    // Public locations: intimacyLevel 3 → cap to 1
+    final publicLocations = {
+      'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
+    };
     if (s.location != null &&
         publicLocations.contains(s.location!.toLowerCase())) {
-      if (s.intimacyLevel > 1) {
+      if (s.intimacyLevel >= 3) {
         s = s.copyWith(intimacyLevel: 1);
       }
-      // Public poses should be standing or sitting, not intimate poses
-      if (s.pose != null &&
-          [
-            'lying_on_back',
-            'lying_on_side',
-            'lying_on_stomach',
-            'kneeling',
-            'bending_over',
-          ].contains(s.pose!.toLowerCase())) {
-        s = s.copyWith(pose: 'standing');
-      }
     }
 
-    // Shower/bathroom: cannot be fully dressed
+    // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
     if (s.location != null &&
-        (s.location!.toLowerCase().contains('shower') ||
-            s.location!.toLowerCase().contains('bathroom'))) {
-      if (s.clothingState == 'fully_dressed') {
-        s = s.copyWith(clothingState: 'casual');
-      }
-    }
-
-    // Bedroom: intimacy can be higher
-    if (s.location != null &&
-        (s.location!.toLowerCase().contains('bed') ||
+        (s.location!.toLowerCase() == 'bed' ||
             s.location!.toLowerCase().contains('bedroom'))) {
-      if (s.intimacyLevel < 2) {
+      if (s.intimacyLevel == 0) {
         s = s.copyWith(intimacyLevel: 2);
       }
-    }
-
-    // Ensure confidence is within bounds
-    if (s.confidence < 0.0) {
-      s = s.copyWith(confidence: 0.0);
-    } else if (s.confidence > 1.0) {
-      s = s.copyWith(confidence: 1.0);
-    }
-
-    // Ensure intimacy level is within bounds
-    if (s.intimacyLevel < 0) {
-      s = s.copyWith(intimacyLevel: 0);
-    } else if (s.intimacyLevel > 4) {
-      s = s.copyWith(intimacyLevel: 4);
     }
 
     return s;
