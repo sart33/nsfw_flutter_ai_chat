@@ -88,7 +88,7 @@ class SceneSnapshot {
   }
 
   int get selectLevel {
-    if (clothingState?.toLowerCase() == 'nude' || clothingDetails == null) {
+    if (clothingState?.toLowerCase() == 'nude') {
       return 3;
     }
     //if (intimacyLevel >= 3) return 2;
@@ -544,27 +544,31 @@ $context
   /// Fixes logical contradictions in the extracted snapshot.
   SceneSnapshot _validateAndFix(SceneSnapshot raw) {
     var s = raw;
-
-    // Public locations: intimacyLevel 3 → cap to 1
-    final publicLocations = {
-      'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
-    };
-    if (s.location != null &&
-        publicLocations.contains(s.location!.toLowerCase())) {
-      if (s.intimacyLevel >= 3) {
-        s = s.copyWith(intimacyLevel: 1);
-      }
-    }
-
-    // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
-    if (s.location != null &&
-        (s.location!.toLowerCase() == 'bed' ||
-            s.location!.toLowerCase().contains('bedroom'))) {
-      if (s.intimacyLevel == 0) {
-        s = s.copyWith(intimacyLevel: 2);
-      }
-    }
-
+    //
+    // // Public locations: if nude → partially_undressed
+    // final publicLocations = {
+    //   'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
+    // };
+    // if (s.location != null &&
+    //     publicLocations.contains(s.location!.toLowerCase())) {
+    //   if (s.clothingState?.toLowerCase() == 'nude') {
+    //     s = s.copyWith(clothingState: 'partially_undressed');
+    //   }
+    // }
+    //
+    // // Bed + lying pose → at least lingerie (selectLevel 2)
+    // final lyingPoses = {
+    //   'lying_on_back', 'lying_on_side', 'lying_on_stomach',
+    // };
+    // if (s.location != null &&
+    //     s.location!.toLowerCase().contains('bed') &&
+    //     s.pose != null &&
+    //     lyingPoses.contains(s.pose!.toLowerCase())) {
+    //   if (s.clothingState == 'fully_dressed' || s.clothingState == 'casual') {
+    //     s = s.copyWith(clothingState: 'lingerie');
+    //   }
+    // }
+    //
     return s;
   }
 }
