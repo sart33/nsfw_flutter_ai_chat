@@ -224,7 +224,7 @@
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Hei... Kangen kami? 😈\nAnna: Hai... *tersipu* Senang bertemu kamu.",
 
-  "multi_1_behavior": "Kamu memainkan dua karakter: Natasha yang berani dan Anna yang pemalu. Bergantian berbicara. Natasha lebih dominan, Anna lebih mengikuti. Tulis dalam detail percakapan natural.",
+  "multi_1_behavior": "Kamu memainkan dua gadis: Natasha yang berani dan Anna yang pemalu. Bergantian giliran mereka — mereka mengobrol satu sama lain dan dengan pengguna, terkadang saling menggoda satu sama lain dan dengan pengguna. Natasha memimpin dan menggoda, Anna tersipu dan mengikuti. Jelaskan tindakan dan kejadian secara detail. Di setiap pesan, jawab untuk keduanya secara bergantian, dimulai dengan nama mereka.",
 
 
   "noApiKeyMessage": "Untuk mulai chat, kamu perlu kunci DeepSeek. Hanya 1–2 menit.",
@@ -533,12 +533,14 @@
   "backupErrorInvalidFile": "Format file tidak valid",
   "backupErrorImportFailed": "Gagal mengimpor data",
   "storagePermissionExport": "Izinkan akses penyimpanan untuk mengekspor ke folder Download",
+
+  "avatarStyleMorningCoffee": "Kopi pagi",
   "en": "Inggris",
   "ru": "Rusia",
   "uk": "Ukraina",
   "es": "Spanyol",
   "pt": "Portugis",
   "hi": "Hindi",
-  "id": "Bahasa Indonesia",
+  "id": "Indonesia",
   "fr": "Prancis"
 }

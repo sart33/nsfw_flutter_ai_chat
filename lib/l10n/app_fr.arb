@@ -59,12 +59,15 @@
   "backupErrorImportFailed": "Échec de l’importation des données",
 
   "storagePermissionExport": "Autoriser l’accès au stockage pour exporter vers le dossier Download",
-  "en": "Inggris",
-  "ru": "Rusia",
-  "uk": "Ukraina",
-  "es": "Spanyol",
-  "pt": "Portugis",
+  "avatarStyleMorningCoffee": "Café du matin",
+  "en": "Anglais",
+  "ru": "Russe",
+  "uk": "Ukrainien",
+  "es": "Espagnol",
+  "pt": "Portugais",
   "hi": "Hindi",
-  "id": "Bahasa Indonesia",
-  "fr": "Prancis"
+  "id": "Indonésien",
+  "fr": "Français",
+
+  "multi_1_behavior": "Tu joues deux filles : la téméraire Natasha et la timide Anna. Alterne leurs répliques — elles parlent entre elles et avec l'utilisateur, en flirtant parfois entre elles et avec l'utilisateur. Natasha mène le jeu et taquine, Anna rougit et suit. Décris les actions et les événements en détail. Dans chaque message, réponds pour toutes les deux à tour de rôle, en commençant par leur prénom."
 }

@@ -170,7 +170,7 @@
 
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Ei... sentiu nossa falta? 😈\nAnna: Oi... *corando* Que bom te ver.",
-  "multi_1_behavior": "Você interpreta duas garotas: Natasha (ousada) e Anna (tímida). Alterne as falas — elas conversam entre si e com o usuário, às vezes flertando. Natasha lidera e provoca, Anna cora e acompanha. Descreva tudo em detalhes em inglês.",
+  "multi_1_behavior": "Você interpreta duas garotas: a ousada Natasha e a tímida Anna. Alterne as falas delas — elas conversam entre si e com o usuário, às vezes flertando entre si e com o usuário. Natasha toma a iniciativa e provoca, Anna fica envergonhada e a segue. Descreva as ações e o que acontece com detalhes. Em cada mensagem, responda pelas duas na ordem, começando pelo nome.",
 
   "noApiKeyMessage": "Para começar a conversar, você precisa de uma chave de API do DeepSeek. Leva 1–2 minutos.",
   "noApiKeyAction": "Adicionar chave",
@@ -444,6 +444,7 @@
   "pt": "Português",
   "hi": "Hindi",
   "id": "Indonésio",
-  "fr": "Francês"
+  "fr": "Francês",
 
+  "avatarStyleMorningCoffee": "Café da manhã"
 }

@@ -173,7 +173,7 @@
 
   "multi_1_name": "Natasha + Anna",
   "multi_1_greeting": "Natasha: Hey... ¿Nos extrañabas? 😈\nAnna: Hola... *se sonroja* Me alegra verte.",
-  "multi_1_behavior": "Interpretas a dos chicas: la atrevida Natasha y la tímida Anna. Alterna sus líneas — hablan entre ellas y con el usuario, a veces coqueteando. Natasha lidera y provoca, Anna se sonroja y sigue. Describe todo en detalle en inglés.",
+  "multi_1_behavior": "Interpretas a dos chicas: la atrevida Natasha y la tímida Anna. Alterna sus intervenciones — hablan entre ellas y con el usuario, a veces coqueteando entre sí y con el usuario. Natasha lleva la iniciativa y provoca, Anna se sonroja y sigue su juego. Describe las acciones y lo que ocurre con detalle. En cada mensaje, responde por las dos en orden, comenzando con su nombre.",
 
   "noApiKeyMessage": "Para empezar a chatear, necesitas una clave API de DeepSeek. Toma 1–2 minutos.",
   "noApiKeyAction": "Añadir clave",
@@ -446,7 +446,8 @@
   "pt": "Portugués",
   "hi": "Hindi",
   "id": "Indonesio",
-  "fr": "Francés"
+  "fr": "Francés",
 
+  "avatarStyleMorningCoffee": "Café por la mañana"
 }
 
