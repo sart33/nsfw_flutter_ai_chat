@@ -96,6 +96,18 @@ class BackupService {
               archive.addFile(ArchiveFile(archivePath, bytes.length, bytes));
             }
           }
+
+          // chat_images subfolder
+          final chatImagesDir = Directory(p.join(entity.path, 'chat_images'));
+          if (await chatImagesDir.exists()) {
+            final chatFiles = await chatImagesDir.list().toList();
+            for (final f in chatFiles) {
+              if (f is! File) continue;
+              final bytes = await f.readAsBytes();
+              final archivePath = 'characters/$personaId/chat_images/${p.basename(f.path)}';
+              archive.addFile(ArchiveFile(archivePath, bytes.length, bytes));
+            }
+          }
         }
       }
 
