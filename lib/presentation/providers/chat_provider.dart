@@ -17,6 +17,8 @@ import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../debug/scene_test_data.dart';
+
 /// Chat state — persisted in SQLite per branch.
 class ChatState {
   final List<ChatMessageModel> messages;
@@ -734,6 +736,48 @@ class ChatNotifier extends StateNotifier<ChatState> {
       );
     }
   }
+
+  Future<void> debugTestGenerateSceneImage({
+    required PersonaEntity persona,
+    bool regen = false,
+  }) async {
+    try {
+      // Extract scene from last 8 messages
+
+      // Generate image (no DB insert here — done below)
+      final localPath = await ChatImageService.instance.debugRunSceneBatch(
+        personaId: persona.id,
+        personaName: persona.name,
+        rawSnapshots: kTestScenes
+      );
+
+    } on NetworkException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
+    } on DeepSeekApiException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
+    } on NovitaApiException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e,
+      );
+    } catch (e) {
+      debugPrint('[ChatNotifier] generateSceneImage error: $e');
+
+      state = state.copyWith(
+        isLoading: false,
+        error: e is AppException
+            ? e
+            : NovitaApiException(e.toString()),
+      );
+    }
+  }
+
 
   // ── PRIVATE HELPERS ────────────────────────────────────────────────────
 
