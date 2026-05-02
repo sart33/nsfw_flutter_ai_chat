@@ -79,12 +79,12 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
 
     await DatabaseHelper.instance.upsertPersonaPrompts(
       personaId: natasha.id,
-      nsfw:      'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts with nipple piercings, thin waist, intricate tattoos on arms and below panty line, tongue and navel piercings).',
-      erotic:    'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts, thin waist, intricate tattoos on arms and below panty line, navel piercing). properly dressed',
-      beach:     'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts, thin waist, intricate tattoos on arms and below panty line, navel piercing). properly dressed',
-      romantic:  'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure, tattoos on arms. properly dressed',
-      romantic2: 'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure. properly dressed',
-      office:    'Beautiful stylish 32-year-old Latina from Colombia. Black shoulder-length hair, brown eyes, slim figure. properly dressed',
+      nsfw:      'Beautiful stylish 32-year-old Latina women from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts with nipple piercings, thin waist, intricate tattoos on arms and below panty line, tongue and navel piercings).',
+      erotic:    'Beautiful stylish 32-year-old Latina women from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts, thin waist, intricate tattoos on arms and below panty line, navel piercing). properly dressed',
+      beach:     'Beautiful stylish 32-year-old Latina women from Colombia. Black shoulder-length hair, brown eyes, slim figure (flat stomach, firm C-cup breasts, thin waist, intricate tattoos on arms and below panty line, navel piercing). properly dressed',
+      romantic:  'Beautiful stylish 32-year-old Latina women from Colombia. Black shoulder-length hair, brown eyes, slim figure, tattoos on arms. properly dressed',
+      romantic2: 'Beautiful stylish 32-year-old Latina women from Colombia. Black shoulder-length hair, brown eyes, slim figure. properly dressed',
+      office:    'Beautiful stylish 32-year-old Latina women from Colombia. Black shoulder-length hair, brown eyes, slim figure. properly dressed',
     );
 
     await DatabaseHelper.instance.upsertPersonaPrompts(
