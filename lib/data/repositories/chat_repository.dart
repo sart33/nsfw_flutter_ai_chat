@@ -114,6 +114,10 @@ class ChatRepository {
         DateTime.now().millisecondsSinceEpoch,
         messagesCovered,
       );
+    } on SummarizationException catch (e) {
+      // summary_too_short — не сохраняем, не сдвигаем covered.
+      // При следующем sendMessage цикл повторится на тех же сообщениях.
+      debugPrint('[Summary] Rejected (${e}), will retry next message');
     } catch (e) {
       debugPrint('[Summary] Failed silently: $e');
     }

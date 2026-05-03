@@ -28,6 +28,7 @@ class SummarizationService {
       'recent important actions and events, '
       'significant details such as items mood state. '
       'Do not invent anything new. Do not continue the plot. Facts only. '
+      'Respond in the same language the user messages are written in. '  // ← добавить
       'Response: ONLY the summary, one paragraph, maximum 200 words.';
 
   /// Compresses a list of chat messages into a concise summary.
@@ -70,9 +71,21 @@ class SummarizationService {
 
       log(jsonEncode(response.data), name: 'SUMMARIZATION_RESPONSE');
 
-      // 3. Extract and return summary
-      final content = response.data['choices'][0]['message']['content'] as String;
-      return content.trim();
+      // 3. Extract and validate summary
+      final content =
+      response.data['choices'][0]['message']['content'] as String;
+      final trimmed = content.trim();
+
+      const minLength = 80; // меньше — считаем мусором
+      if (trimmed.isEmpty || trimmed.length < minLength) {
+        log(
+          'Summary too short (${trimmed.length} chars): "$trimmed"',
+          name: 'SUMMARIZATION_ERROR',
+        );
+        throw SummarizationException('summary_too_short');
+      }
+
+      return trimmed;
     } catch (e) {
       log('Summarization failed: $e', name: 'SUMMARIZATION_ERROR');
       throw SummarizationException(e.toString());
