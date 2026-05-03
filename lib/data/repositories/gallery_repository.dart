@@ -85,7 +85,7 @@ class GalleryRepository {
               ? (prompts['romantic2'] as String?) ?? description
               : (prompts['romantic'] as String?) ?? description,
           'office' => (prompts['office'] as String?) ?? description,
-          _ => (prompts['nsfw'] as String?) ?? description,
+          _ => ('${prompts['nsfw']}, nude, naked' as String?) ?? description,
         };
       } else {
         effectiveDescription = description;
@@ -148,7 +148,7 @@ class GalleryRepository {
               ? (prompts['romantic2'] as String?) ?? description
               : (prompts['romantic']  as String?) ?? description,
           'office'   => (prompts['office']   as String?) ?? description,
-          _          => (prompts['nsfw']     as String?) ?? description,
+          _ => ('${prompts['nsfw']}, nude, naked' as String?) ?? description,
         };
       } else {
         effectiveDescription = description;
@@ -221,7 +221,8 @@ class GalleryRepository {
               ? (prompts['romantic2'] as String?) ?? description
               : (prompts['romantic']  as String?) ?? description,
           'office'   => (prompts['office']   as String?) ?? description,
-          _          => (prompts['nsfw']     as String?) ?? description,
+          _ => ('${prompts['nsfw']}, nude, naked' as String?) ?? description,
+
         };
       } else {
         effectiveDescription = description;
