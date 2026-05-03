@@ -739,42 +739,41 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   Future<void> debugTestGenerateSceneImage({
     required PersonaEntity persona,
-    bool regen = false,
   }) async {
-    try {
-      // Extract scene from last 8 messages
+    state = state.copyWith(isLoading: true, error: null);
 
-      // Generate image (no DB insert here — done below)
-      final localPath = await ChatImageService.instance.debugRunSceneBatch(
+    try {
+      await ChatImageService.instance.debugRunSceneBatch(
         personaId: persona.id,
         personaName: persona.name,
-        rawSnapshots: kTestScenes
-      );
+        rawSnapshots: kTestScenes,
+        onImageGenerated: (localPath, index) {
+          final imgMsg = ChatMessageModel(
+            id: const Uuid().v4(),
+            personaId: persona.id,
+            senderName: persona.name,
+            content: '[BatchTest ${index + 1}]',
+            isUser: false,
+            imageLocalPath: localPath,
+          );
+          // await repo.saveMessage(imgMsg, _branchId);
 
+          state = state.copyWith(
+            messages: [...state.messages, imgMsg],
+          );
+        },
+      );
     } on NetworkException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e,
-      );
-    } on DeepSeekApiException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e,
-      );
+      state = state.copyWith(error: e);
     } on NovitaApiException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e,
-      );
+      state = state.copyWith(error: e);
     } catch (e) {
-      debugPrint('[ChatNotifier] generateSceneImage error: $e');
-
+      debugPrint('[ChatNotifier] debugTestGenerateSceneImage error: $e');
       state = state.copyWith(
-        isLoading: false,
-        error: e is AppException
-            ? e
-            : NovitaApiException(e.toString()),
+        error: e is AppException ? e : NovitaApiException(e.toString()),
       );
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 

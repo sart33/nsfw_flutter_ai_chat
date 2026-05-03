@@ -29,10 +29,25 @@ class ChatImageService {
 
     // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
     if (s.location != null &&
-        (s.location!.toLowerCase() == 'bed' ||
-            s.location!.toLowerCase().contains('bedroom'))) {
+        (s.location!.toLowerCase() == 'bed')) {
       if (s.intimacyLevel == 0) {
         s = s.copyWith(intimacyLevel: 2);
+      }
+    }
+
+    // Баг 2: Минет в спальне/ванной → добавить floor в locationDetails
+    if (s.pose?.toLowerCase() == 'kneeling' &&
+        s.activity?.toLowerCase().contains('blowjob') == true ||
+        s.activity?.toLowerCase().contains('oral') == true) {
+      if (s.location != null &&
+          (s.location!.toLowerCase().contains('bedroom') ||
+              s.location!.toLowerCase().contains('bathroom') ||
+              s.location!.toLowerCase().contains('room'))) {
+        s = s.copyWith(
+          locationDetails: s.locationDetails != null
+              ? '${s.locationDetails}, floor'
+              : 'floor',
+        );
       }
     }
 
@@ -43,6 +58,7 @@ class ChatImageService {
     required String personaId,
     required String personaName,
     required List<Map<String, dynamic>> rawSnapshots,
+    void Function(String localPath, int index)? onImageGenerated,
   }) async {
     final prompts = await DatabaseHelper.instance.getPersonaPrompts(personaId);
     if (prompts == null) {
@@ -54,6 +70,9 @@ class ChatImageService {
     debugPrint('[BatchTest] persona: $personaName ($personaId)');
     debugPrint('[BatchTest] total cases: ${rawSnapshots.length}');
     debugPrint('[BatchTest] ══════════════════════════════════════');
+
+    final docsDir = await getApplicationDocumentsDirectory();
+    final saveDir = '${docsDir.path}/characters/$personaId/chat_images';
 
     for (int i = 0; i < rawSnapshots.length; i++) {
       final raw = SceneSnapshot.fromJson(rawSnapshots[i]);
@@ -72,7 +91,7 @@ class ChatImageService {
           ? '$baseDescription, $sceneStr'
           : sceneStr;
 
-      debugPrint('[BatchTest] 615843129 ── case ${i + 1} ──────────────────────');
+      debugPrint('[BatchTest] ── case ${i + 1} ──────────────────────');
       debugPrint('[BatchTest] RAW    clothingState: ${raw.clothingState}  '
           'clothingDetails: ${raw.clothingDetails}  '
           'intimacyLevel: ${raw.intimacyLevel}');
@@ -81,8 +100,24 @@ class ChatImageService {
           'intimacyLevel: ${validated.intimacyLevel}');
       debugPrint('[BatchTest] selectLevel: $level  '
           '(prompt key: ${level <= 1 ? "romantic" : level == 2 ? "erotic" : "nsfw"})');
+      // Вывод RAW snapshot в читаемом формате для копирования
+      final rawMap = rawSnapshots[i];
+      final rawFormatted = rawMap.entries
+          .map((e) => '  "${e.key}": ${e.value == null ? 'null' : '"${e.value}"'}')
+          .join(',\n');
       debugPrint('[BatchTest] sceneStr:  $sceneStr');
+      debugPrint('[BatchTest] RAW_JSON:\n{\n$rawFormatted\n}');
       debugPrint('[BatchTest] FINAL:     $finalPrompt');
+
+      try {
+        final saveId = const Uuid().v4();
+        final localPath = await NovitaImageService.instance
+            .generateImageTo(finalPrompt, saveDir, saveId, seed: regenSeed());
+        debugPrint('[BatchTest] image saved: $localPath');
+        onImageGenerated?.call(localPath, i);
+      } catch (e) {
+        debugPrint('[BatchTest] generation failed for case ${i + 1}: $e');
+      }
     }
 
     debugPrint('[BatchTest] ══════════════════════════════════════');
