@@ -110,6 +110,10 @@ class SceneSnapshot {
     if (pose != null) {
       var s = pose!;
       s = s.replaceAll(
+        RegExp(r'\b(passionate\s+)?kissing\b', caseSensitive: false),
+        'blowing a kiss',
+      );
+      s = s.replaceAll(
           RegExp(r'\b(together|sitting together|with user|holding user|beside user)\b',
               caseSensitive: false), 'alone');
       s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
@@ -119,6 +123,10 @@ class SceneSnapshot {
     if (activity != null) {
       var s = activity!;
       s = s.replaceAll(
+        RegExp(r'\b(passionate\s+)?kissing\b', caseSensitive: false),
+        'blowing a kiss',
+      );
+      s = s.replaceAll(
           RegExp(r'\b(together|sitting together|with user|talking with|holding arm with)\b',
               caseSensitive: false), 'alone');
       s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
@@ -127,8 +135,16 @@ class SceneSnapshot {
 
     if (clothingDetails != null) parts.add(clothingDetails!);
 
+    if (clothingState?.toLowerCase() == 'nude') {
+      parts.add('nude, naked');
+    }
+
     if (charactersPositioning != null) {
-      final cleaned = _cleanPositioning(charactersPositioning!);
+      var pos = charactersPositioning!;
+      if (pose?.toLowerCase() == 'standing') {
+        pos = _cleanStandingContext(pos);
+      }
+      final cleaned = _cleanPositioning(pos);
       if (cleaned.isNotEmpty) parts.add(cleaned);
     }
 
@@ -136,9 +152,43 @@ class SceneSnapshot {
     return parts.join(', ');
   }
 
-  static String _cleanPositioning(String raw) {
+  static String _cleanStandingContext(String raw) {
     var s = raw;
 
+    // Близость к user — вырезать клаузу
+    s = s.replaceAll(
+      RegExp(
+        r'\b(very\s+close\s+to|close\s+to|next\s+to|near)\s+(the\s+)?users?\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    // Направляет/корректирует — вырезать клаузу
+    s = s.replaceAll(
+      RegExp(
+        r'\b(guiding|correcting|adjusting|directing|coaching)\s+(his|her)\s+\w+\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    return s;
+  }
+
+  static String _cleanPositioning(String raw) {
+    var s = raw;
+    // Баг 1 — только для sitting
+    if (raw.toLowerCase().contains('sitting')) {
+      s = s.replaceAll(
+        RegExp(
+          r'\b(across\s+from|next\s+to|beside|opposite|in\s+front\s+of|'
+          r'close\s+to|near|behind)\s+(the\s+)?users?\b',
+          caseSensitive: false,
+        ),
+        '',
+      );
+    }
       // 1. Физконтакт с user/him — вся клауза
       s = s.replaceAll(
         RegExp(
@@ -148,17 +198,17 @@ class SceneSnapshot {
         '',
       );
 
-      // 2. holding his hand
-      s = s.replaceAll(
-        RegExp(r'\bholding\s+his\s+hand\b[^,]*', caseSensitive: false),
-        '',
-      );
+    // 2. holding his hand ... and → оставить что после
+    s = s.replaceAll(
+      RegExp(r'\bholding\s+his\s+hand\b[^,]*?\band\s+', caseSensitive: false),
+      '',
+    );
 
-      // 3. holding user's/users hand
-      s = s.replaceAll(
-        RegExp(r'\bholding\s+users?\s+hand\b[^,]*', caseSensitive: false),
-        '',
-      );
+// 3. holding user hand ... and → оставить что после
+    s = s.replaceAll(
+      RegExp(r'\bholding\s+users?\s+hand\b[^,]*?\band\s+', caseSensitive: false),
+      '',
+    );
 
       // 4. hand in hand / holding hands
       s = s.replaceAll(
@@ -166,12 +216,31 @@ class SceneSnapshot {
         '',
       );
 
+    // 4b. side by side / arms brushing — физконтакт без явного user
+    s = s.replaceAll(
+      RegExp(r'\bside\s+by\s+side\b[^,]*', caseSensitive: false),
+      '',
+    );
+    s = s.replaceAll(
+      RegExp(r',?\s*\barms?\s+brushing\b[^,]*', caseSensitive: false),
+      '',
+    );
+
       // 5. Объятия с user/him — вся клауза
       s = s.replaceAll(
         RegExp(r'\b(hugs?|embraces?)\s[^,]*\b(users?|him)\b[^,]*',
             caseSensitive: false),
         '',
       );
+
+    // 5b. while [кто-то] stands/sits/walks beside/next to her — придаточная клауза
+    s = s.replaceAll(
+      RegExp(
+        r'\bwhile\s+(the\s+)?\w+\s+(stands?|sits?|walks?|kneels?)\s+(beside|next\s+to|behind|in\s+front\s+of)\s+her\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
       // 6. Поцелуй user/him — вся клауза
       s = s.replaceAll(
@@ -194,6 +263,18 @@ class SceneSnapshot {
         '',
       );
       s = s.replaceAll(RegExp(r"user's", caseSensitive: false), 'user');
+
+      s = s.replaceAll(
+        RegExp(r'\bwrapping\s+her\s+arms\s+around\s+his\s+\w+\b[^,]*',
+            caseSensitive: false),
+        '',
+      );
+
+    s = s.replaceAll(
+        RegExp(r'\bwhispering\b[^,]*', caseSensitive: false),
+      '',
+    );
+
       // 9. Убираем user/him везде где остались
       s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), '');
       s = s.replaceAll(RegExp(r'\bhim\b', caseSensitive: false), '');
@@ -202,11 +283,11 @@ class SceneSnapshot {
       // "dancing closely with the ," → "dancing closely with a partner,"
       s = s.replaceAll(
         RegExp(r'\b(dancing[\w\s]+with)\s+(the\s+)?,', caseSensitive: false),
-        r'$1 a partner,',
+        'dancing closely with a partner,',
       );
       s = s.replaceAll(
         RegExp(r'\b(dancing[\w\s]+with)\s*$', caseSensitive: false),
-        r'$1 a partner',
+        'dancing closely with a partner',
       );
 
       // 11. Висячие предлоги/союзы перед запятой или концом
@@ -544,31 +625,42 @@ $context
   /// Fixes logical contradictions in the extracted snapshot.
   SceneSnapshot _validateAndFix(SceneSnapshot raw) {
     var s = raw;
-    //
-    // // Public locations: if nude → partially_undressed
-    // final publicLocations = {
-    //   'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
-    // };
-    // if (s.location != null &&
-    //     publicLocations.contains(s.location!.toLowerCase())) {
-    //   if (s.clothingState?.toLowerCase() == 'nude') {
-    //     s = s.copyWith(clothingState: 'partially_undressed');
-    //   }
-    // }
-    //
-    // // Bed + lying pose → at least lingerie (selectLevel 2)
-    // final lyingPoses = {
-    //   'lying_on_back', 'lying_on_side', 'lying_on_stomach',
-    // };
-    // if (s.location != null &&
-    //     s.location!.toLowerCase().contains('bed') &&
-    //     s.pose != null &&
-    //     lyingPoses.contains(s.pose!.toLowerCase())) {
-    //   if (s.clothingState == 'fully_dressed' || s.clothingState == 'casual') {
-    //     s = s.copyWith(clothingState: 'lingerie');
-    //   }
-    // }
-    //
+
+    // Public locations: intimacyLevel 3 → cap to 1
+    final publicLocations = {
+      'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
+    };
+    if (s.location != null &&
+        publicLocations.contains(s.location!.toLowerCase())) {
+      if (s.intimacyLevel >= 3) {
+        s = s.copyWith(intimacyLevel: 1);
+      }
+    }
+
+    // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
+    if (s.location != null &&
+        (s.location!.toLowerCase() == 'bed')) {
+      if (s.intimacyLevel == 0) {
+        s = s.copyWith(intimacyLevel: 2);
+      }
+    }
+
+    // Баг 2: Минет в спальне/ванной → добавить floor в locationDetails
+    if (s.pose?.toLowerCase() == 'kneeling' &&
+        s.activity?.toLowerCase().contains('blowjob') == true ||
+        s.activity?.toLowerCase().contains('oral') == true) {
+      if (s.location != null &&
+          (s.location!.toLowerCase().contains('bedroom') ||
+              s.location!.toLowerCase().contains('bathroom') ||
+              s.location!.toLowerCase().contains('room'))) {
+        s = s.copyWith(
+          locationDetails: s.locationDetails != null
+              ? '${s.locationDetails}, floor'
+              : 'floor',
+        );
+      }
+    }
+
     return s;
   }
 }
