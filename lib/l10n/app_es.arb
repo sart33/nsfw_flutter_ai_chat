@@ -437,8 +437,10 @@
   "pt": "Portugués",
   "hi": "Hindi",
   "id": "Indonesio",
-  "fr": "Francés"
+  "fr": "Francés",
 
-
+  "supportChatMessageFirst" : "Si te gustó el chat — puedes apoyar el desarrollo",
+  "supportChatMessageSecond" : "El apoyo ayuda a mejorar la app",
+  "supportChatMessageSupport" : "Apoyar"
 }
 

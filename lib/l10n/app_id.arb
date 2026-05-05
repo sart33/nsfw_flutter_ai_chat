@@ -521,5 +521,9 @@
   "pt": "Portugis",
   "hi": "Hindi",
   "id": "Indonesia",
-  "fr": "Prancis"
+  "fr": "Prancis",
+
+  "supportChatMessageFirst" : "Kalau kamu suka chat ini — kamu bisa mendukung pengembangan",
+  "supportChatMessageSecond" : "Dukungan membantu mengembangkan aplikasi",
+  "supportChatMessageSupport" : "Dukung"
 }

@@ -24,6 +24,7 @@ import 'package:nsfw_chat/presentation/screens/persona_view_screen.dart';
 import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/factory/database_helper.dart';
 import '../../core/services/summarization_service.dart';
@@ -31,6 +32,7 @@ import '../../core/utils/app_snack_bar.dart';
 import '../../data/models/persona_model.dart';
 import '../../domain/mappers/persona_mapper.dart';
 import '../widgets/avatar_widget.dart';
+import '../widgets/donate_banner_bubble.dart';
 import 'about_app_screen.dart';
 import 'chat_image_fullscreen_screen.dart';
 import 'home_screen.dart';
@@ -69,6 +71,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   List<PersonaEntity> _multiPersonas = [];
   String _multiBehavior = '';
 
+
+  void _markDonateBannerActedOn() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('donate_banner_1_shown', true);
+    await prefs.setBool('donate_banner_2_shown', true);
+  }
+
+  void _dismissDonateBanner(String bannerId) {
+    // Просто убираем из state — нотифаер
+    ref.read(chatProvider(widget.branchId).notifier).removeBanner(bannerId);
+  }
 
   void _resolveEntities(WidgetRef ref) {
     final personasAsync = ref.watch(personaProvider);
@@ -869,6 +882,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
               if (msg.isQuickAction || msg.isHidden) {
                 return const SizedBox.shrink();
               }
+              // Donate banner
+              if (msg.isBanner) {
+                return DonateBannerBubble(
+                  isSecond: msg.content == 'banner_2',
+                  onSupport: () {
+                    _markDonateBannerActedOn();
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const SupportProjectScreen()));
+                  },
+                  onDismiss: () => _dismissDonateBanner(msg.id),
+                );
+              }
 
               String? avatarPath;
               String? avatarAssetPath;
@@ -1029,15 +1054,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                                       ? null
                                       : () => _generateSceneImage(),
                             ),
-                          if (useDesktop) ...[
-                            const SizedBox(width: 8),
-                            // TODO: remove debug button
-                            _QuickActionButton(
-                              label: '[DEBUG] Summarize',
-                              icon: Icons.bug_report,
-                              onTap: _runSummarizationTest,
-                            ),
-                          ],
+                          // if (useDesktop) ...[
+                          //   const SizedBox(width: 8),
+                          //   // TODO: remove debug button
+                          //   _QuickActionButton(
+                          //     label: '[DEBUG] Summarize',
+                          //     icon: Icons.bug_report,
+                          //     onTap: _runSummarizationTest,
+                          //   ),
+                          // ],
                         ],
                       ),
                     ),

@@ -79,5 +79,9 @@
   "pt": "Portugais",
   "hi": "Hindi",
   "id": "Indonésien",
-  "fr": "Français"
+  "fr": "Français",
+
+  "supportChatMessageFirst" : "Si la discussion te plaît — tu peux soutenir le développement",
+  "supportChatMessageSecond" : "Le soutien aide à faire évoluer l’application",
+  "supportChatMessageSupport" : "Soutenir"
 }

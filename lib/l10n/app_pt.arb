@@ -432,6 +432,9 @@
   "pt": "Português",
   "hi": "Hindi",
   "id": "Indonésio",
-  "fr": "Francês"
+  "fr": "Francês",
 
+  "supportChatMessageFirst" : "Se gostaste da conversa — podes apoiar o desenvolvimento",
+  "supportChatMessageSecond" : "O apoio ajuda a melhorar a aplicação",
+  "supportChatMessageSupport" : "Apoiar"
 }

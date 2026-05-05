@@ -423,6 +423,9 @@
   "pt": "Portuguese",
   "hi": "Hindi",
   "id": "Indonesian",
-  "fr": "French"
+  "fr": "French",
 
+  "supportChatMessageFirst" : "If you’re enjoying the chat — you can support development",
+  "supportChatMessageSecond" : "Support helps the app grow",
+  "supportChatMessageSupport" : "Support"
 }

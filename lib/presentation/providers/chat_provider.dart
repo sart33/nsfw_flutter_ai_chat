@@ -26,6 +26,8 @@ class ChatState {
   final AppException? error;
   final int verifyingCount;
   final List<PersonaEntity> failedPersonas;
+  final bool donatePromptDone;
+
 
   const ChatState({
     this.messages = const [],
@@ -33,6 +35,8 @@ class ChatState {
     this.error,
     this.verifyingCount = 0,
     this.failedPersonas = const [],
+    this.donatePromptDone = false,
+
   });
 
   bool get isVerifying => verifyingCount > 0;
@@ -44,6 +48,8 @@ class ChatState {
     AppException? error,
     int? verifyingCount,
     List<PersonaEntity>? failedPersonas,
+    bool? donatePromptDone,
+
   }) =>
       ChatState(
         messages: messages ?? this.messages,
@@ -51,6 +57,8 @@ class ChatState {
         error: error,
         verifyingCount: verifyingCount ?? this.verifyingCount,
         failedPersonas: failedPersonas ?? this.failedPersonas,
+        donatePromptDone: donatePromptDone ?? this.donatePromptDone,
+
       );
 }
 
@@ -58,7 +66,56 @@ class ChatState {
 class ChatNotifier extends StateNotifier<ChatState> {
   /// Lazily initialised after [init] — non-null after first call to init().
   ChatRepository? _chatRepo;
+  static const _aiCountKey = 'ai_response_count';
+  static const _donateKey1 = 'donate_banner_1_shown';
+  static const _donateKey2 = 'donate_banner_2_shown';
+  static const _threshold1 = 5;
+  static const _threshold2 = 20;
 
+  Future<void> _checkDonatePrompt() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_donateKey2) == true) return; // финальный флаг — больше не показываем
+
+    final aiCount = prefs.getInt(_aiCountKey) ?? 0;
+
+    final banner1Shown = prefs.getBool(_donateKey1) == true;
+
+    if (!banner1Shown && aiCount >= _threshold1) {
+      await prefs.setBool(_donateKey1, true);
+      final banner = ChatMessageModel(
+        senderName: 'system_donate',
+        content: 'banner_1',
+        isUser: false,
+        isBanner: true,
+      );
+      state = state.copyWith(
+        messages: [...state.messages, banner],
+        donatePromptDone: false,
+      );
+      return;
+    }
+
+    if (banner1Shown && aiCount >= _threshold2) {
+      await prefs.setBool(_donateKey2, true);
+      final banner = ChatMessageModel(
+        senderName: 'system_donate',
+        content: 'banner_2',
+        isUser: false,
+        isBanner: true,
+      );
+      state = state.copyWith(
+        messages: [...state.messages, banner],
+        donatePromptDone: true,
+      );
+      return;
+    }
+  }
+
+  Future<void> _incrementAiResponseCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getInt(_aiCountKey) ?? 0;
+    await prefs.setInt(_aiCountKey, current + 1);
+  }
 
   /// Optional override used in tests. When provided, skips async creation.
   final ChatRepository? _chatRepoOverride;
@@ -298,7 +355,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
         branchId: _branchId,
         suppressHidden: suppressHidden,
       );
-
+      if (reply.trim().length > 200) {
+        await _incrementAiResponseCount();
+      }
       final aiMsg = ChatMessageModel(
         id: const Uuid().v4(),
         personaId: persona.id,
@@ -312,6 +371,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
       );
 
       await repo.saveMessage(aiMsg, _branchId);
+
+      await _checkDonatePrompt(); // ← здесь, после сохранения
+
 
       // Save hidden reset message if provided (after AI message is saved)
       if (hiddenResetContent != null && hiddenResetContent.isNotEmpty) {
@@ -395,7 +457,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
         branchId: _branchId,
         suppressHidden: suppressHidden,
       );
-
+      if (reply.trim().length > 100) {
+        await _incrementAiResponseCount();
+      }
       final parsed = _parseMultiReply(reply, personas);
       final newMessages = <ChatMessageModel>[];
       for (final entry in parsed) {
@@ -408,6 +472,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
         newMessages.add(msg);
         await repo.saveMessage(msg, _branchId);
       }
+      await _checkDonatePrompt(); // ← здесь, после цикла
+
       state = state.copyWith(
         messages: [...state.messages, ...newMessages],
         isLoading: false,
@@ -825,6 +891,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
       }
     }
     return result;
+  }
+  void removeBanner(String id) {
+    state = state.copyWith(
+      messages: state.messages.where((m) => m.id != id).toList(),
+    );
   }
 }
 

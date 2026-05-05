@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/domain/entities/branch_entity.dart';
@@ -17,7 +18,7 @@ class BranchRepository {
       final rows = await _db.getBranchesForEntity(entityId);
       return rows.map(_mapRowToEntity).toList();
     } catch (e) {
-      print('BranchRepository.getBranchesForEntity error: $e');
+      debugPrint('BranchRepository.getBranchesForEntity error: $e');
       rethrow;
     }
   }
@@ -56,7 +57,7 @@ class BranchRepository {
         preview: null,
       );
     } catch (e) {
-      print('BranchRepository.createBranch error: $e');
+      debugPrint('BranchRepository.createBranch error: $e');
       rethrow;
     }
   }
@@ -66,7 +67,7 @@ class BranchRepository {
     try {
       await _db.deleteBranch(branchId);
     } catch (e) {
-      print('BranchRepository.deleteBranch error: $e');
+      debugPrint('BranchRepository.deleteBranch error: $e');
       rethrow;
     }
   }
@@ -76,7 +77,7 @@ class BranchRepository {
     try {
       await _db.deleteAllForEntity(entityId);
     } catch (e) {
-      print('BranchRepository.deleteAllForEntity error: $e');
+      debugPrint('BranchRepository.deleteAllForEntity error: $e');
       rethrow;
     }
   }
@@ -86,7 +87,7 @@ class BranchRepository {
     try {
       await _db.updateBranchPreview(branchId, preview);
     } catch (e) {
-      print('BranchRepository.updatePreview error: $e');
+      debugPrint('BranchRepository.updatePreview error: $e');
       rethrow;
     }
   }
@@ -98,7 +99,7 @@ class BranchRepository {
       final rows = await _db.getRecentSingleBranches(limit: limit);
       return rows.map(_mapRowToEntity).toList();
     } catch (e) {
-      print('BranchRepository.getRecentSingleBranches error: $e');
+      debugPrint('BranchRepository.getRecentSingleBranches error: $e');
       rethrow;
     }
   }
@@ -108,7 +109,7 @@ class BranchRepository {
     try {
       await _db.updateBranchTimestamp(branchId);
     } catch (e) {
-      print('BranchRepository.touchTimestamp error: $e');
+      debugPrint('BranchRepository.touchTimestamp error: $e');
       rethrow;
     }
   }
@@ -119,9 +120,9 @@ class BranchRepository {
   Future<void> clearSummary(String branchId) async {
     try {
       await _db.saveBranchSummary(branchId, '');
-      print('[Summary] Cleared for branch $branchId');
+      debugPrint('[Summary] Cleared for branch $branchId');
     } catch (e) {
-      print('BranchRepository.clearSummary error: $e');
+      debugPrint('BranchRepository.clearSummary error: $e');
       rethrow;
     }
   }

@@ -117,7 +117,7 @@ class ChatRepository {
     } on SummarizationException catch (e) {
       // summary_too_short — не сохраняем, не сдвигаем covered.
       // При следующем sendMessage цикл повторится на тех же сообщениях.
-      debugPrint('[Summary] Rejected (${e}), will retry next message');
+      debugPrint('[Summary] Rejected ($e), will retry next message');
     } catch (e) {
       debugPrint('[Summary] Failed silently: $e');
     }
@@ -411,7 +411,7 @@ class ChatRepository {
       final rows = await _db.getMessages(branchId);
       return rows.map((r) => ChatMessageModel.fromMap(r)).toList();
     } catch (e) {
-      print('ChatRepository.loadHistory error: $e');
+      debugPrint('ChatRepository.loadHistory error: $e');
       rethrow;
     }
   }
@@ -421,7 +421,7 @@ class ChatRepository {
     try {
       await _db.insertMessage(msg.toMap(), branchId);
     } catch (e) {
-      print('ChatRepository.saveMessage error: $e');
+      debugPrint('ChatRepository.saveMessage error: $e');
       rethrow;
     }
   }
@@ -430,7 +430,7 @@ class ChatRepository {
     try {
       await _db.deleteSummaryBlocksAfter(branchId, messageCount);
     } catch (e) {
-      print('ChatRepository.deleteSummaryBlocksAfter error: $e');
+      debugPrint('ChatRepository.deleteSummaryBlocksAfter error: $e');
       rethrow;
     }
   }
@@ -441,7 +441,7 @@ class ChatRepository {
     try {
       await _db.deleteMessagesFromId(messageId, branchId);
     } catch (e) {
-      print('ChatRepository.deleteMessageAndAfter error: $e');
+      debugPrint('ChatRepository.deleteMessageAndAfter error: $e');
       rethrow;
     }
   }
@@ -451,7 +451,7 @@ class ChatRepository {
     try {
       await _db.deleteMessage(messageId);
     } catch (e) {
-      print('ChatRepository.deleteMessage error: $e');
+      debugPrint('ChatRepository.deleteMessage error: $e');
       rethrow;
     }
   }
@@ -461,7 +461,7 @@ class ChatRepository {
     try {
       await _db.updateMessageContent(messageId, newContent);
     } catch (e) {
-      print('ChatRepository.updateMessage error: $e');
+      debugPrint('ChatRepository.updateMessage error: $e');
       rethrow;
     }
   }

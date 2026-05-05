@@ -18,6 +18,7 @@ class AppTheme {
   static const Color cardBg        = Color(0xFF1A1A1E); // карточки на home/settings
   static const Color iconBg        = Color(0xFF28183F); // фон иконок в карточках
   static const Color userBubble    = Color(0xFF333333);
+  static const Color supportBubble    = Color(0xFF242426);
   static const Color userIcon      = Color(0xFF919191);
   static const Color aiBubble      = Color(0xFF111111);
   static const Color primaryAccent = Color(0xFFAA7EF4); // фиолетовый акцент
@@ -29,6 +30,8 @@ class AppTheme {
   static const Color lightBorder    = Color(0xFF6F6F88); // бордер карточек
   static const Color textPrimary   = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B0B0);
+  static const Color textChatSupport = Color(0xFFBDBDBD);
+
   static const Color textThird     = Color(0xFFD0D0D0);
   static const Color error         = Color(0xFFB71C1C);
   static const Color success       = Color(0xFF068733);

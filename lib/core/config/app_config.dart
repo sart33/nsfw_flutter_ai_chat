@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AppConfig {
   AppConfig._();
 
+  static const String appTitle = 'Uncensored Souls';
   static const String appVersion = '1.0.0';
 
   // ── DeepSeek API ──────────────────────────────────────────────────────

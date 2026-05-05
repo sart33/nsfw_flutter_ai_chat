@@ -187,7 +187,7 @@ class DatabaseHelper {
       return results;
     } catch (e) {
       log('getBranchesForEntity error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getBranchesForEntity error: $e');
+      debugPrint('DatabaseHelper.getBranchesForEntity error: $e');
       rethrow;
     }
   }
@@ -244,7 +244,7 @@ class DatabaseHelper {
       return results;
     } catch (e) {
       log('getRecentSingleBranches error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getRecentSingleBranches error: $e');
+      debugPrint('DatabaseHelper.getRecentSingleBranches error: $e');
       rethrow;
     }
   }
@@ -265,7 +265,7 @@ class DatabaseHelper {
       await db.insert('branches', data);
     } catch (e) {
       log('insertBranch error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.insertBranch error: $e');
+      debugPrint('DatabaseHelper.insertBranch error: $e');
       rethrow;
     }
   }
@@ -283,7 +283,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('updateBranchPreview error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.updateBranchPreview error: $e');
+      debugPrint('DatabaseHelper.updateBranchPreview error: $e');
       rethrow;
     }
   }
@@ -301,7 +301,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('updateBranchTimestamp error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.updateBranchTimestamp error: $e');
+      debugPrint('DatabaseHelper.updateBranchTimestamp error: $e');
       rethrow;
     }
   }
@@ -321,7 +321,7 @@ class DatabaseHelper {
       });
     } catch (e) {
       log('deleteBranch error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteBranch error: $e');
+      debugPrint('DatabaseHelper.deleteBranch error: $e');
       rethrow;
     }
   }
@@ -353,7 +353,7 @@ class DatabaseHelper {
       });
     } catch (e) {
       log('deleteAllForEntity error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteAllForEntity error: $e');
+      debugPrint('DatabaseHelper.deleteAllForEntity error: $e');
       rethrow;
     }
   }
@@ -378,7 +378,7 @@ class DatabaseHelper {
       return value;
     } catch (e) {
       log('getBranchSummary error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getBranchSummary error: $e');
+      debugPrint('DatabaseHelper.getBranchSummary error: $e');
       rethrow;
     }
   }
@@ -396,7 +396,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('saveBranchSummary error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.saveBranchSummary error: $e');
+      debugPrint('DatabaseHelper.saveBranchSummary error: $e');
       rethrow;
     }
   }
@@ -418,7 +418,7 @@ class DatabaseHelper {
       return results;
     } catch (e) {
       log('getMessages error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getMessages error: $e');
+      debugPrint('DatabaseHelper.getMessages error: $e');
       rethrow;
     }
   }
@@ -434,7 +434,7 @@ class DatabaseHelper {
       await db.insert('messages', row);
     } catch (e) {
       log('insertMessage error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.insertMessage error: $e');
+      debugPrint('DatabaseHelper.insertMessage error: $e');
       rethrow;
     }
   }
@@ -460,7 +460,7 @@ class DatabaseHelper {
       await db.delete('messages', where: 'id = ?', whereArgs: [messageId]);
     } catch (e) {
       log('deleteMessage error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteMessage error: $e');
+      debugPrint('DatabaseHelper.deleteMessage error: $e');
       rethrow;
     }
   }
@@ -500,7 +500,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('deleteMessagesFromId error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteMessagesFromId error: $e');
+      debugPrint('DatabaseHelper.deleteMessagesFromId error: $e');
       rethrow;
     }
   }
@@ -519,7 +519,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('updateMessageContent error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.updateMessageContent error: $e');
+      debugPrint('DatabaseHelper.updateMessageContent error: $e');
       rethrow;
     }
   }
@@ -539,7 +539,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('getGalleryForPersona error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getGalleryForPersona error: $e');
+      debugPrint('DatabaseHelper.getGalleryForPersona error: $e');
       rethrow;
     }
   }
@@ -558,7 +558,7 @@ class DatabaseHelper {
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
       log('getGalleryImageById error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getGalleryImageById error: $e');
+      debugPrint('DatabaseHelper.getGalleryImageById error: $e');
       rethrow;
     }
   }
@@ -584,7 +584,7 @@ class DatabaseHelper {
       await db.insert('gallery_images', data);
     } catch (e) {
       log('insertGalleryImage error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.insertGalleryImage error: $e');
+      debugPrint('DatabaseHelper.insertGalleryImage error: $e');
       rethrow;
     }
   }
@@ -597,7 +597,7 @@ class DatabaseHelper {
       await db.delete('gallery_images', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       log('deleteGalleryImage error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteGalleryImage error: $e');
+      debugPrint('DatabaseHelper.deleteGalleryImage error: $e');
       rethrow;
     }
   }
@@ -614,7 +614,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('deleteAllGalleryForPersona error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteAllGalleryForPersona error: $e');
+      debugPrint('DatabaseHelper.deleteAllGalleryForPersona error: $e');
       rethrow;
     }
   }
@@ -635,7 +635,7 @@ class DatabaseHelper {
           .toList();
     } catch (e) {
       log('getUsedTemplateIds error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getUsedTemplateIds error: $e');
+      debugPrint('DatabaseHelper.getUsedTemplateIds error: $e');
       rethrow;
     }
   }
@@ -695,7 +695,7 @@ class DatabaseHelper {
       return maxNum + 1;
     } catch (e) {
       log('getNextBlockNumber error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getNextBlockNumber error: $e');
+      debugPrint('DatabaseHelper.getNextBlockNumber error: $e');
       rethrow;
     }
   }
@@ -723,7 +723,7 @@ class DatabaseHelper {
       await db.insert('summaries', data);
     } catch (e) {
       log('insertSummaryBlock error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.insertSummaryBlock error: $e');
+      debugPrint('DatabaseHelper.insertSummaryBlock error: $e');
       rethrow;
     }
   }
@@ -744,7 +744,7 @@ class DatabaseHelper {
       return rows.first['covered'] as int;
     } catch (e) {
       log('getCoveredMessageCount error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getCoveredMessageCount error: $e');
+      debugPrint('DatabaseHelper.getCoveredMessageCount error: $e');
       rethrow;
     }
   }
@@ -761,7 +761,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('deleteAllSummaryBlocks error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteAllSummaryBlocks error: $e');
+      debugPrint('DatabaseHelper.deleteAllSummaryBlocks error: $e');
       rethrow;
     }
   }
@@ -774,7 +774,7 @@ class DatabaseHelper {
       await db.delete('summaries');
     } catch (e) {
       log('clearAllSummaries error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.clearAllSummaries error: $e');
+      debugPrint('DatabaseHelper.clearAllSummaries error: $e');
       rethrow;
     }
   }
@@ -797,7 +797,7 @@ class DatabaseHelper {
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
       log('getPersonaPrompts error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getPersonaPrompts error: $e');
+      debugPrint('DatabaseHelper.getPersonaPrompts error: $e');
       rethrow;
     }
   }
@@ -831,7 +831,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('upsertPersonaPrompts error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.upsertPersonaPrompts error: $e');
+      debugPrint('DatabaseHelper.upsertPersonaPrompts error: $e');
       rethrow;
     }
   }
@@ -850,7 +850,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('deletePersonaPrompts error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deletePersonaPrompts error: $e');
+      debugPrint('DatabaseHelper.deletePersonaPrompts error: $e');
       rethrow;
     }
   }
@@ -913,7 +913,7 @@ class DatabaseHelper {
       return await db.query('personas', orderBy: 'updated_at DESC');
     } catch (e) {
       log('getAllPersonas error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getAllPersonas error: $e');
+      debugPrint('DatabaseHelper.getAllPersonas error: $e');
       rethrow;
     }
   }
@@ -932,7 +932,7 @@ class DatabaseHelper {
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
       log('getPersonaById error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getPersonaById error: $e');
+      debugPrint('DatabaseHelper.getPersonaById error: $e');
       rethrow;
     }
   }
@@ -959,7 +959,7 @@ class DatabaseHelper {
       await db.insert('personas', data);
     } catch (e) {
       log('insertPersona error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.insertPersona error: $e');
+      debugPrint('DatabaseHelper.insertPersona error: $e');
       rethrow;
     }
   }
@@ -991,7 +991,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('updatePersona error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.updatePersona error: $e');
+      debugPrint('DatabaseHelper.updatePersona error: $e');
       rethrow;
     }
   }
@@ -1054,7 +1054,7 @@ class DatabaseHelper {
       return await db.query('multi_presets', orderBy: 'updated_at DESC');
     } catch (e) {
       log('getAllMultiPresets error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getAllMultiPresets error: $e');
+      debugPrint('DatabaseHelper.getAllMultiPresets error: $e');
       rethrow;
     }
   }
@@ -1073,7 +1073,7 @@ class DatabaseHelper {
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
       log('getMultiPresetById error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.getMultiPresetById error: $e');
+      debugPrint('DatabaseHelper.getMultiPresetById error: $e');
       rethrow;
     }
   }
@@ -1096,7 +1096,7 @@ class DatabaseHelper {
       await db.insert('multi_presets', data);
     } catch (e) {
       log('insertMultiPreset error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.insertMultiPreset error: $e');
+      debugPrint('DatabaseHelper.insertMultiPreset error: $e');
       rethrow;
     }
   }
@@ -1124,7 +1124,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       log('updateMultiPreset error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.updateMultiPreset error: $e');
+      debugPrint('DatabaseHelper.updateMultiPreset error: $e');
       rethrow;
     }
   }
@@ -1137,7 +1137,7 @@ class DatabaseHelper {
       await db.delete('multi_presets', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       log('deleteMultiPreset error: $e', name: 'DB_ERROR');
-      print('DatabaseHelper.deleteMultiPreset error: $e');
+      debugPrint('DatabaseHelper.deleteMultiPreset error: $e');
       rethrow;
     }
   }

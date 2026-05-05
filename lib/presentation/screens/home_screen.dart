@@ -17,6 +17,8 @@ import 'package:nsfw_chat/presentation/screens/settings_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/persona_card_home.dart';
 
+import '../../core/config/app_config.dart';
+
 // ─────────────────────────────────────────────
 //  HomeScreen
 // ─────────────────────────────────────────────
@@ -81,7 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(width: 10),
           const Text(
-            'Uncensored Souls',
+            AppConfig.appTitle,
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 18,

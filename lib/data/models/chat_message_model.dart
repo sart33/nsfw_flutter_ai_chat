@@ -14,6 +14,8 @@ class ChatMessageModel {
   final String? imageLocalPath;
   final bool isHidden;
   final bool isGreeting;
+  final bool isBanner;
+
 
 
   ChatMessageModel({
@@ -28,6 +30,8 @@ class ChatMessageModel {
     this.imageLocalPath,
     this.isHidden = false,
     this.isGreeting = false,
+    this.isBanner = false,
+
 
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
@@ -111,6 +115,8 @@ class ChatMessageModel {
     String? imageLocalPath,
     bool? isHidden,
     bool? isGreeting,
+    bool? isBanner,
+
 
   }) =>
       ChatMessageModel(
@@ -125,6 +131,6 @@ class ChatMessageModel {
         imageLocalPath: imageLocalPath ?? this.imageLocalPath,
         isHidden: isHidden ?? this.isHidden,
         isGreeting: isGreeting ?? this.isGreeting,
-
+        isBanner: isBanner ?? this.isBanner,
       );
 }
