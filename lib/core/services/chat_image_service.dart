@@ -36,9 +36,11 @@ class ChatImageService {
     }
 
     // Баг 2: Минет в спальне/ванной → добавить floor в locationDetails
+// Заменить условие добавления floor:
     if (s.pose?.toLowerCase() == 'kneeling' &&
-        s.activity?.toLowerCase().contains('blowjob') == true ||
-        s.activity?.toLowerCase().contains('oral') == true) {
+        (s.activity?.toLowerCase().contains('blowjob') == true ||
+            s.activity?.toLowerCase().contains('oral') == true) &&
+        s.activity?.toLowerCase().contains('mutual') != true) {
       if (s.location != null &&
           (s.location!.toLowerCase().contains('bedroom') ||
               s.location!.toLowerCase().contains('bathroom') ||
