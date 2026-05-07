@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/domain/entities/branch_entity.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/recent_chat_entity.dart';
 
@@ -18,7 +17,6 @@ class BranchRepository {
       final rows = await _db.getBranchesForEntity(entityId);
       return rows.map(_mapRowToEntity).toList();
     } catch (e) {
-      debugPrint('BranchRepository.getBranchesForEntity error: $e');
       rethrow;
     }
   }
@@ -57,7 +55,6 @@ class BranchRepository {
         preview: null,
       );
     } catch (e) {
-      debugPrint('BranchRepository.createBranch error: $e');
       rethrow;
     }
   }
@@ -67,7 +64,6 @@ class BranchRepository {
     try {
       await _db.deleteBranch(branchId);
     } catch (e) {
-      debugPrint('BranchRepository.deleteBranch error: $e');
       rethrow;
     }
   }
@@ -77,7 +73,6 @@ class BranchRepository {
     try {
       await _db.deleteAllForEntity(entityId);
     } catch (e) {
-      debugPrint('BranchRepository.deleteAllForEntity error: $e');
       rethrow;
     }
   }
@@ -87,7 +82,6 @@ class BranchRepository {
     try {
       await _db.updateBranchPreview(branchId, preview);
     } catch (e) {
-      debugPrint('BranchRepository.updatePreview error: $e');
       rethrow;
     }
   }
@@ -99,7 +93,6 @@ class BranchRepository {
       final rows = await _db.getRecentSingleBranches(limit: limit);
       return rows.map(_mapRowToEntity).toList();
     } catch (e) {
-      debugPrint('BranchRepository.getRecentSingleBranches error: $e');
       rethrow;
     }
   }
@@ -109,7 +102,6 @@ class BranchRepository {
     try {
       await _db.updateBranchTimestamp(branchId);
     } catch (e) {
-      debugPrint('BranchRepository.touchTimestamp error: $e');
       rethrow;
     }
   }
@@ -120,9 +112,7 @@ class BranchRepository {
   Future<void> clearSummary(String branchId) async {
     try {
       await _db.saveBranchSummary(branchId, '');
-      debugPrint('[Summary] Cleared for branch $branchId');
     } catch (e) {
-      debugPrint('BranchRepository.clearSummary error: $e');
       rethrow;
     }
   }

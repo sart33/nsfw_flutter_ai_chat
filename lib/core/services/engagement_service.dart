@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../factory/database_helper.dart';
 
@@ -14,7 +13,6 @@ class EngagementService {
     if (prefs.getBool(_prefKey) == true) return true;
 
     final count = await DatabaseHelper.instance.countRealCharacterMessages();
-    debugPrint('[EngagementService]: $count');
     if (count >= _threshold) {
       await prefs.setBool(_prefKey, true);
       return true;

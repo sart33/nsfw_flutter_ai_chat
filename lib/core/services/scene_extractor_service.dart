@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
@@ -272,7 +271,7 @@ class SceneSnapshot {
         RegExp(r'\b(\w+)\s+\1\b', caseSensitive: false), r'\1');
 
     s = s.replaceAll(
-        RegExp(r"\b(stroking|sucking)\s+\w+\'?s?\s+(cock|penis|dick)\b[^,]*",
+        RegExp(r"\b(stroking|sucking)\s+\w+'?s?\s+(cock|penis|dick)\b[^,]*",
             caseSensitive: false), '');
 
 // titjob — убрать
@@ -710,7 +709,6 @@ $context
       final windowText = sceneWindow.map((m) => m.content).join(' ');
       final hasNewSignal = _hasSceneSwitchSignal(windowText, detectedLang);
       if (!hasNewSignal && cached.$2 == textOnly.length) {
-        debugPrint('[SceneExtractor] Using cached scene');
         return cached.$1;
       }
     }
@@ -733,10 +731,6 @@ $context
 
       // Step 4: validate
       final validated = _validateAndFix(rawSnapshot);
-      debugPrint(
-        '[SceneExtractor] Final snapshot: '
-        '${jsonEncode(validated.toMap())}',
-      );
 
       // Step 5: cache and return
       _cache[branchId] = (validated, textOnly.length);
@@ -751,7 +745,6 @@ $context
           e is DioException && e.type == DioExceptionType.connectionError) {
         throw const NetworkException();
       }
-      debugPrint('[SceneExtractor] Extraction error: $e');
       return SceneSnapshot.fallback;
     }
   }
@@ -786,7 +779,6 @@ $context
 
     final pattern = SceneSwitchPatterns.forLang(lang);
     if (pattern == null) {
-      debugPrint('[SceneExtractor] No pattern for lang: $lang');
       return textMessages.length > 6
           ? textMessages.sublist(textMessages.length - 6)
           : textMessages;
@@ -798,10 +790,6 @@ $context
         final limited = window.length > AppConfig.maxSceneWindowSize
             ? window.sublist(window.length - AppConfig.maxSceneWindowSize)
             : window;
-        debugPrint(
-          '[SceneExtractor] Scene switch at index $i ($lang), '
-              'window: ${limited.length}',
-        );
         return limited;
       }
     }
@@ -809,7 +797,6 @@ $context
     final fallback = textMessages.length > 6
         ? textMessages.sublist(textMessages.length - 6)
         : textMessages;
-    debugPrint('[SceneExtractor] Fallback: ${fallback.length} messages');
     return fallback;
   }
 
@@ -869,7 +856,6 @@ $context
     final rawContent =
         (responseJson['choices'] as List).first['message']['content'] as String;
 
-    debugPrint('[SceneExtractor] Raw LLM response: $rawContent');
 
     final cleaned =
         rawContent.replaceAll('```json', '').replaceAll('```', '').trim();

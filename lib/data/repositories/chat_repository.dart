@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
@@ -114,12 +113,10 @@ class ChatRepository {
         DateTime.now().millisecondsSinceEpoch,
         messagesCovered,
       );
-    } on SummarizationException catch (e) {
+    } on SummarizationException catch (_) {
       // summary_too_short — не сохраняем, не сдвигаем covered.
       // При следующем sendMessage цикл повторится на тех же сообщениях.
-      debugPrint('[Summary] Rejected ($e), will retry next message');
     } catch (e) {
-      debugPrint('[Summary] Failed silently: $e');
     }
   }
 
@@ -392,7 +389,6 @@ class ChatRepository {
 
       return content.trim();
     } catch (e) {
-      debugPrint('sendMessage error: $e');
       if (e is SocketException ||
           e is http.ClientException ||
           e is DioException && e.type == DioExceptionType.connectionError) {
@@ -411,7 +407,6 @@ class ChatRepository {
       final rows = await _db.getMessages(branchId);
       return rows.map((r) => ChatMessageModel.fromMap(r)).toList();
     } catch (e) {
-      debugPrint('ChatRepository.loadHistory error: $e');
       rethrow;
     }
   }
@@ -421,7 +416,6 @@ class ChatRepository {
     try {
       await _db.insertMessage(msg.toMap(), branchId);
     } catch (e) {
-      debugPrint('ChatRepository.saveMessage error: $e');
       rethrow;
     }
   }
@@ -430,7 +424,6 @@ class ChatRepository {
     try {
       await _db.deleteSummaryBlocksAfter(branchId, messageCount);
     } catch (e) {
-      debugPrint('ChatRepository.deleteSummaryBlocksAfter error: $e');
       rethrow;
     }
   }
@@ -441,7 +434,6 @@ class ChatRepository {
     try {
       await _db.deleteMessagesFromId(messageId, branchId);
     } catch (e) {
-      debugPrint('ChatRepository.deleteMessageAndAfter error: $e');
       rethrow;
     }
   }
@@ -451,7 +443,6 @@ class ChatRepository {
     try {
       await _db.deleteMessage(messageId);
     } catch (e) {
-      debugPrint('ChatRepository.deleteMessage error: $e');
       rethrow;
     }
   }
@@ -461,7 +452,6 @@ class ChatRepository {
     try {
       await _db.updateMessageContent(messageId, newContent);
     } catch (e) {
-      debugPrint('ChatRepository.updateMessage error: $e');
       rethrow;
     }
   }
@@ -476,7 +466,6 @@ class ChatRepository {
           .loadString('assets/characters/character_${persona.id}.yaml');
       return content;
     } catch (e) {
-      debugPrint('YAML file not found for persona ${persona.id}: $e');
       return null;
     }
   }

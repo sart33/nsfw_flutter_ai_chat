@@ -100,8 +100,6 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
   /// Seeds default multi-preset if personas are already seeded.
   Future<void> _seedDefaultPresetIfNeeded() async {
     final personas = await _ref.read(personaProvider.future);
-        debugPrint('=== personas count: ${personas.length}'); // <-- добавь
-        debugPrint('=== personas names: ${personas.map((p) => p.name).toList()}');
         if (personas.isNotEmpty) {
           final locale = await _getDeviceLocale();
           await _seedDefaultPreset(PersonaMapper.toModelList(personas),

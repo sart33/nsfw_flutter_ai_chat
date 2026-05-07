@@ -256,7 +256,6 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       );
       // Success toast is shown by the UI layer.
     } catch (e) {
-      debugPrint('[GalleryNotifier] confirmPending error: $e');
       state = state.copyWith(
         isGenerating: false,
         error: e is AppException ? e : SaveException(e.toString()),
@@ -365,7 +364,6 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         images: state.images.where((img) => img.id != imageId).toList(),
       );
     } catch (e) {
-      debugPrint('[GalleryNotifier] deleteImage error: $e');
       state = state.copyWith(
         error: e is AppException ? e : DeleteException(e.toString()),
       );

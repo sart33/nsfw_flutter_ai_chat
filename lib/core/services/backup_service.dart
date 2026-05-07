@@ -157,7 +157,6 @@ class BackupService {
       }
     } catch (e) {
       if (context.mounted) {
-        // AppSnackBar.show(e.toString());
         AppSnackBar.show(context.l10n.backupErrorExportFailed, isError: true);
       }
     }

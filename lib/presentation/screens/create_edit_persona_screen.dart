@@ -341,7 +341,6 @@ class _CreateEditPersonaScreenState
       if (!mounted) return;
       AppSnackBar.showDeepSeekError(e, context.l10n);
     } on NovitaApiException catch (e) {
-      debugPrint('[Avatar] style generation error: $e');
       if (!mounted) return;
       AppSnackBar.showNovitaError(e, context.l10n);
     } catch (e) {
@@ -401,7 +400,6 @@ class _CreateEditPersonaScreenState
 
         if (mounted) setState(() => _generatedAvatarPreviewPath = path);
       } on NovitaApiException catch (e) {
-        debugPrint('[Avatar] style generation error: $e');
         if (!mounted) return;
         AppSnackBar.showNovitaError(e, context.l10n);
       } catch (e) {
@@ -1409,7 +1407,6 @@ class _CreateEditPersonaScreenState
           final check = await PromptCleanerService.instance
               .checkForMinorSignals(combinedText);
 
-          debugPrint('DeepSeek check result: $check');
 
           if (check.hasConflict == true &&
               (check.severity == 'high' || check.severity == 'medium')) {

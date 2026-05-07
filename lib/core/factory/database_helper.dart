@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -34,7 +32,6 @@ class DatabaseHelper {
     try {
       final dbPath = await getDatabasesPath();
       final path = p.join(dbPath, 'chat_history.db');
-      debugPrint('[DB_PATH] $path');
       _db = await openDatabase(
         path,
         version: 18,
@@ -176,18 +173,14 @@ class DatabaseHelper {
   ) async {
     try {
       final db = await database;
-      log('SELECT branches WHERE entity_id=$entityId ORDER BY updated_at DESC', name: 'DB_READ');
       final results = await db.query(
         'branches',
         where: 'entity_id = ?',
         whereArgs: [entityId],
         orderBy: 'updated_at DESC',
       );
-      log('getBranchesForEntity result count: ${results.length}', name: 'DB_READ');
       return results;
     } catch (e) {
-      log('getBranchesForEntity error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getBranchesForEntity error: $e');
       rethrow;
     }
   }
@@ -199,10 +192,6 @@ class DatabaseHelper {
   }) async {
     try {
       final db = await database;
-      log(
-        'SELECT branches with real_updated_at FROM messages JOIN WHERE entity_id LIKE \'single:%\' ORDER BY real_updated_at DESC LIMIT $limit',
-        name: 'DB_READ',
-      );
       final results = await db.rawQuery(
         '''
     SELECT 
@@ -237,14 +226,9 @@ class DatabaseHelper {
   ''',
         [limit],
       );
-      log(
-        'getRecentSingleBranches result count: ${results.length}',
-        name: 'DB_READ',
-      );
+
       return results;
     } catch (e) {
-      log('getRecentSingleBranches error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getRecentSingleBranches error: $e');
       rethrow;
     }
   }
@@ -261,11 +245,8 @@ class DatabaseHelper {
         'updated_at': now,
         'preview': preview,
       };
-      log('INSERT INTO branches: $data', name: 'DB_WRITE');
       await db.insert('branches', data);
     } catch (e) {
-      log('insertBranch error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.insertBranch error: $e');
       rethrow;
     }
   }
@@ -274,7 +255,6 @@ class DatabaseHelper {
   Future<void> updateBranchPreview(String branchId, String preview) async {
     try {
       final db = await database;
-      log('UPDATE branches SET preview WHERE id=$branchId, data: {preview: $preview}', name: 'DB_WRITE');
       await db.update(
         'branches',
         {'preview': preview},
@@ -282,8 +262,6 @@ class DatabaseHelper {
         whereArgs: [branchId],
       );
     } catch (e) {
-      log('updateBranchPreview error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.updateBranchPreview error: $e');
       rethrow;
     }
   }
@@ -292,7 +270,6 @@ class DatabaseHelper {
   Future<void> updateBranchTimestamp(String branchId) async {
     try {
       final db = await database;
-      log('UPDATE branches SET updated_at=now WHERE id=$branchId', name: 'DB_WRITE');
       await db.update(
         'branches',
         {'updated_at': DateTime.now().millisecondsSinceEpoch},
@@ -300,8 +277,6 @@ class DatabaseHelper {
         whereArgs: [branchId],
       );
     } catch (e) {
-      log('updateBranchTimestamp error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.updateBranchTimestamp error: $e');
       rethrow;
     }
   }
@@ -310,7 +285,6 @@ class DatabaseHelper {
   Future<void> deleteBranch(String branchId) async {
     try {
       final db = await database;
-      log('DELETE messages+summaries WHERE branch_id=$branchId + DELETE branches WHERE id=$branchId', name: 'DB_DELETE');
       await db.transaction((txn) async {
         await txn.delete('messages',
             where: 'branch_id = ?', whereArgs: [branchId]);
@@ -320,8 +294,6 @@ class DatabaseHelper {
             .delete('branches', where: 'id = ?', whereArgs: [branchId]);
       });
     } catch (e) {
-      log('deleteBranch error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteBranch error: $e');
       rethrow;
     }
   }
@@ -330,7 +302,6 @@ class DatabaseHelper {
   Future<void> deleteAllForEntity(String entityId) async {
     try {
       final db = await database;
-      log('DELETE all branches+messages+summaries for entity_id=$entityId', name: 'DB_DELETE');
       await db.transaction((txn) async {
         // Fetch branch ids first.
         final branches = await txn.query(
@@ -341,10 +312,8 @@ class DatabaseHelper {
         );
         for (final branch in branches) {
           final branchId = branch['id'] as String;
-          log('DELETE messages WHERE branch_id=$branchId', name: 'DB_DELETE');
           await txn.delete('messages',
               where: 'branch_id = ?', whereArgs: [branchId]);
-          log('DELETE summaries WHERE branch_id=$branchId', name: 'DB_DELETE');
           await txn.delete('summaries',
               where: 'branch_id = ?', whereArgs: [branchId]);
         }
@@ -352,8 +321,6 @@ class DatabaseHelper {
             where: 'entity_id = ?', whereArgs: [entityId]);
       });
     } catch (e) {
-      log('deleteAllForEntity error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteAllForEntity error: $e');
       rethrow;
     }
   }
@@ -364,7 +331,6 @@ class DatabaseHelper {
   Future<String?> getBranchSummary(String branchId) async {
     try {
       final db = await database;
-      log('SELECT context_summary FROM branches WHERE id=$branchId', name: 'DB_READ');
       final rows = await db.query(
         'branches',
         columns: ['context_summary'],
@@ -377,8 +343,6 @@ class DatabaseHelper {
       if (value == null || (value as String).isEmpty) return null;
       return value;
     } catch (e) {
-      log('getBranchSummary error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getBranchSummary error: $e');
       rethrow;
     }
   }
@@ -387,7 +351,6 @@ class DatabaseHelper {
   Future<void> saveBranchSummary(String branchId, String summary) async {
     try {
       final db = await database;
-      log('UPDATE branches SET context_summary WHERE id=$branchId', name: 'DB_WRITE');
       await db.update(
         'branches',
         {'context_summary': summary},
@@ -395,8 +358,6 @@ class DatabaseHelper {
         whereArgs: [branchId],
       );
     } catch (e) {
-      log('saveBranchSummary error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.saveBranchSummary error: $e');
       rethrow;
     }
   }
@@ -407,18 +368,15 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getMessages(String branchId) async {
     try {
       final db = await database;
-      log('SELECT messages WHERE branch_id=$branchId ORDER BY timestamp ASC', name: 'DB_READ');
       final results = await db.query(
         'messages',
         where: 'branch_id = ?',
         whereArgs: [branchId],
         orderBy: 'timestamp ASC',
       );
-      log('getMessages result count: ${results.length}', name: 'DB_READ');
       return results;
     } catch (e) {
-      log('getMessages error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getMessages error: $e');
+
       rethrow;
     }
   }
@@ -430,11 +388,8 @@ class DatabaseHelper {
       final db = await database;
       final row = Map<String, dynamic>.from(message);
       row['branch_id'] = branchId;
-      log('INSERT INTO messages: $row', name: 'DB_WRITE');
       await db.insert('messages', row);
     } catch (e) {
-      log('insertMessage error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.insertMessage error: $e');
       rethrow;
     }
   }
@@ -456,11 +411,8 @@ class DatabaseHelper {
   Future<void> deleteMessage(String messageId) async {
     try {
       final db = await database;
-      log('DELETE messages WHERE id=$messageId', name: 'DB_DELETE');
       await db.delete('messages', where: 'id = ?', whereArgs: [messageId]);
     } catch (e) {
-      log('deleteMessage error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteMessage error: $e');
       rethrow;
     }
   }
@@ -468,7 +420,6 @@ class DatabaseHelper {
   /// Deletes all summary blocks for [branchId] that cover more than [messageCount] messages.
   Future<void> deleteSummaryBlocksAfter(String branchId, int messageCount) async {
     final db = await database;
-    log('DELETE summaries WHERE branch_id=$branchId AND messages_covered > $messageCount', name: 'DB_DELETE');
     await db.delete(
       'summaries',
       where: 'branch_id = ? AND messages_covered > ?',
@@ -492,15 +443,12 @@ class DatabaseHelper {
       if (rows.isEmpty) return;
       final ts = rows.first['timestamp'] as int;
 
-      log('DELETE messages WHERE branch_id=$branchId AND timestamp>=$ts (from messageId=$messageId)', name: 'DB_DELETE');
       await db.delete(
         'messages',
         where: 'branch_id = ? AND timestamp >= ?',
         whereArgs: [branchId, ts],
       );
     } catch (e) {
-      log('deleteMessagesFromId error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteMessagesFromId error: $e');
       rethrow;
     }
   }
@@ -510,7 +458,6 @@ class DatabaseHelper {
       String messageId, String newContent) async {
     try {
       final db = await database;
-      log('UPDATE messages SET content WHERE id=$messageId, data: {content: $newContent}', name: 'DB_WRITE');
       await db.update(
         'messages',
         {'content': newContent},
@@ -518,8 +465,6 @@ class DatabaseHelper {
         whereArgs: [messageId],
       );
     } catch (e) {
-      log('updateMessageContent error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.updateMessageContent error: $e');
       rethrow;
     }
   }
@@ -531,15 +476,12 @@ class DatabaseHelper {
       String personaId) async {
     try {
       final db = await database;
-      log('SELECT gallery_images WHERE persona_id=$personaId', name: 'DB_READ');
       return await db.query(
         'gallery_images',
         where: 'persona_id = ?',
         whereArgs: [personaId],
       );
     } catch (e) {
-      log('getGalleryForPersona error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getGalleryForPersona error: $e');
       rethrow;
     }
   }
@@ -548,7 +490,6 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getGalleryImageById(String id) async {
     try {
       final db = await database;
-      log('SELECT gallery_images WHERE id=$id', name: 'DB_READ');
       final rows = await db.query(
         'gallery_images',
         where: 'id = ?',
@@ -557,8 +498,6 @@ class DatabaseHelper {
       );
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
-      log('getGalleryImageById error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getGalleryImageById error: $e');
       rethrow;
     }
   }
@@ -580,11 +519,8 @@ class DatabaseHelper {
         'local_path': localPath,
         'generated_at': generatedAt,
       };
-      log('INSERT INTO gallery_images: $data', name: 'DB_WRITE');
       await db.insert('gallery_images', data);
     } catch (e) {
-      log('insertGalleryImage error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.insertGalleryImage error: $e');
       rethrow;
     }
   }
@@ -593,11 +529,8 @@ class DatabaseHelper {
   Future<void> deleteGalleryImage(String id) async {
     try {
       final db = await database;
-      log('DELETE gallery_images WHERE id=$id', name: 'DB_DELETE');
       await db.delete('gallery_images', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-      log('deleteGalleryImage error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteGalleryImage error: $e');
       rethrow;
     }
   }
@@ -606,15 +539,12 @@ class DatabaseHelper {
   Future<void> deleteAllGalleryForPersona(String personaId) async {
     try {
       final db = await database;
-      log('DELETE gallery_images WHERE persona_id=$personaId', name: 'DB_DELETE');
       await db.delete(
         'gallery_images',
         where: 'persona_id = ?',
         whereArgs: [personaId],
       );
     } catch (e) {
-      log('deleteAllGalleryForPersona error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteAllGalleryForPersona error: $e');
       rethrow;
     }
   }
@@ -623,7 +553,6 @@ class DatabaseHelper {
   Future<List<int>> getUsedTemplateIds(String personaId) async {
     try {
       final db = await database;
-      log('SELECT template_id FROM gallery_images WHERE persona_id=$personaId', name: 'DB_READ');
       final rows = await db.query(
         'gallery_images',
         columns: ['template_id'],
@@ -634,8 +563,6 @@ class DatabaseHelper {
           .map((r) => r['template_id'] as int)
           .toList();
     } catch (e) {
-      log('getUsedTemplateIds error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getUsedTemplateIds error: $e');
       rethrow;
     }
   }
@@ -665,10 +592,6 @@ class DatabaseHelper {
           orderBy: 'block_number ASC',
         );
       }
-      log(
-        'getSummaryBlocks branchId=$branchId returned=${results.length}',
-        name: 'DB_READ',
-      );
       return results;
     } catch (e) {
       log('getSummaryBlocks error: $e', name: 'DB_ERROR');
@@ -680,10 +603,6 @@ class DatabaseHelper {
   Future<int> getNextBlockNumber(String branchId) async {
     try {
       final db = await database;
-      log(
-        'SELECT MAX(block_number) FROM summaries WHERE branch_id=$branchId',
-        name: 'DB_READ',
-      );
       final rows = await db.rawQuery(
         'SELECT MAX(block_number) as max_num FROM summaries WHERE branch_id = ?',
         [branchId],
@@ -694,8 +613,6 @@ class DatabaseHelper {
       final maxNum = rows.first['max_num'] as int;
       return maxNum + 1;
     } catch (e) {
-      log('getNextBlockNumber error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getNextBlockNumber error: $e');
       rethrow;
     }
   }
@@ -719,11 +636,8 @@ class DatabaseHelper {
         'created_at': createdAt,
         'messages_covered': messagesCovered,
       };
-      log('INSERT INTO summaries: $data', name: 'DB_WRITE');
       await db.insert('summaries', data);
     } catch (e) {
-      log('insertSummaryBlock error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.insertSummaryBlock error: $e');
       rethrow;
     }
   }
@@ -732,10 +646,6 @@ class DatabaseHelper {
   Future<int> getCoveredMessageCount(String branchId) async {
     try {
       final db = await database;
-      log(
-        'SELECT MAX(messages_covered) FROM summaries WHERE branch_id=$branchId',
-        name: 'DB_READ',
-      );
       final rows = await db.rawQuery(
         'SELECT MAX(messages_covered) as covered FROM summaries WHERE branch_id = ?',
         [branchId],
@@ -743,8 +653,6 @@ class DatabaseHelper {
       if (rows.isEmpty || rows.first['covered'] == null) return 0;
       return rows.first['covered'] as int;
     } catch (e) {
-      log('getCoveredMessageCount error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getCoveredMessageCount error: $e');
       rethrow;
     }
   }
@@ -753,15 +661,12 @@ class DatabaseHelper {
   Future<void> deleteAllSummaryBlocks(String branchId) async {
     try {
       final db = await database;
-      log('DELETE summaries WHERE branch_id=$branchId', name: 'DB_DELETE');
       await db.delete(
         'summaries',
         where: 'branch_id = ?',
         whereArgs: [branchId],
       );
     } catch (e) {
-      log('deleteAllSummaryBlocks error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteAllSummaryBlocks error: $e');
       rethrow;
     }
   }
@@ -770,11 +675,8 @@ class DatabaseHelper {
   Future<void> clearAllSummaries() async {
     try {
       final db = await database;
-      log('DELETE FROM summaries', name: 'DB_DELETE');
       await db.delete('summaries');
     } catch (e) {
-      log('clearAllSummaries error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.clearAllSummaries error: $e');
       rethrow;
     }
   }
@@ -784,10 +686,6 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getPersonaPrompts(String personaId) async {
     try {
       final db = await database;
-      log(
-        'SELECT persona_prompts WHERE persona_id=$personaId',
-        name: 'DB_READ',
-      );
       final rows = await db.query(
         'persona_prompts',
         where: 'persona_id = ?',
@@ -796,8 +694,6 @@ class DatabaseHelper {
       );
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
-      log('getPersonaPrompts error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getPersonaPrompts error: $e');
       rethrow;
     }
   }
@@ -823,15 +719,12 @@ class DatabaseHelper {
         'office': office,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
-      log('UPSERT persona_prompts: $data', name: 'DB_WRITE');
       await db.insert(
         'persona_prompts',
         data,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
-      log('upsertPersonaPrompts error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.upsertPersonaPrompts error: $e');
       rethrow;
     }
   }
@@ -839,18 +732,12 @@ class DatabaseHelper {
   Future<void> deletePersonaPrompts(String personaId) async {
     try {
       final db = await database;
-      log(
-        'DELETE persona_prompts WHERE persona_id=$personaId',
-        name: 'DB_DELETE',
-      );
       await db.delete(
         'persona_prompts',
         where: 'persona_id = ?',
         whereArgs: [personaId],
       );
     } catch (e) {
-      log('deletePersonaPrompts error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deletePersonaPrompts error: $e');
       rethrow;
     }
   }
@@ -879,7 +766,6 @@ class DatabaseHelper {
         'image_path': imagePath,
       });
     } catch (e) {
-      // debugPrint('[DB] insertSceneGenerationLog error: $e');
     }
   }
 
@@ -909,11 +795,8 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getAllPersonas() async {
     try {
       final db = await database;
-      log('SELECT personas ORDER BY updated_at DESC', name: 'DB_READ');
       return await db.query('personas', orderBy: 'updated_at DESC');
     } catch (e) {
-      log('getAllPersonas error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getAllPersonas error: $e');
       rethrow;
     }
   }
@@ -922,7 +805,6 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getPersonaById(String id) async {
     try {
       final db = await database;
-      log('SELECT personas WHERE id=$id', name: 'DB_READ');
       final rows = await db.query(
         'personas',
         where: 'id = ?',
@@ -931,8 +813,6 @@ class DatabaseHelper {
       );
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
-      log('getPersonaById error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getPersonaById error: $e');
       rethrow;
     }
   }
@@ -955,11 +835,8 @@ class DatabaseHelper {
         'created_at': now,
         'updated_at': now,
       };
-      log('INSERT INTO personas: $data', name: 'DB_WRITE');
       await db.insert('personas', data);
     } catch (e) {
-      log('insertPersona error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.insertPersona error: $e');
       rethrow;
     }
   }
@@ -979,10 +856,6 @@ class DatabaseHelper {
         'age_verified': persona.ageVerified ? 1 : 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
-      log(
-        'UPDATE personas WHERE id=${persona.id}, data: $data',
-        name: 'DB_WRITE',
-      );
       await db.update(
         'personas',
         data,
@@ -990,8 +863,6 @@ class DatabaseHelper {
         whereArgs: [persona.id],
       );
     } catch (e) {
-      log('updatePersona error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.updatePersona error: $e');
       rethrow;
     }
   }
@@ -1010,7 +881,6 @@ class DatabaseHelper {
   Future<void> deletePersona(String id) async {
     try {
       final db = await database;
-      log('DELETE personas WHERE id=$id', name: 'DB_DELETE');
       await db.transaction((txn) async {
         final branches = await txn.query(
           'branches',
@@ -1039,7 +909,6 @@ class DatabaseHelper {
         await txn.delete('personas', where: 'id = ?', whereArgs: [id]);
       });
     } catch (e) {
-      log('deletePersona error: $e', name: 'DB_ERROR');
       rethrow;
     }
   }
@@ -1050,11 +919,8 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getAllMultiPresets() async {
     try {
       final db = await database;
-      log('SELECT multi_presets ORDER BY updated_at DESC', name: 'DB_READ');
       return await db.query('multi_presets', orderBy: 'updated_at DESC');
     } catch (e) {
-      log('getAllMultiPresets error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getAllMultiPresets error: $e');
       rethrow;
     }
   }
@@ -1063,7 +929,6 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getMultiPresetById(String id) async {
     try {
       final db = await database;
-      log('SELECT multi_presets WHERE id=$id', name: 'DB_READ');
       final rows = await db.query(
         'multi_presets',
         where: 'id = ?',
@@ -1072,8 +937,6 @@ class DatabaseHelper {
       );
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
-      log('getMultiPresetById error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.getMultiPresetById error: $e');
       rethrow;
     }
   }
@@ -1092,11 +955,9 @@ class DatabaseHelper {
         'created_at': now,
         'updated_at': now,
       };
-      log('INSERT INTO multi_presets: $data', name: 'DB_WRITE');
       await db.insert('multi_presets', data);
     } catch (e) {
-      log('insertMultiPreset error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.insertMultiPreset error: $e');
+
       rethrow;
     }
   }
@@ -1112,10 +973,7 @@ class DatabaseHelper {
         'behavior': preset['behavior'],
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       };
-      log(
-        'UPDATE multi_presets WHERE id=${preset['id']}, data: $data',
-        name: 'DB_WRITE',
-      );
+
       await db.update(
         'multi_presets',
         data,
@@ -1123,8 +981,7 @@ class DatabaseHelper {
         whereArgs: [preset['id']],
       );
     } catch (e) {
-      log('updateMultiPreset error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.updateMultiPreset error: $e');
+
       rethrow;
     }
   }
@@ -1133,11 +990,8 @@ class DatabaseHelper {
   Future<void> deleteMultiPreset(String id) async {
     try {
       final db = await database;
-      log('DELETE multi_presets WHERE id=$id', name: 'DB_DELETE');
       await db.delete('multi_presets', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-      log('deleteMultiPreset error: $e', name: 'DB_ERROR');
-      debugPrint('DatabaseHelper.deleteMultiPreset error: $e');
       rethrow;
     }
   }

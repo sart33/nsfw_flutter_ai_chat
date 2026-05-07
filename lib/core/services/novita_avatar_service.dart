@@ -1,9 +1,6 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
-
 import '../../domain/exceptions/app_exceptions.dart';
 
 /// Minimal Novita AI avatar generation service.
@@ -33,7 +30,6 @@ class NovitaAvatarService {
       }) async {
     final apiKey = await AppConfig.getNovitaApiKey();
     if (apiKey.isEmpty) throw NovitaApiException('api_key_not_set');
-    debugPrint('[NovitaAvatarService] prompt: $prompt');
     return _submit(prompt, saveDir, seed: seed, apiKey: apiKey);
   }
 
@@ -52,7 +48,6 @@ class NovitaAvatarService {
       }),
       data: {'seed': seed, 'size': '768*1024', 'prompt': prompt},
     );
-debugPrint('[NovitaAvatarService] submit response: ${submitResp.statusCode} ${submitResp.data}');
     if (submitResp.statusCode == 401) {
       throw NovitaApiException('api_key_invalid');
     }

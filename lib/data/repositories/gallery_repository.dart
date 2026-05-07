@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -93,7 +91,6 @@ class GalleryRepository {
 
       final prompt = (template['prompt_template'] as String)
           .replaceAll('{description}', effectiveDescription);
-      debugPrint('Generating with prompt: $prompt');
       final docsDir = await getApplicationDocumentsDirectory();
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
@@ -105,8 +102,7 @@ class GalleryRepository {
         tempPath: tempPath,
         templateId: selectedId,
       );
-    } on NetworkException catch (e) {
-      debugPrint('Network error during image generation: ${e.toString()}');
+    } on NetworkException catch (_) {
       rethrow;
     } on GalleryFullException {
       rethrow; // провайдер поймает и покажет galleryFull
@@ -156,7 +152,6 @@ class GalleryRepository {
 
       final prompt = (template['prompt_template'] as String)
           .replaceAll('{description}', effectiveDescription);
-      debugPrint('Generating with prompt: $prompt');
       final docsDir = await getApplicationDocumentsDirectory();
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();

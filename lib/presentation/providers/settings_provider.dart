@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -216,7 +214,6 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     try {
       await DatabaseHelper.instance.clearAllSummaries();
     } catch (e) {
-      debugPrint('Error clearing summaries: $e');
       rethrow;
     }
   }

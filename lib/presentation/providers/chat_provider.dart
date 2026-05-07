@@ -1,6 +1,4 @@
 import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
 import 'package:nsfw_chat/core/enums/quick_action_type.dart';
@@ -16,8 +14,6 @@ import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../debug/scene_test_data.dart';
 
 /// Chat state — persisted in SQLite per branch.
 class ChatState {
@@ -161,8 +157,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final prefs = await SharedPreferences.getInstance();
       final interval = prefs.getInt('settings_reminder_interval') ?? 10;
       await repo.setReminderCounter(interval - 1);
-      debugPrint('[Reminder] Counter set to ${interval - 1} on chat init');
-      debugPrint('[Reminder] Counter reset on chat init');
 
       final history = await repo.loadHistory(_branchId);
       if (history.isNotEmpty) {
@@ -193,7 +187,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
         );
       }
     } catch (e) {
-      debugPrint('[ChatNotifier] init error: $e');
       state = state.copyWith(
         error: e is AppException ? e : HistoryException(e.toString()),
       );
@@ -282,7 +275,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
         error: e,
       );
     } catch (e) {
-        debugPrint('[ChatNotifier] verifyPersonaIfNeeded error: $e');
       if (_disposed) return;
       state = state.copyWith(verifyingCount: state.verifyingCount - 1);
     }
@@ -392,13 +384,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
         error: e,
       );
     } on DeepSeekApiException catch (e) {
-      debugPrint('[ChatNotifier] DeepSeekApiException: $e');
       state = state.copyWith(
         isLoading: false,
         error: e,
       );
     } catch (e) {
-      debugPrint('[ChatNotifier] sendMessage error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e is AppException ? e : DeepSeekApiException(e.toString()),
@@ -489,7 +479,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
         error: e,
       );
     } catch (e) {
-      debugPrint('[ChatNotifier] sendMultiMessage error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e is AppException ? e : DeepSeekApiException(e.toString()),
@@ -626,7 +615,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
           error: e,
         );
       } catch (e) {
-        debugPrint('[ChatNotifier] regenLastAI (single) error: $e');
         state = state.copyWith(
           isLoading: false,
           error: e is AppException ? e : DeepSeekApiException(e.toString()),
@@ -667,7 +655,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
           error: e,
         );
       } catch (e) {
-        debugPrint('[ChatNotifier] regenLastAI (multi) error: $e');
         state = state.copyWith(
           isLoading: false,
           error: e is AppException ? e : DeepSeekApiException(e.toString()),
@@ -792,7 +779,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
         error: e,
       );
     } catch (e) {
-      debugPrint('[ChatNotifier] generateSceneImage error: $e');
 
       state = state.copyWith(
         isLoading: false,
@@ -800,46 +786,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
             ? e
             : NovitaApiException(e.toString()),
       );
-    }
-  }
-
-  Future<void> debugTestGenerateSceneImage({
-    required PersonaEntity persona,
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      await ChatImageService.instance.debugRunSceneBatch(
-        personaId: persona.id,
-        personaName: persona.name,
-        rawSnapshots: kTestScenes,
-        onImageGenerated: (localPath, index) {
-          final imgMsg = ChatMessageModel(
-            id: const Uuid().v4(),
-            personaId: persona.id,
-            senderName: persona.name,
-            content: '[BatchTest ${index + 1}]',
-            isUser: false,
-            imageLocalPath: localPath,
-          );
-          // await repo.saveMessage(imgMsg, _branchId);
-
-          state = state.copyWith(
-            messages: [...state.messages, imgMsg],
-          );
-        },
-      );
-    } on NetworkException catch (e) {
-      state = state.copyWith(error: e);
-    } on NovitaApiException catch (e) {
-      state = state.copyWith(error: e);
-    } catch (e) {
-      debugPrint('[ChatNotifier] debugTestGenerateSceneImage error: $e');
-      state = state.copyWith(
-        error: e is AppException ? e : NovitaApiException(e.toString()),
-      );
-    } finally {
-      state = state.copyWith(isLoading: false);
     }
   }
 

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -128,7 +127,6 @@ Return only this JSON, nothing else:
           .replaceAll('```json', '')
           .replaceAll('```', '')
           .trim();
-      debugPrint('[PromptCleanerService] prompts: $cleaned');
 
       final Map<String, dynamic> result =
           jsonDecode(cleaned) as Map<String, dynamic>;

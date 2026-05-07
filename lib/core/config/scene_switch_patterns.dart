@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class SceneSwitchPatterns {
   static Map<String, RegExp> _patterns = {};
 
   static Future<void> load() async {
-    debugPrint('load SceneSwitchPatterns');
     final json = await rootBundle.loadString(
       'assets/json/scene_switch_patterns.json',
     );
