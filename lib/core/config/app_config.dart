@@ -1,5 +1,5 @@
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../services/key_storage_service.dart';
 
 class AppConfig {
   AppConfig._();
@@ -42,19 +42,16 @@ class AppConfig {
   static const String addToMultiChatBehavior = 'Always start each character\'s turn with exactly: [Name]: No variations. No spaces before colon. No other prefixes.';
   // ── Secure storage API key access ─────────────────────────────────────
 
-  
+
   /// Reads DeepSeek API key from secure storage.
   /// Returns empty string if key is not set.
   static Future<String> getDeepSeekApiKey() async {
-    final storage = FlutterSecureStorage();
-    return await storage.read(key: 'deepseek_api_key') ?? '';
+    return await KeyStorageService.read('deepseek_api_key');
   }
 
-  /// Reads Novita AI API key from secure storage.
-  /// Returns empty string if key is not set.
+  /// Reads
   static Future<String> getNovitaApiKey() async {
-    final storage = FlutterSecureStorage();
-    return await storage.read(key: 'novita_api_key') ?? '';
+    return await KeyStorageService.read('novita_api_key');
   }
 
   // SECURITY NOTE: flutter_secure_storage uses Android Keystore / iOS Keychain.

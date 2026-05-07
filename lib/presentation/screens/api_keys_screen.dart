@@ -1,10 +1,11 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nsfw_chat/core/config/app_theme.dart';
-import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:nsfw_chat/core/config/app_theme.dart';
+import 'package:nsfw_chat/core/extensions/context_extensions.dart';
+
+import '../../core/services/key_storage_service.dart';
 import '../../core/utils/app_snack_bar.dart';
 import '../widgets/custom_app_bar_widget.dart';
 
@@ -17,7 +18,6 @@ class ApiKeysScreen extends StatefulWidget {
 }
 
 class _ApiKeysScreenState extends State<ApiKeysScreen> {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final TextEditingController _deepSeekController = TextEditingController();
   final TextEditingController _novitaController = TextEditingController();
   bool _deepSeekObscure = true;
@@ -48,8 +48,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
   Future<void> _loadKeys() async {
     try {
-      final deepSeekKey = await _storage.read(key: 'deepseek_api_key') ?? '';
-      final novitaKey = await _storage.read(key: 'novita_api_key') ?? '';
+      final deepSeekKey = await KeyStorageService.read('deepseek_api_key');
+      final novitaKey = await KeyStorageService.read('novita_api_key');
       setState(() {
         _deepSeekSaved = deepSeekKey.isNotEmpty;
         _novitaSaved = novitaKey.isNotEmpty;
@@ -71,7 +71,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   Future<void> _saveDeepSeekKey() async {
     final trimmed = _deepSeekController.text.trim();
     if (trimmed.isEmpty) return;
-    await _storage.write(key: 'deepseek_api_key', value: trimmed);
+    await KeyStorageService.write('deepseek_api_key', trimmed);
     setState(() {
       _deepSeekSaved = true;
       _deepSeekController.text = _maskKey(trimmed);
@@ -87,7 +87,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       content: context.l10n.chatWillStopWorking,
     );
     if (!confirmed) return;
-    await _storage.delete(key: 'deepseek_api_key');
+    await KeyStorageService.delete('deepseek_api_key');
     setState(() {
       _deepSeekSaved = false;
       _deepSeekController.clear();
@@ -99,7 +99,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   Future<void> _saveNovitaKey() async {
     final trimmed = _novitaController.text.trim();
     if (trimmed.isEmpty) return;
-    await _storage.write(key: 'novita_api_key', value: trimmed);
+    await KeyStorageService.write('novita_api_key', trimmed);
     setState(() {
       _novitaSaved = true;
       _novitaController.text = _maskKey(trimmed);
@@ -115,7 +115,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       content: context.l10n.imageGenerationWillStop,
     );
     if (!confirmed) return;
-    await _storage.delete(key: 'novita_api_key');
+    await KeyStorageService.delete('novita_api_key');
     setState(() {
       _novitaSaved = false;
       _novitaController.clear();

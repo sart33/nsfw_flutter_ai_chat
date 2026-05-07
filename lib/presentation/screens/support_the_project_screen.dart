@@ -171,6 +171,7 @@ class _LightningAmountButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMacOS  = Platform.isMacOS;
     return GestureDetector(
       onTap: isDisabled ? null : onTap,
       child: AnimatedContainer(
@@ -203,7 +204,9 @@ class _LightningAmountButton extends StatelessWidget {
               ),
               const SizedBox(width: 28),
             ] else ...[
-              Image.asset('assets/icons/blink_all.webp', height: 22),
+              (isMacOS)
+                  ? Image.asset('assets/icons/blink_all.webp', height: 20)
+                  : Image.asset('assets/icons/blink_all.webp', height: 22),
               const SizedBox(width: 10),
             ],
             Text(
@@ -213,7 +216,7 @@ class _LightningAmountButton extends StatelessWidget {
                     isDisabled
                         ? AppTheme.background.withValues(alpha: 0.4)
                         : AppTheme.background,
-                fontSize: 16,
+                fontSize: isMacOS ? 15 : 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
