@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
 class ChatImageFullscreenScreen extends StatefulWidget {
-  final List<String> imagePaths; // local file paths, ordered by message timestamp
+  final List<ImageProvider> imageProviders;
   final int initialIndex;        // index of the tapped image
 
   const ChatImageFullscreenScreen({
     super.key,
-    required this.imagePaths,
+    required this.imageProviders,
     required this.initialIndex,
 
   });
@@ -23,13 +23,11 @@ class _ChatImageFullscreenScreenState
     extends State<ChatImageFullscreenScreen> {
   late PageController _pageCtrl;
   late int _currentIndex;
-  late List<String> _imagePaths; // local file paths, ordered by message timestamp
 
 
   @override
   void initState() {
     super.initState();
-    _imagePaths = widget.imagePaths;
     _currentIndex = widget.initialIndex;
     _pageCtrl = PageController(initialPage: _currentIndex);
   }
@@ -43,16 +41,14 @@ class _ChatImageFullscreenScreenState
 
   @override
   Widget build(BuildContext context) {
-
-
-    if (_imagePaths.isEmpty) {
+    if (widget.imageProviders.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pop(context);
       });
       return const SizedBox.shrink();
     }
 
-    final safeIdx = _currentIndex.clamp(0, _imagePaths.length - 1);
+    final safeIdx = _currentIndex.clamp(0, widget.imageProviders.length - 1);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -61,11 +57,11 @@ class _ChatImageFullscreenScreenState
           // PageView with PhotoView
           PageView.builder(
             controller: _pageCtrl,
-            itemCount: _imagePaths.length,
+            itemCount: widget.imageProviders.length,
             onPageChanged: (i) => setState(() => _currentIndex = i),
             itemBuilder: (_, index) {
               return PhotoView(
-                imageProvider: FileImage(File(_imagePaths[index])),
+                imageProvider: widget.imageProviders[index],
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 2.5,
                 backgroundDecoration:
@@ -109,7 +105,7 @@ class _ChatImageFullscreenScreenState
               width: 80,
               child: GestureDetector(
                 onTap: () {
-                  if (_currentIndex < _imagePaths.length - 1) {
+                  if (_currentIndex < widget.imageProviders.length - 1) {
                     _pageCtrl.animateToPage(
                       _currentIndex + 1,
                       duration: const Duration(milliseconds: 300),
@@ -119,7 +115,7 @@ class _ChatImageFullscreenScreenState
                 },
                 child: Container(
                   color: Colors.transparent,
-                  child: _currentIndex < _imagePaths.length - 1
+                  child: _currentIndex < widget.imageProviders.length - 1
                       ? const Center(
                       child: Icon(Icons.chevron_right,
                           color: Colors.white70, size: 48))
@@ -142,7 +138,7 @@ class _ChatImageFullscreenScreenState
                     ),
                     const Spacer(),
                     Text(
-                      '${safeIdx + 1} / ${_imagePaths.length}',
+                      '${safeIdx + 1} / ${widget.imageProviders.length}',
                       style: const TextStyle(
                           color: Colors.white, fontSize: 14),
                     ),

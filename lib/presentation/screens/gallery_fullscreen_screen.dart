@@ -19,6 +19,8 @@ class GalleryFullscreenScreen extends ConsumerStatefulWidget {
   final String personaDescription;
   final String personaId;
   final String galleryMode;
+  final String? avatarPath;
+
 
   const GalleryFullscreenScreen({
     super.key,
@@ -27,6 +29,7 @@ class GalleryFullscreenScreen extends ConsumerStatefulWidget {
     required this.personaDescription,
     required this.personaId,
     required this.galleryMode,
+    this.avatarPath,
   });
 
   @override
@@ -89,7 +92,17 @@ class _GalleryFullscreenScreenState
         ref.read(galleryProvider(galleryKey).notifier).clearError();
       }
     });
-    final imgs = state.images;
+    final imgs = [
+      if (widget.avatarPath != null)
+        GalleryImageEntity(
+          id: 'avatar_${widget.personaId}',
+          personaId: widget.personaId,
+          templateId: -1,
+          localPath: widget.avatarPath!,
+          generatedAt: DateTime(0),
+        ),
+      ...state.images,
+    ];
 
     if (imgs.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -111,8 +124,12 @@ class _GalleryFullscreenScreenState
             onPageChanged: (i) => setState(() => _currentIndex = i),
             itemBuilder: (_, index) {
               final img = imgs[index];
+              final isAsset = img.templateId == -1 &&
+                  img.localPath.startsWith('assets/');
               return PhotoView(
-                imageProvider: FileImage(File(img.localPath)),
+                imageProvider: isAsset
+                    ? AssetImage(img.localPath) as ImageProvider
+                    : FileImage(File(img.localPath)),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 2.5,
                 backgroundDecoration:
@@ -216,6 +233,7 @@ class _GalleryFullscreenScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+    if (imgs[safeIdx].templateId != -1) ...[
                     _TemplateNameLabel(
                         templateId: imgs[safeIdx].templateId),
                     const SizedBox(height: 8),
@@ -250,6 +268,7 @@ class _GalleryFullscreenScreenState
                           ),
                       ],
                     ),
+                  ],
                   ],
                 ),
               ),

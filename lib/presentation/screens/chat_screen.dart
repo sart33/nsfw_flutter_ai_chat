@@ -162,6 +162,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   }
 
 
+
   @override
   void didPopNext() {
     ref.read(chatProvider(widget.branchId).notifier).resetVerification();
@@ -1546,30 +1547,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
 
   void _openGalleryFromAvatar(BuildContext context) {
     if (_singlePersona == null) return;
+    final p = _singlePersona!;
     final gs = ref.read(
-      galleryProvider(
-        GalleryKey(_singlePersona!.id, _singlePersona!.galleryMode),
-      ),
+      galleryProvider(GalleryKey(p.id, p.galleryMode)),
     );
-    if (gs.images.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => GalleryFullscreenScreen(
-                images: gs.images,
-                initialIndex: 0,
-                personaDescription: _singlePersona!.description,
-                personaId: _singlePersona!.id,
-                galleryMode: _singlePersona!.galleryMode,
-              ),
-        ),
-      );
-    } else {
+
+    final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
+    final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
+    // Если нет ни аватарки ни галереи — ничего не делаем
+    if (!hasFile && !hasAsset && gs.images.isEmpty) {
       if (!_isDesktopPlatform) {
         Fluttertoast.showToast(msg: context.l10n.galleryEmpty);
       }
+      return;
     }
+
+
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GalleryFullscreenScreen(
+          images: gs.images,
+          initialIndex: 0,
+          personaDescription: p.description,
+          personaId: p.id,
+          galleryMode: p.galleryMode,
+          avatarPath: hasFile ? p.avatarPath : (hasAsset ? p.avatarAssetPath : null),
+        ),
+      ),
+    );
   }
 
   void _openGalleryFromMultiAvatar(BuildContext context, String senderName) {
@@ -1579,18 +1586,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     final gs = ref.read(
       galleryProvider(GalleryKey(persona.id, persona.galleryMode)),
     );
-    if (gs.images.isNotEmpty) {
+
+    final hasFile = persona.avatarPath != null && File(persona.avatarPath!).existsSync();
+    final hasAsset = persona.avatarAssetPath != null && persona.avatarAssetPath!.isNotEmpty;
+
+
+    if (gs.images.isNotEmpty || hasFile || hasAsset) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder:
-              (_) => GalleryFullscreenScreen(
-                images: gs.images,
-                initialIndex: 0,
-                personaDescription: persona.description,
-                personaId: persona.id,
-                galleryMode: persona.galleryMode,
-              ),
+          builder: (_) => GalleryFullscreenScreen(
+            images: gs.images,
+            initialIndex: 0,
+            personaDescription: persona.description,
+            personaId: persona.id,
+            galleryMode: persona.galleryMode,
+            avatarPath: hasFile ? persona.avatarPath : (hasAsset ? persona.avatarAssetPath : null),
+          ),
         ),
       );
     } else {
@@ -1612,7 +1624,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
       context,
       MaterialPageRoute(
         builder: (_) => ChatImageFullscreenScreen(
-          imagePaths: imagePaths,
+          imageProviders: imagePaths
+          .map((p) => FileImage(File(p)) as ImageProvider)
+          .toList(),
           initialIndex: initialIndex < 0 ? 0 : initialIndex,
         ),
       ),

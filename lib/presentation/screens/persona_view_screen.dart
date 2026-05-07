@@ -16,6 +16,7 @@ import 'package:nsfw_chat/presentation/screens/gallery_fullscreen_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/gallery_thumbnail_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/pending_image_widget.dart';
+import 'package:photo_view/photo_view.dart';
 
 import '../../core/utils/app_snack_bar.dart';
 
@@ -322,31 +323,55 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  hasFile
-                      ? Image.file(
-                    File(p.avatarPath!),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  )
-                      : hasAsset
-                      ? Image.asset(
-                    p.avatarAssetPath!,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  )
-                      : Container(
-                    color: AppTheme.cardBg,
-                    child: Center(
-                      child: Text(
-                        _initials(p.name),
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
+                  if (hasFile || hasAsset)
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => Scaffold(
+                            backgroundColor: Colors.black,
+                            appBar: AppBar(
+                              backgroundColor: Colors.transparent,
+                              elevation: 0,
+                              leading: const BackButton(color: Colors.white),
+                            ),
+                            body: PhotoView(
+                              imageProvider: hasFile
+                                  ? FileImage(File(p.avatarPath!)) as ImageProvider
+                                  : AssetImage(p.avatarAssetPath!),
+                              minScale: PhotoViewComputedScale.contained,
+                              maxScale: PhotoViewComputedScale.covered * 4.0,
+                              backgroundDecoration: const BoxDecoration(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: hasFile
+                          ? Image.file(
+                        File(p.avatarPath!),
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                          : Image.asset(
+                        p.avatarAssetPath!,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      ),
+                    )
+                  else
+                    Container(
+                      color: AppTheme.cardBg,
+                      child: Center(
+                        child: Text(
+                          _initials(p.name),
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                   if (!p.ageVerified)
                     Positioned(
@@ -528,17 +553,40 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (hasFile)
-            Image.file(
-              File(p.avatarPath!),
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-            )
-          else if (hasAsset)
-            Image.asset(
-              p.avatarAssetPath!,
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
+          if (hasFile || hasAsset)
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      leading: const BackButton(color: Colors.white),
+                    ),
+                    body: PhotoView(
+                      imageProvider: hasFile
+                          ? FileImage(File(p.avatarPath!)) as ImageProvider
+                          : AssetImage(p.avatarAssetPath!),
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.covered * 4.0,
+                      backgroundDecoration: const BoxDecoration(color: Colors.black),
+                    ),
+                  ),
+                ),
+              ),
+              child: hasFile
+                  ? Image.file(
+                File(p.avatarPath!),
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              )
+                  : Image.asset(
+                p.avatarAssetPath!,
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              ),
             )
           else
             Container(
