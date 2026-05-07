@@ -512,6 +512,7 @@
   "backupImportConfirmMessage": "Karakter yang sudah ada dengan ID yang sama akan diperbarui. Lanjutkan?",
   "backupErrorInvalidFile": "Format file tidak valid",
   "backupErrorImportFailed": "Gagal mengimpor data",
+  "backupErrorExportFailed": "Gagal mengekspor data",
   "storagePermissionExport": "Izinkan akses penyimpanan untuk mengekspor ke folder Download",
 
   "en": "Inggris",

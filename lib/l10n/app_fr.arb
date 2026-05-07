@@ -70,7 +70,7 @@
 
   "backupErrorInvalidFile": "Format de fichier invalide",
   "backupErrorImportFailed": "Échec de l’importation des données",
-
+  "backupErrorExportFailed": "Impossible d’exporter les données",
   "storagePermissionExport": "Autoriser l’accès au stockage pour exporter vers le dossier Download",
   "en": "Anglais",
   "ru": "Russe",

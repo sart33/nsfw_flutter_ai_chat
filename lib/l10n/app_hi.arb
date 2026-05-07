@@ -455,6 +455,7 @@
   "backupImportConfirmMessage": "Same ID वाले existing characters update किए जाएंगे. Continue?",
   "backupErrorInvalidFile": "Invalid file format",
   "backupErrorImportFailed": "Data import नहीं हो सका",
+  "backupErrorExportFailed": "Data export नहीं हो सका",
   "storagePermissionExport": "Download folder में export करने के लिए storage access की अनुमति दें",
   "en": "अंग्रेज़ी",
   "ru": "रूसी",

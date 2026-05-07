@@ -429,6 +429,7 @@
   "backupImportConfirmMessage": "Los personajes existentes con el mismo ID serán actualizados. ¿Continuar?",
   "backupErrorInvalidFile": "Formato de archivo inválido",
   "backupErrorImportFailed": "No se pudieron importar los datos",
+  "backupErrorExportFailed": "No se pudieron exportar los datos",
   "storagePermissionExport": "Permite el acceso al almacenamiento para exportar a la carpeta Download",
   "en": "Inglés",
   "ru": "Ruso",

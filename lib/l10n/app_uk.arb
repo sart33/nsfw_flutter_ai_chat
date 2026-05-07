@@ -432,6 +432,7 @@
   "backupImportConfirmMessage": "Існуючі персонажі з однаковим ID будуть оновлені. Продовжити?",
   "backupErrorInvalidFile": "Невірний формат файлу",
   "backupErrorImportFailed": "Не вдалося імпортувати дані",
+  "backupErrorExportFailed": "Не вдалося експортувати дані",
   "storagePermissionExport": "Надайте доступ до сховища для експорту в папку Download",
   "en": "Англійська",
   "ru": "Російська",

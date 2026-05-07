@@ -415,6 +415,7 @@
   "backupImportConfirmMessage": "Existing characters with matching IDs will be updated. Continue?",
   "backupErrorInvalidFile": "Invalid file format",
   "backupErrorImportFailed": "Failed to import data",
+  "backupErrorExportFailed": "Failed to export data",
   "storagePermissionExport": "Allow storage access to export to the Download folder",
   "en": "English",
   "ru": "Russian",

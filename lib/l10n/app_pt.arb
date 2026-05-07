@@ -424,6 +424,7 @@
   "backupImportConfirmMessage": "Personagens existentes com o mesmo ID serão atualizados. Continuar?",
   "backupErrorInvalidFile": "Formato de arquivo inválido",
   "backupErrorImportFailed": "Falha ao importar dados",
+  "backupErrorExportFailed": "Falha ao exportar dados",
   "storagePermissionExport": "Permita o acesso ao armazenamento para exportar para a pasta Download",
   "en": "Inglês",
   "ru": "Russo",

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -122,28 +121,30 @@ class BackupService {
 
       String savePath;
       if (Platform.isAndroid) {
-        final info = await DeviceInfoPlugin().androidInfo;
-        final sdkInt = info.version.sdkInt;
-
-        if (sdkInt <= 29) {
-          const channel = MethodChannel('app/permissions');
-          final granted = await channel.invokeMethod<bool>('requestStorage') ?? false;
-          if (!granted) {
-            if (context.mounted) {
-              AppSnackBar.show(context.l10n.storagePermissionExport, isError: true);
-            }
-            return;
-          }
+        await _withLoadingDialog(
+          context,
+          context.l10n.backupExporting,
+              () async {
+            const channel = MethodChannel('app/permissions');
+            await channel.invokeMethod<String>('saveFileToDownloads', {
+              'fileName': suggestedName,
+              'bytes': zipBytes,
+            });
+          },
+        );
+        if (context.mounted) {
+          AppSnackBar.showSuccess(context.l10n.backupExportDownloadDirSuccess);
         }
-        savePath = '/storage/emulated/0/Download/$suggestedName';
-      } else {
+        return; // <-- выходим, не падаем в общий блок
+      }
+
         final result = await FilePicker.platform.saveFile(
           dialogTitle: context.l10n.backupExport,
           fileName: suggestedName,
         );
         if (result == null) return;
         savePath = result;
-      }
+
       await _withLoadingDialog(
         context,
         context.l10n.backupExporting,
@@ -154,11 +155,10 @@ class BackupService {
       if (context.mounted) {
         AppSnackBar.showSuccess(context.l10n.backupExportSuccess);
       }
-    } catch (e, stack) {
+    } catch (e) {
       if (context.mounted) {
-        debugPrint('[Export] ERROR: $e');
-        debugPrint('[Export] STACK: $stack');
-        AppSnackBar.show(context.l10n.backupErrorImportFailed, isError: true);
+        // AppSnackBar.show(e.toString());
+        AppSnackBar.show(context.l10n.backupErrorExportFailed, isError: true);
       }
     }
   }
@@ -337,9 +337,8 @@ class BackupService {
           AppSnackBar.showSuccess(context.l10n.backupImportSuccess);
         }
       }
-    } catch (e, stack) {
-      debugPrint('BackupService ERROR: $e');
-      debugPrint('BackupService STACK: $stack');
+    } catch (e) {
+
       if (context.mounted) {
         if (e.toString().contains('invalid_file')) {
           AppSnackBar.show(context.l10n.backupErrorInvalidFile, isError: true);
