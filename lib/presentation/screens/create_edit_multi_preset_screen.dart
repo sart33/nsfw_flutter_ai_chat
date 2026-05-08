@@ -439,7 +439,7 @@ class _CreateEditMultiPresetScreenState
 
 // ── Desktop Persona Carousel ──────────────────────────────────────────────────
 
-class _DesktopPersonaCarousel extends StatelessWidget {
+class _DesktopPersonaCarousel extends StatefulWidget {
   final List<PersonaEntity> personas;
   final Set<String> selectedIds;
   final void Function(String id) onToggle;
@@ -453,29 +453,172 @@ class _DesktopPersonaCarousel extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 320,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        itemCount: personas.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final p = personas[index];
-          final isSelected = selectedIds.contains(p.id);
-          return _DesktopPersonaCard(
-            persona: p,
-            isSelected: isSelected,
-            onToggle: () => onToggle(p.id),
-            onView: () => onView(p),
-          );
-        },
+  State<_DesktopPersonaCarousel> createState() =>
+      _DesktopPersonaCarouselState();
+}
+
+class _DesktopPersonaCarouselState extends State<_DesktopPersonaCarousel> {
+  late final ScrollController _scrollCtrl;
+  bool _canScrollLeft = false;
+  bool _canScrollRight = false;
+
+  static const double _cardWidth = 170;
+  static const double _cardGap = 12;
+  static const double _scrollStep = _cardWidth + _cardGap;
+  // Высота карточек без скроллбара — скроллбар идёт снизу отдельно
+  static const double _cardHeight = 330;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl = ScrollController();
+    _scrollCtrl.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.removeListener(_onScroll);
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollCtrl.hasClients) return;
+    final pos = _scrollCtrl.position;
+    final left = pos.pixels > 0;
+    final right = pos.pixels < pos.maxScrollExtent;
+    if (left != _canScrollLeft || right != _canScrollRight) {
+      setState(() {
+        _canScrollLeft = left;
+        _canScrollRight = right;
+      });
+    }
+  }
+
+  void _scrollBy(double delta) {
+    _scrollCtrl.animateTo(
+      (_scrollCtrl.offset + delta).clamp(
+        0.0,
+        _scrollCtrl.position.maxScrollExtent,
       ),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // ── Карточки + стрелки поверху ─────────────────────
+        SizedBox(
+          height: _cardHeight,
+          child: Stack(
+            children: [
+              // Список
+              Scrollbar(
+                controller: _scrollCtrl,
+                thumbVisibility: false, // скроллбар внизу не нужен — есть стрелки
+                child: ListView.separated(
+                  controller: _scrollCtrl,
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero,
+                  itemCount: widget.personas.length,
+                  separatorBuilder: (_, __) =>
+                  const SizedBox(width: _cardGap),
+                  itemBuilder: (context, index) {
+                    final p = widget.personas[index];
+                    final isSelected = widget.selectedIds.contains(p.id);
+                    return SizedBox(
+                      width: _cardWidth,
+                      child: _DesktopPersonaCard(
+                        persona: p,
+                        isSelected: isSelected,
+                        onToggle: () => widget.onToggle(p.id),
+                        onView: () => widget.onView(p),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Левая стрелка поверх — прижата к левому краю изображения
+              Positioned(
+                left: 6,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: _OverlayArrow(
+                    icon: Icons.chevron_left_rounded,
+                    visible: _canScrollLeft,
+                    onTap: () => _scrollBy(-_scrollStep),
+                  ),
+                ),
+              ),
+
+              // Правая стрелка поверх — прижата к правому краю
+              Positioned(
+                right: 6,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: _OverlayArrow(
+                    icon: Icons.chevron_right_rounded,
+                    visible: _canScrollRight,
+                    onTap: () => _scrollBy(_scrollStep),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
+// ── Стрелка-оверлей поверх карточек ─────────────────────────────────────────
+
+class _OverlayArrow extends StatelessWidget {
+  final IconData icon;
+  final bool visible;
+  final VoidCallback onTap;
+
+  const _OverlayArrow({
+    required this.icon,
+    required this.visible,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: visible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: IgnorePointer(
+        ignoring: !visible,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.cardBg.withValues(alpha: 0.85),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.cardBorder, width: 1),
+            ),
+            child: Icon(
+              icon,
+              color: AppTheme.textPrimary,
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 class _DesktopPersonaCard extends StatelessWidget {
   final PersonaEntity persona;
   final bool isSelected;
@@ -493,7 +636,7 @@ class _DesktopPersonaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: 180,
+      width: 170,
       decoration: BoxDecoration(
         color: AppTheme.cardBg,
         borderRadius: BorderRadius.circular(16),
@@ -504,7 +647,7 @@ class _DesktopPersonaCard extends StatelessWidget {
         boxShadow: isSelected
             ? [
           BoxShadow(
-            color: AppTheme.accentVivid.withOpacity(0.25),
+            color: AppTheme.accentVivid.withValues(alpha: 0.25),
             blurRadius: 12,
             spreadRadius: 1,
           )
