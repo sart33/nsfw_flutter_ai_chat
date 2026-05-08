@@ -432,7 +432,7 @@
   "id": "Індонезійська",
   "fr": "Французька",
 
-  "supportChatMessageFirst" : "Якщо діалог зайшов — можеш підтримати розробку",
+  "supportChatMessageFirst": "Якщо вам подобається спілкування — ви можете підтримати розробку",
   "supportChatMessageSecond" : "Підтримка допомагає розвивати застосунок",
   "supportChatMessageSupport" : "Підтримати"
 }

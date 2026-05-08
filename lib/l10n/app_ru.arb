@@ -435,7 +435,7 @@
   "id": "Индонезийский",
   "fr": "Французский",
 
-  "supportChatMessageFirst" : "Если диалог зашёл — можешь поддержать разработку",
+  "supportChatMessageFirst": "Если вам нравится общение — вы можете поддержать разработку",
   "supportChatMessageSecond" : "Поддержка помогает развивать приложение",
   "supportChatMessageSupport" : "Поддержать"
 

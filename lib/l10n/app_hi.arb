@@ -479,7 +479,7 @@
   "personaDescriptionConflictHigh": "Character adult (18+) होना चाहिए। Description में prohibited indicators हैं।",
   "personaDescriptionConflictMedium": "Description age requirements को पूरा नहीं करता। कृपया edit करें।",
 
-  "supportChatMessageFirst": "अगर dialog आपको अच्छा लग रहा है — आप development को support कर सकते हैं",
+  "supportChatMessageFirst": "अगर आपको बातचीत पसंद आ रही है, तो आप development support कर सकते हैं",
   "supportChatMessageSecond": "Support से app का development आगे बढ़ता है",
   "supportChatMessageSupport": "Support"
 

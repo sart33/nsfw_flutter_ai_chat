@@ -430,7 +430,7 @@
   "id": "Indonesio",
   "fr": "Francés",
 
-  "supportChatMessageFirst" : "Si te gustó el chat — puedes apoyar el desarrollo",
+  "supportChatMessageFirst": "Si está disfrutando la conversación, puede apoyar el desarrollo",
   "supportChatMessageSecond" : "El apoyo ayuda a mejorar la app",
   "supportChatMessageSupport" : "Apoyar"
 }

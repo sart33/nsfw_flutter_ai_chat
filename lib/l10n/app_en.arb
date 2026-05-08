@@ -421,7 +421,7 @@
   "id": "Indonesian",
   "fr": "French",
 
-  "supportChatMessageFirst" : "If you’re enjoying the chat — you can support development",
+  "supportChatMessageFirst": "If you're enjoying the conversation, you can support development",
   "supportChatMessageSecond" : "Support helps the app grow",
   "supportChatMessageSupport" : "Support"
 }

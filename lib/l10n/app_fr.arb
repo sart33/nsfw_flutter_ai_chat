@@ -433,7 +433,7 @@
   "id": "Indonésien",
   "fr": "Français",
 
-  "supportChatMessageFirst" : "Si la discussion te plaît — tu peux soutenir le développement",
+  "supportChatMessageFirst": "Si la conversation vous plaît, vous pouvez soutenir le développement",
   "supportChatMessageSecond" : "Le soutien aide à faire évoluer l’application",
   "supportChatMessageSupport" : "Soutenir"
 }
