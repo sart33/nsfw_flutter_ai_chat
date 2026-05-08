@@ -1439,7 +1439,7 @@ class _CreateEditPersonaScreenState
           // ageVerified остаётся false, идём дальше
         }
        } else {
-        AppSnackBar.show(l10n.personaNotValidated);
+        AppSnackBar.show(l10n.characterSavedNotVerifiedGeneric);
         // ageVerified = false, идём дальше
       }
       if (!mounted) return;

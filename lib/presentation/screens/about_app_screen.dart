@@ -843,6 +843,7 @@ class _AboutAppContentState extends State<AboutAppContent> {
           context.l10n.costImage,
         ]),
         _buildParagraph(context.l10n.costAverage),
+        _buildParagraph(context.l10n.costNoHiddenLimits),
       ],
     );
   }
