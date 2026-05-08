@@ -121,6 +121,8 @@
       "size": {}
     }
   },
+
+
   "personalityReminder": "Character personality reminder",
   "reminderNote": "Every N messages adds a reminder to the prompt (not saved in history)",
   "yamlProfile": "YAML character profile",
@@ -173,26 +175,34 @@
   "errorConnectionFailed": "Connection error. Check your internet.",
   "errorImageGeneration": "Image generation failed. Please try again.",
 
+  "mainTitle": "Uncensored AI Roleplay",
+  "mainSubtitle": "Create characters and any scenarios. Generate scenes directly in chat.",
+  "mainText": "• Fully local\n• No subscription\n• Very low cost",
+
   "aboutAppTitle": "About the App",
   "aboutTitle": "🧠 About the App",
-  "aboutAppName": "Uncensored AI Roleplay Chat",
+  "aboutNoCensorshipTitle": "\uD83D\uDD13 No Censorship",
+  "aboutNoCensorshipText": "You can discuss any topics, in any form and style — with no restrictions or limits.",
+  "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them.",
+
   "aboutStorage": "All chats, characters, images and API keys are stored only on your device.",
   "imagesWarningLabel": "⚠️ Images:",
   "imagesHiddenFromGallery": "Not visible in the Android gallery",
   "imagesVisibleInApp": "Accessible only inside the app",
   "costTitle": "💰 Cost",
-  "costDescription": "The app has no subscription. You pay only for API usage:",
+  "costDescription": "No subscriptions. You pay only for API usage:",
   "costChat": "Chat: ~0.5–1.5 cents / hour",
   "costImage": "Images: ~0.5 cents / generation",
   "costAverage": "Average: ~$2–3 per month",
+  "costNoHiddenLimits": "There are no hidden limits — message length, session duration and response style are all up to you.",
   "howToStartTitle": "🚀 How to Start",
   "howToStart1": "Enter your DeepSeek API key (required)",
-  "howToStart2": "(Optional) Add Novita AI key",
+  "howToStart2": "(Optional) Add a Novita AI key for image generation",
   "howToStart3": "Choose a character or create your own",
   "howToStart4": "Start chatting or try the multi-chat",
   "privacyTitle": "🔒 Privacy",
   "privacyNoDataToDev": "Your data is never sent to the developer",
-  "privacyDirectApi": "Requests go directly to DeepSeek / Novita AI",
+  "privacyDirectApi": "API requests go directly to DeepSeek / Novita AI",
   "privacyNoAccess": "The developer has zero access to your chats, characters or images",
   "privacyImagesHidden": "Generated images are not visible in the Android gallery — only inside the app",
   "supportTitle": "💬 Support",
@@ -226,19 +236,7 @@
   "erotic": "Erotic",
   "nsfw": "NSFW",
   "office": "Office",
-  "casual": "Casual",
-  "fantasy": "Fantasy",
-  "sciFi": "Sci-fi",
-  "horror": "Horror",
-  "categories": "Categories",
-  "categoryRomantic": "Romantic: sweet, tender, shy characters and stories",
-  "categoryErotic": "Erotic: explicit, detailed, passionate content",
-  "categoryNSFW": "NSFW: bold, dirty, aggressive characters and stories",
-  "categoryOffice": "Office: workplace scenarios, boss-employee dynamics",
-  "categoryCasual": "Casual: everyday situations, friendly interactions",
-  "categoryFantasy": "Fantasy: magical worlds, mythical creatures, epic adventures",
-  "categorySciFi": "Sci-fi: futuristic settings, advanced technology, space exploration",
-  "categoryHorror": "Horror: dark, scary, suspenseful stories and characters",
+
   "photo": "Photo",
   "copy": "Copy",
   "enterNameTwo": "Enter name",
@@ -277,13 +275,8 @@
   "days": "days",
   "projectSupport": "Project support",
   "appSettingsDescription": "Pricing, privacy, and app settings",
-  "mainTitle": "Uncensored AI Roleplay",
-  "mainSubtitle": "Create characters and any scenarios. Generate scenes directly in chat.",
-  "mainText": "• Fully local\n• No subscription\n• Very low cost",
-  "aboutNoCensorshipTitle": "\uD83D\uDD13 No Censorship",
-  "aboutNoCensorshipText": "You can discuss any topics, in any form and style — with no restrictions or limits.",
-  "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them.",
-  "ageGateTitle": "Adult Content",
+
+    "ageGateTitle": "Adult Content",
   "ageGateCardTitle": "You must be 18 or older",
   "ageGateCardBody": "This app contains explicit content intended for adults only. By continuing, you confirm that you are at least 18 years of age and that viewing such content is permitted in your country.",
   "ageGateConfirm": "I'm 18 or older",
@@ -296,6 +289,8 @@
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
   "collapsePanel": "Collapse",
   "expandPanel": "Expand",
+
+
 
   "chooseAvatarStyle": "Choose avatar style",
   "avatarStyleEveningDress": "Evening Elegance",
@@ -318,8 +313,7 @@
 
 
   "walletAddressCopied": "Wallet address copied to clipboard",
-  "supportBoostyDescription" : "Boosty is a platform for supporting creators. If you use it, you can support the project there.",
-
+  "supportTonTitle": "TON",
   "supportLightningError": "Failed to create invoice. Try again.",
   "supportLightningCopied": "Invoice copied",
   "supportLightningScanOrOpen": "Scan QR or open in your Lightning wallet",
@@ -334,7 +328,7 @@
   },
   "supportLightningNoWallet": "No Lightning wallet found",
   "viaLightning": "via Lightning",
-
+  "sendTon": "Send TON",
 
   "supportKofiTitle": "Ko-fi",
 
@@ -399,6 +393,7 @@
   "characterSavedNotVerifiedNoBalance": "Character saved, but not verified: insufficient DeepSeek balance. Please top up your account.",
   "characterSavedNotVerifiedDeepSeekUnavailable": "Character saved, but not verified: DeepSeek service is temporarily unavailable. Please try again later.",
   "characterSavedNotVerifiedNetworkError": "Character saved, but not verified: network error occurred. Please check your connection and try again.",
+  "characterSavedNotVerifiedGeneric": "Character saved, but not verified: verification error. Please try again later.",
   "characterSavedNotVerifiedContinueHint": "You can continue once the issue is resolved.",
   "backupExport": "Export data",
   "backupExportDesc": "Save characters and chat history",

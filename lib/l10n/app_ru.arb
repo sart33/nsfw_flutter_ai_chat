@@ -183,27 +183,31 @@
 
   "aboutAppTitle": "О приложении",
   "aboutTitle": "🧠 О приложении",
-  "aboutAppName": "Uncensored AI Roleplay Chat",
   "aboutStorage": "Все чаты, персонажи, изображения и API-ключи хранятся только на вашем устройстве.",
   "imagesWarningLabel": "⚠️ Изображения:",
   "imagesHiddenFromGallery": "Не видны в галерее Android",
-  "imagesVisibleInApp": "Доступны только внутри приложения",
+  "imagesVisibleInApp": "Видны только внутри приложения",
 
+  "aboutNoCensorshipTitle": "\uD83D\uDD13 Без цензуры",
+  "aboutNoCensorshipText": "После верификации персонажа (18+) общение и ролевые сценарии не ограничиваются.",
+  "aboutNoCensorshipImages": "Генерация изображений подчиняется тем же правилам 18+ для персонажей.",
+
+  "costNoHiddenLimits": "Никаких скрытых ограничений — длина сообщений, длительность сессий и стиль ответов зависят только от вас.",
   "costTitle": "💰 Стоимость",
-  "costDescription": "В приложении нет подписки. Вы платите только за использование API:",
+  "costDescription": "Без подписок. Вы платите только за использование API:",
   "costChat": "Чат: ~0,5–1,5 цента / час",
   "costImage": "Изображения: ~0,5 цента / генерация",
   "costAverage": "В среднем: ~2–3$ в месяц",
 
   "howToStartTitle": "🚀 Как начать",
   "howToStart1": "Введите API-ключ DeepSeek (обязательно)",
-  "howToStart2": "(Опционально) Добавьте ключ Novita AI",
+  "howToStart2": "(Опционально) Добавьте ключ Novita AI для генерации изображений",
   "howToStart3": "Выберите персонажа или создайте своего",
   "howToStart4": "Начните чат или попробуйте мульти-чат",
 
   "privacyTitle": "🔒 Приватность",
   "privacyNoDataToDev": "Данные никогда не отправляются разработчику",
-  "privacyDirectApi": "Запросы идут напрямую к DeepSeek / Novita AI",
+  "privacyDirectApi": "API-запросы идут напрямую к DeepSeek / Novita AI",
   "privacyNoAccess": "У разработчика нет доступа к вашим чатам, персонажам и изображениям",
   "privacyImagesHidden": "Сгенерированные изображения не видны в галерее Android — только внутри приложения",
 
@@ -237,21 +241,6 @@
 
   "romantic": "Романтика",
     "erotic": "Эротика",
-    "nsfw": "NSFW",
-  "office": "Офис",
-  "casual": "Повседневность",
-  "fantasy": "Фэнтези",
-  "sciFi": "Научная фантастика",
-  "horror": "Ужасы",
-  "categoryRomantic": "Романтика: нежные, чувственные отношения и ситуации",
-  "categoryErotic": "Эротика: сексуальные, страстные сцены и персонажи",
-  "categoryNSFW": "NSFW: откровенные, взрослые темы и персонажи",
-  "categoryOffice": "Офис: рабочие ситуации, коллеги, начальство",
-  "categoryCasual": "Повседневность: обычные, бытовые ситуации и отношения",
-  "categoryFantasy": "Фэнтези: магия, мифические существа, альтернативные миры",
-  "categorySciFi": "Научная фантастика: технологии будущего, космос, роботы и инопланетяне",
-  "categoryHorror": "Ужасы: страшные, напряжённые ситуации, монстры, призраки и т.д.",
-
 
   "photo": "Фото",
   "copy": "Копировать",
@@ -297,9 +286,6 @@
   "mainTitle": "AI-ролевые сценарии без цензуры",
   "mainSubtitle": "Создавайте персонажей и любые сценарии. Генерируйте сцены прямо в чате.",
   "mainText": "• Полностью локально\n• Без подписки\n• Очень низкая цена",
-  "aboutNoCensorshipTitle": "\uD83D\uDD13 Без цензуры",
-  "aboutNoCensorshipText": "Вы можете общаться на любые темы, в любой форме и любом стиле — без ограничений и запретов.",
-  "aboutNoCensorshipImages": "Никакой цензуры нет и при генерации изображений. Создавайте любые сцены и персонажей именно так, как вы задумали.",
 
   "ageGateTitle": "Контент для взрослых",
   "ageGateCardTitle": "Только для пользователей 18+",
@@ -307,12 +293,6 @@
   "ageGateConfirm": "Мне есть 18 лет",
   "ageGateDecline": "Мне нет 18",
   "ageGateDeclineMessage": "Это приложение предназначено только для пользователей старше 18 лет.",
-
-  "moreDetailsPrompt": "Продолжи сцену подробнее — опиши действия, эмоции и ощущения персонажей. 12-16 предложения.",
-  "shorterAction": "Короче",
-  "shorterPrompt": "Продолжи кратко, 3-5 предложения.",
-  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
-  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
 
   "collapsePanel": "Свернуть",
   "expandPanel": "Развернуть",
@@ -332,13 +312,18 @@
   "avatarStatusPreparingPrompts": "Подготовка промптов...",
   "avatarStatusGeneratingImage": "Генерация изображения...",
 
+  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
+  "shorterAction": "Shorter",
+  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
+
+
   "language": "Язык",
   "systemLanguage": "Системный",
 
-  "sendTon": "Перевести TON",
   "walletAddressCopied": "Адрес кошелька скопирован",
-  "supportBoostyDescription" : "Boosty — это платформа для поддержки авторов, которая позволяет легко и быстро делать пожертвования.",
-
+  "sendTon": "Перевести TON",
   "supportLightningError": "Ошибка: не удалось создать инвойс. Попробуйте снова.",
   "supportLightningCopied": "Инвойс скопирован в буфер обмена",
   "supportLightningScanOrOpen": "Отсканируйте QR-код или откройте в кошельке",
@@ -364,7 +349,6 @@
   "supportUsdtTitle": "USDT (TRC20)",
 
   "supportNowPaymentsTitle": "Через платёжный сервис (NOWPayments)",
-  "supportNowpaymentsTitle": "NOWPayments",
   "supportAdditionalTitle": "Дополнительные способы",
 
 
@@ -387,8 +371,6 @@
   "ageLabel": "Возраст",
   "ageMustBe18": "Минимальный возраст — 18 лет",
 
-  "personaNotValidated": "Персонаж не прошёл проверку возраста. Подключите DeepSeek API для валидации.",
-  "personaDescriptionContainsWordsRelatedUnderage": "Описание содержит слова, связанные с несовершеннолетними персонажами.\nВсе персонажи в приложении должны быть 18+.",
 
   "personaNotValidatedKeyNotSet": "Не удалось подтвердить возраст персонажа: ключ DeepSeek не установлен. Добавьте его в настройках.",
   "personaNotValidatedKeyInvalid": "Не удалось подтвердить возраст персонажа: ключ DeepSeek недействителен. Обновите его в настройках.",

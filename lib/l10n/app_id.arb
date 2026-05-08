@@ -44,6 +44,9 @@
 
   "galleryEmpty": "Galeri kosong.",
   "galleryNameEmpty": "Galeri {personaName} kosong.",
+  "@galleryNameEmpty": {
+    "placeholders": { "personaName": {} }
+  },
 
   "editPreset": "Edit preset",
   "newMultiPreset": "Preset multi baru",
@@ -122,6 +125,9 @@
   "aiResponseLimit": "Batas respons AI",
 
   "tokensLabel": "{count} token",
+  "@tokensLabel": {
+    "placeholders": { "count": {} }
+  },
 
   "whatAreTokens": "Apa itu token?",
   "tokensAndText": "Token dan teks",
@@ -146,6 +152,9 @@
 
   "chatFontSize": "Ukuran teks chat",
   "pixelsLabel": "{size}px",
+  "@pixelsLabel": {
+    "placeholders": { "size": {} }
+  },
 
   "personalityReminder": "Pengingat kepribadian karakter",
   "reminderNote": "Setiap N pesan menambahkan pengingat ke prompt (tidak disimpan di riwayat)",
@@ -228,16 +237,19 @@
   "aboutAppTitle": "Tentang Aplikasi",
   "aboutTitle": "🧠 Tentang Aplikasi",
 
-  "aboutAppName": "Uncensored AI Roleplay Chat",
+  "aboutNoCensorshipTitle": "🔓 Tanpa Sensor",
+  "aboutNoCensorshipText": "Setelah verifikasi character (18+), conversation dan roleplay tidak dibatasi.",
+  "aboutNoCensorshipImages": "Image generation mengikuti aturan character 18+ yang sama.",
+  "costNoHiddenLimits": "Tidak ada hidden limits — panjang message, durasi session, dan style response sepenuhnya tergantung Anda.",
 
   "aboutStorage": "Semua chat, karakter, gambar, dan kunci API hanya disimpan di perangkat kamu.",
 
   "imagesWarningLabel": "⚠️ Gambar:",
   "imagesHiddenFromGallery": "Tidak terlihat di galeri Android",
-  "imagesVisibleInApp": "Hanya bisa diakses di dalam aplikasi",
+  "imagesVisibleInApp": "Hanya visible di dalam aplikasi",
 
   "costTitle": "💰 Biaya",
-  "costDescription": "Aplikasi ini tanpa langganan. Kamu hanya bayar penggunaan API:",
+  "costDescription": "Tanpa subscription. Anda hanya membayar untuk penggunaan API:",
 
   "costChat": "Chat: ~0.5–1.5 sen / jam",
   "costImage": "Gambar: ~0.5 sen / generasi",
@@ -245,13 +257,13 @@
 
   "howToStartTitle": "🚀 Cara mulai",
   "howToStart1": "Masukkan kunci DeepSeek (wajib)",
-  "howToStart2": "(Opsional) Tambahkan kunci Novita AI",
+  "howToStart2": "(Optional) Tambahkan Novita AI key untuk image generation",
   "howToStart3": "Pilih karakter atau buat sendiri",
   "howToStart4": "Mulai chat atau coba multi-chat",
 
   "privacyTitle": "🔒 Privasi",
   "privacyNoDataToDev": "Data kamu tidak pernah dikirim ke developer",
-  "privacyDirectApi": "Permintaan langsung ke DeepSeek / Novita AI",
+  "privacyDirectApi": "API request langsung menuju DeepSeek / Novita AI",
   "privacyNoAccess": "Developer tidak punya akses ke chat, karakter, atau gambar kamu",
   "privacyImagesHidden": "Gambar tidak muncul di galeri Android — hanya di dalam aplikasi",
 
@@ -273,7 +285,7 @@
   "supportOption10": "$10 — dukungan besar",
 
   "supportCryptoTitle": "💸 Cryptocurrency",
-
+  "sendTon": "Kirim TON",
   "supportCardTitle": "Kartu bank (USD)",
   "supportCardNumber": "Nomor kartu:",
   "supportCardName": "Nama:",
@@ -286,20 +298,7 @@
   "erotic": "Erotis",
   "nsfw": "NSFW",
   "office": "Kantor",
-  "casual": "Kasual",
-  "fantasy": "Fantasi",
-  "sciFi": "Sci-fi",
-  "horror": "Horor",
-  "categories": "Kategori",
 
-  "categoryRomantic": "Romantis: karakter dan cerita lembut, manis, dan pemalu",
-  "categoryErotic": "Erotis: konten eksplisit, detail, dan penuh gairah",
-  "categoryNSFW": "NSFW: karakter dan cerita berani, liar, dan agresif",
-  "categoryOffice": "Kantor: situasi kerja, dinamika atasan-bawahan",
-  "categoryCasual": "Kasual: situasi sehari-hari, interaksi santai",
-  "categoryFantasy": "Fantasi: dunia magis, makhluk mitos, petualangan epik",
-  "categorySciFi": "Sci-fi: masa depan, teknologi canggih, eksplorasi luar angkasa",
-  "categoryHorror": "Horor: cerita gelap, menegangkan, dan menyeramkan",
 
   "photo": "Foto",
   "copy": "Salin",
@@ -369,10 +368,7 @@
   "mainSubtitle": "Buat karakter dan skenario apa saja. Hasilkan adegan langsung di chat.",
   "mainText": "• Sepenuhnya lokal\n• Tanpa langganan\n• Biaya sangat rendah",
 
-  "aboutNoCensorshipTitle": "🔓 Tanpa Sensor",
-  "aboutNoCensorshipText": "Kamu bisa membahas topik apa saja, dalam bentuk apa pun, tanpa batasan.",
 
-  "aboutNoCensorshipImages": "Tidak ada sensor juga dalam pembuatan gambar. Buat adegan dan karakter sesuai imajinasimu.",
 
   "ageGateTitle": "Konten Dewasa",
   "ageGateCardTitle": "Kamu harus berusia 18+",
@@ -381,14 +377,6 @@
   "ageGateConfirm": "Saya 18+",
   "ageGateDecline": "Saya di bawah 18",
   "ageGateDeclineMessage": "Aplikasi ini hanya untuk pengguna 18+. Silakan kembali saat sudah cukup umur.",
-
-  "moreDetailsPrompt": "Lanjutkan adegan dengan detail lebih — deskripsikan aksi, emosi, dan sensasi karakter. 12–16 kalimat",
-
-  "shorterAction": "Lebih singkat",
-  "shorterPrompt": "Lanjutkan singkat, hanya 3–5 kalimat.",
-
-  "resetNormalStyle": "Lanjutkan dengan jawaban normal 6–10 kalimat.",
-  "resetShortStyle": "Lanjutkan sangat singkat, 3–5 kalimat. Tanpa deskripsi panjang.",
 
   "collapsePanel": "Tutup",
   "expandPanel": "Buka",
@@ -412,6 +400,12 @@
   "language": "Bahasa",
   "systemLanguage": "Sistem",
 
+  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
+  "shorterAction": "Shorter",
+  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
+
 
   "walletAddressCopied": "Alamat wallet disalin ke clipboard",
 
@@ -425,6 +419,9 @@
   "supportLightningCopyInvoice": "Salin invoice",
 
   "supportLightningDonateAmount": "Donasi ${amount}",
+  "@supportLightningDonateAmount": {
+    "placeholders": { "amount": { "type": "int" } }
+  },
 
   "supportLightningNoWallet": "Tidak ditemukan wallet Lightning",
   "viaLightning": "via Lightning",
@@ -453,7 +450,11 @@
   "supportNowpaymentsDescription": "Metode pembayaran tambahan (biaya dan minimum dapat bervariasi).",
   "supportTonDescription": "Ketuk tombol untuk membuka di Tonkeeper atau pindai kode QR dengan wallet TON apa pun",
 
-
+  "supportTonTitle": "TON",
+  "supportNowpaymentsTitle": "NOWPayments",
+  "personaValidated": "Karakter berhasil diverifikasi",
+  "personaAutoValidationInfo": "Verifikasi dilakukan secara otomatis. Deskripsi yang tidak memenuhi syarat tidak akan disimpan.",
+  "networkError": "Kesalahan jaringan. Periksa koneksi internet Anda dan coba lagi.",
 
   "showQr": "Tampilkan QR",
   "hideQr": "Sembunyikan QR",

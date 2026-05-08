@@ -176,27 +176,33 @@
 
   "aboutAppTitle": "Sobre o app",
   "aboutTitle": "🧠 Sobre o app",
-  "aboutAppName": "Chat de Roleplay com IA sem censura",
+
+  "aboutNoCensorshipTitle": "🔓 Sem censura",
+  "aboutNoCensorshipText": "Após a verificação do personagem (18+), conversas e roleplay não possuem restrições.",
+  "aboutNoCensorshipImages": "A geração de imagens segue as mesmas regras 18+ para personagens.",
+
   "aboutStorage": "Todos os chats, personagens, imagens e chaves de API ficam armazenados apenas no seu dispositivo.",
   "imagesWarningLabel": "⚠️ Imagens:",
   "imagesHiddenFromGallery": "Não aparecem na galeria do Android",
-  "imagesVisibleInApp": "Acessíveis apenas dentro do app",
+  "imagesVisibleInApp": "Visíveis apenas dentro do aplicativo",
 
   "costTitle": "💰 Custo",
-  "costDescription": "O app não tem assinatura. Você paga só pelo uso da API:",
+  "costDescription": "Sem assinaturas. Você paga apenas pelo uso da API:",
   "costChat": "Chat: ~0,5–1,5 centavos / hora",
   "costImage": "Imagens: ~0,5 centavos / geração",
   "costAverage": "Média: ~$2–3 por mês",
+  "costNoHiddenLimits": "Sem limites ocultos — tamanho das mensagens, duração das sessões e estilo das respostas dependem totalmente de você.",
+
 
   "howToStartTitle": "🚀 Como começar",
   "howToStart1": "Insira sua chave de API do DeepSeek (obrigatório)",
-  "howToStart2": "(Opcional) Adicione a chave do Novita AI",
+  "howToStart2": "(Opcional) Adicione uma chave Novita AI para geração de imagens",
   "howToStart3": "Escolha um personagem ou crie o seu",
   "howToStart4": "Comece a conversar ou teste o multi-chat",
 
   "privacyTitle": "🔒 Privacidade",
   "privacyNoDataToDev": "Seus dados nunca são enviados ao desenvolvedor",
-  "privacyDirectApi": "As requisições vão direto para DeepSeek / Novita AI",
+  "privacyDirectApi": "As requisições API vão diretamente para DeepSeek / Novita AI",
   "privacyNoAccess": "O desenvolvedor não tem acesso aos seus chats, personagens ou imagens",
   "privacyImagesHidden": "As imagens geradas não aparecem na galeria do Android — só dentro do app",
 
@@ -231,19 +237,7 @@
   "erotic": "Erótico",
   "nsfw": "NSFW",
   "office": "Escritório",
-  "casual": "Casual",
-  "fantasy": "Fantasia",
-  "sciFi": "Ficção científica",
-  "horror": "Terror",
-  "categories": "Categorias",
-  "categoryRomantic": "Romântico: personagens e histórias doces, delicadas e tímidas",
-  "categoryErotic": "Erótico: conteúdo explícito, detalhado e intenso",
-  "categoryNSFW": "NSFW: personagens e histórias ousadas, pesadas e agressivas",
-  "categoryOffice": "Escritório: cenários de trabalho, dinâmica chefe-funcionário",
-  "categoryCasual": "Casual: situações do dia a dia, interações amigáveis",
-  "categoryFantasy": "Fantasia: mundos mágicos, criaturas míticas, aventuras épicas",
-  "categorySciFi": "Ficção científica: cenários futuristas, tecnologia avançada, espaço",
-  "categoryHorror": "Terror: histórias e personagens sombrios e assustadores",
+
 
   "photo": "Foto",
   "copy": "Copiar",
@@ -289,9 +283,7 @@
   "mainTitle": "IA de Roleplay sem censura",
   "mainSubtitle": "Crie personagens e qualquer cenário. Gere cenas direto no chat.",
   "mainText": "• Totalmente local\n• Sem assinatura\n• Custo muito baixo",
-  "aboutNoCensorshipTitle": "🔓 Sem censura",
-  "aboutNoCensorshipText": "Você pode discutir qualquer tema, de qualquer forma e estilo — sem restrições.",
-  "aboutNoCensorshipImages": "Também não há censura na geração de imagens. Crie qualquer cena ou personagem como quiser.",
+
 
   "ageGateTitle": "Conteúdo adulto",
   "ageGateCardTitle": "Você precisa ter 18 anos ou mais",
@@ -299,13 +291,6 @@
   "ageGateConfirm": "Tenho 18 anos ou mais",
   "ageGateDecline": "Tenho menos de 18",
   "ageGateDeclineMessage": "Este app é destinado a maiores de 18 anos. Volte quando tiver idade suficiente.",
-
-
-  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
-  "shorterAction": "Shorter",
-  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
-  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
-  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
 
   "collapsePanel": "Recolher",
   "expandPanel": "Expandir",
@@ -363,10 +348,20 @@
   "supportNowpaymentsDescription": "Mais métodos de pagamento (taxas e mínimos podem variar).",
   "supportTonDescription": "Toque no botão para abrir no Tonkeeper ou escaneie o QR code com qualquer carteira TON",
 
+  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
+  "shorterAction": "Shorter",
+  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
 
 
-  "showQr_pt": "Mostrar QR",
-  "hideQr_pt": "Ocultar QR",
+  "showQr": "Mostrar QR",
+  "hideQr": "Ocultar QR",
+  "personaValidated": "Personagem verificado com sucesso",
+  "personaAutoValidationInfo": "A verificação é feita automaticamente. Descrições que não atendam aos requisitos não serão salvas.",
+  "networkError": "Erro de rede. Por favor, verifique sua conexão com a internet e tente novamente.",
+  "viaLightning": "via Lightning",
+  "supportNowpaymentsTitle": "NOWPayments",
 
   "summaryMaxBlocks": "Blocos de resumo",
   "summaryMaxBlocksDesc": "Mais blocos — melhor memória de longo prazo, maior consumo de tokens",

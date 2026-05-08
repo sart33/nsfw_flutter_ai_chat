@@ -178,27 +178,31 @@
 
   "aboutAppTitle": "Sobre la aplicación",
   "aboutTitle": "🧠 Sobre la aplicación",
-  "aboutAppName": "Chat de rol con IA sin censura",
+
+  "aboutNoCensorshipTitle": "🔓 Sin censura",
+  "aboutNoCensorshipText": "Después de la verificación del personaje (18+), las conversaciones y el roleplay no tienen restricciones.",
+  "aboutNoCensorshipImages": "La generación de imágenes sigue las mismas reglas 18+ para los personajes.",
+  "costNoHiddenLimits": "No hay límites ocultos — la longitud de los mensajes, duración de las sesiones y estilo de respuestas dependen completamente de ti.",
   "aboutStorage": "Todos los chats, personajes, imágenes y claves API se almacenan solo en tu dispositivo.",
   "imagesWarningLabel": "⚠️ Imágenes:",
   "imagesHiddenFromGallery": "No visibles en la galería de Android",
-  "imagesVisibleInApp": "Accesibles solo dentro de la aplicación",
+  "imagesVisibleInApp": "Visibles solo dentro de la aplicación",
 
   "costTitle": "💰 Costo",
-  "costDescription": "La aplicación no tiene suscripción. Solo pagas por el uso de la API:",
+  "costDescription": "Sin suscripciones. Pagas solo por el uso de la API:",
   "costChat": "Chat: ~0,5–1,5 centavos / hora",
   "costImage": "Imágenes: ~0,5 centavos / generación",
   "costAverage": "Promedio: ~$2–3 al mes",
 
   "howToStartTitle": "🚀 Cómo empezar",
   "howToStart1": "Introduce tu clave API de DeepSeek (obligatorio)",
-  "howToStart2": "(Opcional) Añade la clave de Novita AI",
+  "howToStart2": "(Opcional) Agrega una clave de Novita AI para generación de imágenes",
   "howToStart3": "Elige un personaje o crea el tuyo propio",
   "howToStart4": "Empieza a chatear o prueba el chat múltiple",
 
   "privacyTitle": "🔒 Privacidad",
   "privacyNoDataToDev": "Tus datos nunca se envían al desarrollador",
-  "privacyDirectApi": "Las solicitudes van directamente a DeepSeek / Novita AI",
+  "privacyDirectApi": "Las solicitudes API van directamente a DeepSeek / Novita AI",
   "privacyNoAccess": "El desarrollador no tiene acceso a tus chats, personajes o imágenes",
   "privacyImagesHidden": "Las imágenes generadas no son visibles en la galería de Android — solo dentro de la app",
 
@@ -233,19 +237,18 @@
   "erotic": "Erótico",
   "nsfw": "NSFW",
   "office": "Oficina",
-  "casual": "Casual",
-  "fantasy": "Fantasía",
-  "sciFi": "Ciencia ficción",
-  "horror": "Terror",
-  "categories": "Categorías",
-  "categoryRomantic": "Romántico: personajes e historias dulces, tiernas y tímidas",
-  "categoryErotic": "Erótico: contenido explícito, detallado y apasionado",
-  "categoryNSFW": "NSFW: personajes e historias atrevidas, intensas y sin filtros",
-  "categoryOffice": "Oficina: escenarios laborales, dinámicas jefe-empleado",
-  "categoryCasual": "Casual: situaciones cotidianas, interacciones amistosas",
-  "categoryFantasy": "Fantasía: mundos mágicos, criaturas míticas, aventuras épicas",
-  "categorySciFi": "Ciencia ficción: entornos futuristas, tecnología avanzada, exploración espacial",
-  "categoryHorror": "Terror: historias y personajes oscuros, inquietantes y de suspenso",
+  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
+  "shorterAction": "Shorter",
+  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
+  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
+  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
+
+  "showQr": "Mostrar QR",
+  "hideQr": "Ocultar QR",
+  "personaValidated": "Personaje verificado correctamente",
+  "networkError": "Error de red. Por favor, verifica tu conexión a internet e inténtalo de nuevo.",
+  "supportNowpaymentsTitle": "NOWPayments",
+  "viaLightning": "via Lightning",
 
   "photo": "Foto",
   "copy": "Copiar",
@@ -291,9 +294,6 @@
   "mainTitle": "Rol con IA sin censura",
   "mainSubtitle": "Crea personajes y cualquier escenario. Genera escenas directamente en el chat.",
   "mainText": "• Totalmente local\n• Sin suscripción\n• Muy bajo costo",
-  "aboutNoCensorshipTitle": "🔓 Sin censura",
-  "aboutNoCensorshipText": "Puedes hablar de cualquier tema, en cualquier forma y estilo — sin restricciones ni límites.",
-  "aboutNoCensorshipImages": "Tampoco hay censura en la generación de imágenes. Crea cualquier escena y personaje exactamente como lo imaginas.",
 
   "ageGateTitle": "Contenido para adultos",
   "ageGateCardTitle": "Debes tener 18 años o más",
@@ -302,12 +302,6 @@
   "ageGateDecline": "Soy menor de 18",
   "ageGateDeclineMessage": "Esta aplicación está destinada a usuarios mayores de 18 años. Por favor, vuelve cuando tengas la edad requerida.",
 
-
-  "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
-  "shorterAction": "Shorter",
-  "shorterPrompt": "Continue briefly, 3-5 sentences only.",
-  "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
-  "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
 
   "collapsePanel": "Contraer",
   "expandPanel": "Expandir",
@@ -368,10 +362,6 @@
   "supportIbanDescription": "Las comisiones dependen de tu banco",
   "supportNowpaymentsDescription": "Más métodos de pago (las comisiones y mínimos pueden variar).",
   "supportTonDescription": "Toca el botón para abrir en Tonkeeper o escanea el código QR con cualquier billetera TON",
-
-
-  "showQr_es": "Mostrar QR",
-  "hideQr_es": "Ocultar QR",
 
   "summaryMaxBlocks": "Bloques de resumen",
   "summaryMaxBlocksDesc": "Más bloques — mejor memoria a largo plazo, mayor consumo de tokens",

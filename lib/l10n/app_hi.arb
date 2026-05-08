@@ -194,28 +194,32 @@
 
   "aboutAppTitle": "App के बारे में",
   "aboutTitle": "🧠 App के बारे में",
-  "aboutAppName": "Uncensored AI Roleplay Chat",
+
+  "aboutNoCensorshipTitle": "🔓 No censorship",
+  "aboutNoCensorshipText": "Character verification (18+) के बाद conversations और roleplay unrestricted रहते हैं.",
+  "aboutNoCensorshipImages": "Image generation भी वही 18+ character rules follow करती है.",
+  "costNoHiddenLimits": "कोई hidden limits नहीं — message length, session duration और response style पूरी तरह आपके ऊपर हैं.",
   "aboutStorage": "सभी chats, characters, images और API keys सिर्फ आपके device पर ही store होते हैं।",
 
   "imagesWarningLabel": "⚠️ Images:",
   "imagesHiddenFromGallery": "Android gallery में दिखाई नहीं देते",
-  "imagesVisibleInApp": "सिर्फ app के अंदर access किए जा सकते हैं",
+  "imagesVisibleInApp": "सिर्फ app के अंदर visible",
 
   "costTitle": "💰 Cost",
-  "costDescription": "इस app में कोई subscription नहीं है। आप सिर्फ API usage के लिए pay करते हैं:",
+  "costDescription": "कोई subscription नहीं. आप सिर्फ API usage के लिए pay करते हैं:",
   "costChat": "Chat: ~0.5–1.5 cents / घंटा",
   "costImage": "Images: ~0.5 cents / generation",
   "costAverage": "Average: ~$2–3 प्रति महीना",
 
   "howToStartTitle": "🚀 कैसे शुरू करें",
   "howToStart1": "अपनी DeepSeek API key डालें (required)",
-  "howToStart2": "(Optional) Novita AI key जोड़ें",
+  "howToStart2": "(Optional) Image generation के लिए Novita AI key जोड़ें",
   "howToStart3": "कोई character चुनें या अपना बनाएं",
   "howToStart4": "Chat शुरू करें या multi-chat try करें",
 
   "privacyTitle": "🔒 Privacy",
   "privacyNoDataToDev": "आपका data कभी developer को नहीं भेजा जाता",
-  "privacyDirectApi": "Requests सीधे DeepSeek / Novita AI को जाते हैं",
+  "privacyDirectApi": "API requests सीधे DeepSeek / Novita AI को जाते हैं",
   "privacyNoAccess": "Developer को आपके chats, characters या images का कोई access नहीं है",
   "privacyImagesHidden": "Generated images Android gallery में नहीं दिखते — सिर्फ app के अंदर",
 
@@ -252,20 +256,6 @@
   "erotic": "Erotic",
   "nsfw": "NSFW",
   "office": "Office",
-  "casual": "Casual",
-  "fantasy": "Fantasy",
-  "sciFi": "Sci-fi",
-  "horror": "Horror",
-
-  "categories": "Categories",
-  "categoryRomantic": "Romantic: sweet, soft और shy characters और stories",
-  "categoryErotic": "Erotic: explicit, detailed और passionate content",
-  "categoryNSFW": "NSFW: bold, dirty और aggressive characters और stories",
-  "categoryOffice": "Office: workplace scenarios, boss-employee dynamics",
-  "categoryCasual": "Casual: daily life situations, friendly interactions",
-  "categoryFantasy": "Fantasy: magical worlds, mythical creatures, epic adventures",
-  "categorySciFi": "Sci-fi: futuristic settings, advanced tech, space exploration",
-  "categoryHorror": "Horror: dark, scary और suspenseful stories और characters",
 
   "photo": "Photo",
   "copy": "Copy",
@@ -323,9 +313,7 @@
   "mainSubtitle": "Characters बनाएं और कोई भी scenario create करें। Scenes सीधे chat में generate करें.",
   "mainText": "• Fully local\n• No subscription\n• Very low cost",
 
-  "aboutNoCensorshipTitle": "🔓 No censorship",
-  "aboutNoCensorshipText": "आप किसी भी topic पर, किसी भी style में बात कर सकते हैं — बिना किसी restriction के.",
-  "aboutNoCensorshipImages": "Image generation में भी कोई censorship नहीं है। आप जो चाहें वैसा scene या character बना सकते हैं.",
+
 
   "ageGateTitle": "Adult content",
   "ageGateCardTitle": "आपकी उम्र 18+ होनी चाहिए",

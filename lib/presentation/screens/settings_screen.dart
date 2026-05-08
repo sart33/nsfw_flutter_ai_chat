@@ -20,10 +20,12 @@ const _supportedLocales = [
   (code: 'en',  name: 'English'),
   (code: 'ru',  name: 'Русский'),
   (code: 'uk',  name: 'Українська'),
+  (code: 'fr',  name: 'Français'),
   (code: 'es',  name: 'Español'),
   (code: 'pt',  name: 'Português'),
   (code: 'hi',  name: 'हिन्दी'),
   (code: 'id',  name: 'Indonesia'),
+
 
 ];
 
@@ -39,11 +41,12 @@ class SettingsScreen extends ConsumerWidget {
       (code: null as String?,  nameKey: context.l10n.systemLanguage, nameNative: ''),
       (code: 'en',  nameKey: context.l10n.en,    nameNative: 'English'),
       (code: 'ru',  nameKey: context.l10n.ru,    nameNative: 'Русский'),
-      (code: 'uk',  nameKey: context.l10n.uk,  nameNative: 'Українська'),
+      (code: 'uk',  nameKey: context.l10n.uk,    nameNative: 'Українська'),
+      (code: 'fr',  nameKey: context.l10n.fr,    nameNative: 'Français'),
       (code: 'es',  nameKey: context.l10n.es,    nameNative: 'Español'),
-      (code: 'pt',  nameKey: context.l10n.pt, nameNative: 'Português'),
-      (code: 'hi',  nameKey: context.l10n.hi,      nameNative: 'हिन्दी'),
-      (code: 'id',  nameKey: context.l10n.id, nameNative: 'Indonesia'),
+      (code: 'pt',  nameKey: context.l10n.pt,    nameNative: 'Português'),
+      (code: 'hi',  nameKey: context.l10n.hi,    nameNative: 'हिन्दी'),
+      (code: 'id',  nameKey: context.l10n.id,    nameNative: 'Indonesia'),
     ];
 
     final isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
