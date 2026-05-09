@@ -238,7 +238,7 @@
   "nsfw": "NSFW",
   "office": "Oficina",
   "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
-  "shorterAction": "Shorter",
+  "shorterAction": "Más corto",
   "shorterPrompt": "Continue briefly, 3-5 sentences only.",
   "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",

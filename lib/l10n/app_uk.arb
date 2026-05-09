@@ -313,7 +313,6 @@
   "sendTon": "Перевести TON",
   "walletAddressCopied": "Адреcу гаманця скопійовано",
 
-  "supportBoostyDescription" : "Boosty — платформа для підтримки творчих проектів.",
 
   "supportLightningError": "Помилка: не вдалося створити інвойс. Спробуйте ще раз.",
   "supportLightningCopied": "Інвойс скопійовано у буфер обміну",
@@ -353,7 +352,7 @@
   "supportTonDescription": "Натисніть кнопку, щоб відкрити в Tonkeeper, або відскануйте QR-код будь-яким TON-гаманцем",
 
   "moreDetailsPrompt": "Continue the scene with more detail — describe actions, emotions and sensations of the characters. 12-16 sentences",
-  "shorterAction": "Shorter",
+  "shorterAction": "Коротше",
   "shorterPrompt": "Continue briefly, 3-5 sentences only.",
   "resetNormalStyle": "Continue with short natural replies, 6-10 sentences.",
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
