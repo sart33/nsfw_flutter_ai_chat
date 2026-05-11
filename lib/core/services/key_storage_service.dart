@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,7 +23,15 @@ class KeyStorageService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(key) ?? '';
     }
-    return await _secureStorage.read(key: key) ?? '';
+    try {
+      return await _secureStorage.read(key: key) ?? '';
+    } on PlatformException catch (e) {
+      debugPrint('[KeyStorageService] BAD_DECRYPT on "$key", wiping: $e');
+      try {
+        await _secureStorage.deleteAll();
+      } catch (_) {}
+      return '';
+    }
   }
 
   static Future<void> write(String key, String value) async {
