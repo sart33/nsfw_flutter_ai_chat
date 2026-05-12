@@ -25,8 +25,7 @@ class KeyStorageService {
     }
     try {
       return await _secureStorage.read(key: key) ?? '';
-    } on PlatformException catch (e) {
-      debugPrint('[KeyStorageService] BAD_DECRYPT on "$key", wiping: $e');
+    } on PlatformException catch (_) {
       try {
         await _secureStorage.deleteAll();
       } catch (_) {}
