@@ -477,11 +477,11 @@ class SettingsScreen extends ConsumerWidget {
         supportCard,     gap,
         backupCard,      gap,
         chatFontCard,    gap,
-        imageSizeCard,   gap,
         creativityCard,  gap,
         personalityCard, gap,
         summarizationCard, gap,
         clearCard,       gap,
+        imageSizeCard,   gap,
         autoDeleteCard,  gap,
         userInputCard,   gap,
         aiResponseCard,
@@ -516,11 +516,11 @@ class SettingsScreen extends ConsumerWidget {
       aboutCard,         gap,
       supportCard,       gap,
       chatFontCard,      gap,
-      imageSizeCard,     gap,
       creativityCard,    gap,
       personalityCard,   gap,
+      imageSizeCard,     gap,
       autoDeleteCard,    gap,
-      userInputCard,
+
 
 
     ];
@@ -531,7 +531,8 @@ class SettingsScreen extends ConsumerWidget {
       backupCard,       gap,
       summarizationCard,gap,
       clearCard,        gap,
-      aiResponseCard,
+      aiResponseCard,   gap,
+      userInputCard,
 
     ];
 
