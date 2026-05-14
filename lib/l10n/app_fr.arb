@@ -435,5 +435,17 @@
 
   "supportChatMessageFirst": "Si la conversation vous plaît, vous pouvez soutenir le développement",
   "supportChatMessageSecond" : "Le soutien aide à faire évoluer l’application",
-  "supportChatMessageSupport" : "Soutenir"
+  "supportChatMessageSupport" : "Soutenir",
+
+  "imageSizeAvatar": "Taille de l’avatar",
+  "imageSizeGallery": "Taille de l’image de la galerie",
+  "imageSizeChat": "Taille de l’image du chat",
+  "imageSizeLabel": "{size}px",
+  "@imageSizeLabel": {
+    "placeholders": {
+      "size": {}
+    }
+  },
+  "imageSizeStandard": "Standard",
+  "imageSizeLarge": "Grand"
 }

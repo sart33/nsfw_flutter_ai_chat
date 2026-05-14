@@ -4,6 +4,7 @@ import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/core/services/novita_image_service.dart';
 import 'package:nsfw_chat/core/services/scene_extractor_service.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../utils/seed_utils.dart';
@@ -61,8 +62,11 @@ class ChatImageService {
     final saveId = const Uuid().v4();
 
     // 5. Generate via NovitaImageService (no HTTP code here)
+    final prefs = await SharedPreferences.getInstance();
+    final size = AppConfig.novitaImageSize(
+        prefs.getString('settings_image_size_chat') ?? 'standard');
     final localPath = await NovitaImageService.instance
-        .generateImageTo(prompt, saveDir, saveId, seed: seed);
+        .generateImageTo(prompt, saveDir, saveId, seed: seed, size: size);
 
     // 6. Log generation to database
     await DatabaseHelper.instance.insertSceneGenerationLog(

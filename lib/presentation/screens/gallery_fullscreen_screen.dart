@@ -134,6 +134,7 @@ class _GalleryFullscreenScreenState
                 maxScale: PhotoViewComputedScale.covered * 2.5,
                 backgroundDecoration:
                 const BoxDecoration(color: Colors.black),
+                filterQuality: FilterQuality.medium,
               );
             },
           ),

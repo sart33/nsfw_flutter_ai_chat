@@ -208,6 +208,28 @@ class SettingsScreen extends ConsumerWidget {
         onChanged: (v) => notifier.setChatFontSize(v),
       ),
     ]);
+    final imageSizeCard = _SettingsCard(children: [
+      _ImageSizeRow(
+     label: context.l10n.imageSizeAvatar,   // локализация — добавить три ключа
+      currentValue: settings.imageSizeAvatar,
+      onChanged:
+          (v) => ref.read(settingsProvider.notifier).setImageSizeAvatar(v),
+    ),
+      _Divider(),
+    _ImageSizeRow(
+     label: context.l10n.imageSizeGallery,   // локализация — добавить три ключа
+      currentValue: settings.imageSizeGallery,
+      onChanged:
+          (v) => ref.read(settingsProvider.notifier).setImageSizeGallery(v),
+    ),
+      _Divider(),
+    _ImageSizeRow(
+     label: context.l10n.imageSizeChat,   // локализация — добавить три ключа
+      currentValue: settings.imageSizeChat,
+      onChanged:
+          (v) => ref.read(settingsProvider.notifier).setImageSizeChat(v),
+    ),
+    ]);
 
     final personalityCard = _SettingsCard(children: [
       _SwitchTile(
@@ -396,6 +418,7 @@ class SettingsScreen extends ConsumerWidget {
         languageCard: languageCard,
         chatFontCard: chatFontCard,
         backupCard: backupCard,
+        imageSizeCard: imageSizeCard,
         creativityCard: creativityCard,
         personalityCard: personalityCard,
         summarizationCard: summarizationCard,
@@ -412,6 +435,7 @@ class SettingsScreen extends ConsumerWidget {
         languageCard: languageCard,
         chatFontCard: chatFontCard,
         backupCard: backupCard,
+        imageSizeCard: imageSizeCard,
         creativityCard: creativityCard,
         personalityCard: personalityCard,
         summarizationCard: summarizationCard,
@@ -441,6 +465,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget clearCard,
     required Widget backupCard,
     required Widget languageCard,
+    required Widget imageSizeCard,
   }) {
     const gap = SizedBox(height: 12);
     return ListView(
@@ -452,6 +477,7 @@ class SettingsScreen extends ConsumerWidget {
         supportCard,     gap,
         backupCard,      gap,
         chatFontCard,    gap,
+        imageSizeCard,   gap,
         creativityCard,  gap,
         personalityCard, gap,
         summarizationCard, gap,
@@ -482,6 +508,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget clearCard,
     required Widget backupCard,
     required Widget languageCard,
+    required Widget imageSizeCard,
   }) {
     const gap = SizedBox(height: 12);
 
@@ -489,11 +516,12 @@ class SettingsScreen extends ConsumerWidget {
       aboutCard,         gap,
       supportCard,       gap,
       chatFontCard,      gap,
+      imageSizeCard,     gap,
       creativityCard,    gap,
       personalityCard,   gap,
       autoDeleteCard,    gap,
-      userInputCard,     gap,
-      aiResponseCard,
+      userInputCard,
+
 
     ];
 
@@ -502,7 +530,8 @@ class SettingsScreen extends ConsumerWidget {
       languageCard,     gap,
       backupCard,       gap,
       summarizationCard,gap,
-      clearCard,
+      clearCard,        gap,
+      aiResponseCard,
 
     ];
 
@@ -599,6 +628,142 @@ class _SettingsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children,
+      ),
+    );
+  }
+}
+
+class _ImageSizeRow extends StatelessWidget {
+  const _ImageSizeRow({
+    required this.label,
+    required this.currentValue,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String currentValue;
+  final ValueChanged<String> onChanged;
+
+  String get _sizeLabel => currentValue == 'large' ? '1088×1408' : '768×1024';
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    SizedBox(width: 10),
+                    Text(
+                      '${_sizeLabel}px',
+                      style: const TextStyle(
+                        color: AppTheme.primaryAccent,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          _SizeToggle(
+            value: currentValue,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SizeToggle extends StatelessWidget {
+  const _SizeToggle({required this.value, required this.onChanged});
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 34,
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.cardBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ToggleSegment(
+            label: context.l10n.imageSizeStandard,
+            selected: value == 'standard',
+            isLeft: true,
+            onTap: () => onChanged('standard'),
+          ),
+          _ToggleSegment(
+            label: context.l10n.imageSizeLarge,
+            selected: value == 'large',
+            isLeft: false,
+            onTap: () => onChanged('large'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleSegment extends StatelessWidget {
+  const _ToggleSegment({
+    required this.label,
+    required this.selected,
+    required this.isLeft,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final bool isLeft;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.accentVividButton : Colors.transparent,
+          borderRadius: BorderRadius.horizontal(
+            left:  Radius.circular(isLeft ? 16 : 0),
+            right: Radius.circular(isLeft ? 0 : 16),
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : AppTheme.textSecondary,
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w400 : FontWeight.w400,
+          ),
+        ),
       ),
     );
   }

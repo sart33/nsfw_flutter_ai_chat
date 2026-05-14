@@ -1044,12 +1044,14 @@ class _CreateEditPersonaScreenState
             hasFile
                 ? DecorationImage(
                   image: FileImage(File(_avatarPath!)),
+                  filterQuality: FilterQuality.medium,
                   fit: BoxFit.cover,
                 )
                 : hasAsset
                 ? DecorationImage(
                   image: AssetImage(assetPath),
-                  fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
+              fit: BoxFit.cover,
                 )
                 : null,
       ),

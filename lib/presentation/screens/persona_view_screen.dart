@@ -342,6 +342,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                               minScale: PhotoViewComputedScale.contained,
                               maxScale: PhotoViewComputedScale.covered * 4.0,
                               backgroundDecoration: const BoxDecoration(color: Colors.black),
+                              filterQuality: FilterQuality.medium,
+
                             ),
                           ),
                         ),

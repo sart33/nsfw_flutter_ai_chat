@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/exceptions/app_exceptions.dart';
 
 /// Minimal Novita AI avatar generation service.
@@ -30,7 +31,10 @@ class NovitaAvatarService {
       }) async {
     final apiKey = await AppConfig.getNovitaApiKey();
     if (apiKey.isEmpty) throw NovitaApiException('api_key_not_set');
-    return _submit(prompt, saveDir, seed: seed, apiKey: apiKey);
+    final prefs = await SharedPreferences.getInstance();
+    final size = AppConfig.novitaImageSize(
+        prefs.getString('settings_image_size_avatar') ?? 'standard');
+    return _submit(prompt, saveDir, seed: seed, apiKey: apiKey, size: size);
   }
 
   /// Internal method that performs the actual generation with the given prompt and API key.
@@ -39,6 +43,7 @@ class NovitaAvatarService {
       String saveDir, {
         required int seed,
         required String apiKey,
+        String size = '768*1024',
       }) async {
     final submitResp = await _dio.post(
       '$_baseUrl/z-image-turbo',
@@ -46,7 +51,7 @@ class NovitaAvatarService {
         'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
       }),
-      data: {'seed': seed, 'size': '768*1024', 'prompt': prompt},
+      data: {'seed': seed, 'size': size, 'prompt': prompt},
     );
     if (submitResp.statusCode == 401) {
       throw NovitaApiException('api_key_invalid');

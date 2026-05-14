@@ -433,5 +433,16 @@
 
   "supportChatMessageFirst": "Якщо вам подобається спілкування — ви можете підтримати розробку",
   "supportChatMessageSecond" : "Підтримка допомагає розвивати застосунок",
-  "supportChatMessageSupport" : "Підтримати"
+  "supportChatMessageSupport" : "Підтримати",
+  "imageSizeAvatar": "Розмір аватара",
+  "imageSizeGallery": "Розмір зображення в галереї",
+  "imageSizeChat": "Розмір зображення в чаті",
+  "imageSizeLabel": "{size}px",
+  "@imageSizeLabel": {
+    "placeholders": {
+      "size": {}
+    }
+  },
+  "imageSizeStandard": "Стандартний",
+  "imageSizeLarge": "Великий"
 }

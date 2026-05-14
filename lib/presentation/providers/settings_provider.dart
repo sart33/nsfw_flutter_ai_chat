@@ -20,6 +20,9 @@ class SettingsState {
   final int autoDeleteChatImagesDays;
   final String? selectedLocale; // null = системная
   static const _sentinel = Object();
+  final String imageSizeGallery; // 'standard' | 'large'
+  final String imageSizeChat;
+  final String imageSizeAvatar;
 
 
 
@@ -36,7 +39,10 @@ class SettingsState {
     this.summaryMaxBlocks = 4,
     this.autoDeleteChatImagesEnabled = false, // default false
     this.autoDeleteChatImagesDays = AppConfig.autoDeleteDefaultDays,
-    this.selectedLocale // default from AppConfig
+    this.selectedLocale, // default from AppConfig
+    this.imageSizeGallery = 'standard', // default 'standard'
+    this.imageSizeChat = 'standard',    // default 'standard'
+    this.imageSizeAvatar = 'standard',  // default 'standard'
 
   });
 
@@ -54,6 +60,9 @@ class SettingsState {
     bool? autoDeleteChatImagesEnabled,
     int? autoDeleteChatImagesDays,
     Object? selectedLocale = _sentinel,
+    String? imageSizeGallery,
+    String? imageSizeChat,
+    String? imageSizeAvatar,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
@@ -71,6 +80,9 @@ class SettingsState {
         selectedLocale: selectedLocale == _sentinel
             ? this.selectedLocale
             : selectedLocale as String?,
+        imageSizeGallery: imageSizeGallery ?? this.imageSizeGallery,
+        imageSizeChat: imageSizeChat ?? this.imageSizeChat,
+        imageSizeAvatar: imageSizeAvatar ?? this.imageSizeAvatar,
       );
 }
 
@@ -91,6 +103,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyAutoDeleteEnabled = 'settings_auto_delete_enabled';
   static const _keyAutoDeleteDays = 'settings_auto_delete_days';
   static const _keyLocale = 'settings_locale';
+  // Новые константы рядом с остальными _key*
+  static const _keyImageSizeGallery = 'settings_image_size_gallery';
+  static const _keyImageSizeChat    = 'settings_image_size_chat';
+  static const _keyImageSizeAvatar  = 'settings_image_size_avatar';
 
 
   SettingsNotifier() : super(const SettingsState()) {
@@ -112,8 +128,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         30;
     final summaryMaxBlocks = prefs.getInt(_keySummaryMaxBlocks) ?? 4;
     final autoDeleteEnabled = prefs.getBool(_keyAutoDeleteEnabled) ?? false;
-    final autoDeleteDays = prefs.getInt(_keyAutoDeleteDays) ??
-        AppConfig.autoDeleteDefaultDays;
+    final autoDeleteDays = prefs.getInt(_keyAutoDeleteDays) ?? AppConfig.autoDeleteDefaultDays;
+        final imageSizeGallery = prefs.getString(_keyImageSizeGallery) ?? 'standard';
+    final imageSizeChat = prefs.getString(_keyImageSizeChat) ?? 'standard';
+    final imageSizeAvatar = prefs.getString(_keyImageSizeAvatar) ?? 'standard';
+
     final locale = prefs.getString(_keyLocale); // null если не установлен
     state = SettingsState(
       userInputLimit: userLimit,
@@ -129,6 +148,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       autoDeleteChatImagesEnabled: autoDeleteEnabled,
       autoDeleteChatImagesDays: autoDeleteDays,
       selectedLocale: locale,
+      imageSizeGallery:  imageSizeGallery,
+      imageSizeChat:     imageSizeChat,
+      imageSizeAvatar:   imageSizeAvatar,
     );
   _ready.complete();
   }
@@ -242,6 +264,26 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     } else {
       await prefs.setString(_keyLocale, languageCode);
     }
+  }
+  /// Set image size for gallery mode ('standard' or 'large').
+  Future<void> setImageSizeGallery(String v) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyImageSizeGallery, v);
+    state = state.copyWith(imageSizeGallery: v);
+  }
+
+  /// Set image size for chat mode ('standard' or 'large').
+  Future<void> setImageSizeChat(String v) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyImageSizeChat, v);
+    state = state.copyWith(imageSizeChat: v);
+}
+
+  /// Set image size for avatar ('standard' or 'large').
+  Future<void> setImageSizeAvatar(String v) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyImageSizeAvatar, v);
+    state = state.copyWith(imageSizeAvatar: v);
   }
 }
 

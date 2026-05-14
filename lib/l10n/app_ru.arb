@@ -437,7 +437,20 @@
 
   "supportChatMessageFirst": "Если вам нравится общение — вы можете поддержать разработку",
   "supportChatMessageSecond" : "Поддержка помогает развивать приложение",
-  "supportChatMessageSupport" : "Поддержать"
+  "supportChatMessageSupport" : "Поддержать",
+
+  "imageSizeAvatar": "Размер аватара",
+  "imageSizeGallery": "Размер изображения в галерее",
+  "imageSizeChat": "Размер изображения в чате",
+  "imageSizeLabel": "{size}px",
+  "@imageSizeLabel": {
+    "placeholders": {
+      "size": {}
+    }
+  },
+  "imageSizeStandard": "Стандартный",
+  "imageSizeLarge": "Большой"
+
 
 
 }

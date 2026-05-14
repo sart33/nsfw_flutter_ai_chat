@@ -23,6 +23,7 @@ class AppTheme {
   static const Color aiBubble      = Color(0xFF111111);
   static const Color primaryAccent = Color(0xFFAA7EF4); // фиолетовый акцент
   static const Color accentVivid   = Color(0xBE7C3AED);
+  static const Color accentVividButton   = Color(0xBE8B4FF4);
   // FAB / иконки AppBar
   static const Color accentVividInputBorder   = Color(0x7C39FF6A); // FAB / иконки AppBar
   static const Color accentLight   = Color(0xFFAB76FF); // иконки в карточках

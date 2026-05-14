@@ -17,6 +17,10 @@ class AppConfig {
   static const String deepSeekV4FlashModel = 'deepseek-v4-flash';
   static const String deepSeekV4RroModel = 'deepseek-v4-pro';
 
+  /// Image size setting mapping for Novita API.
+  static String novitaImageSize(String setting) =>
+      setting == 'large' ? '1088*1408' : '768*1024';
+
   // ── Input / output limits ─────────────────────────────────────────────
   /// Maximum number of characters a user may type in a single message.
   static const int userInputMaxChars = 2000;

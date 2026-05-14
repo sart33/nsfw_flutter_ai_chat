@@ -527,5 +527,18 @@
 
   "supportChatMessageFirst": "Jika Anda menikmati percakapan ini, Anda dapat mendukung pengembangan",
   "supportChatMessageSecond" : "Dukungan membantu mengembangkan aplikasi",
-  "supportChatMessageSupport" : "Dukung"
+  "supportChatMessageSupport" : "Dukung",
+
+  "imageSizeAvatar": "Ukuran avatar",
+  "imageSizeGallery": "Ukuran gambar galeri",
+  "imageSizeChat": "Ukuran gambar chat",
+  "imageSizeLabel": "{size}px",
+  "@imageSizeLabel": {
+    "placeholders": {
+      "size": {}
+    }
+  },
+  "imageSizeStandard": "Standar",
+  "imageSizeLarge": "Besar"
 }
+

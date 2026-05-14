@@ -9,8 +9,10 @@ import 'package:nsfw_chat/domain/entities/gallery_image_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:nsfw_chat/domain/result/preview_result.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/utils/seed_utils.dart';
 
 /// Manages gallery image generation, persistence, and deletion for personas.
@@ -94,8 +96,11 @@ class GalleryRepository {
       final docsDir = await getApplicationDocumentsDirectory();
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
-      final tempPath =
-      await _novita.generateImageTo(prompt, tempDir, saveId);
+      final prefs = await SharedPreferences.getInstance();
+      final size = AppConfig.novitaImageSize(
+          prefs.getString('settings_image_size_gallery') ?? 'standard');
+      final tempPath = await _novita.generateImageTo(
+          prompt, tempDir, saveId, size: size);
 
 
       return PreviewResult(
@@ -155,8 +160,11 @@ class GalleryRepository {
       final docsDir = await getApplicationDocumentsDirectory();
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
+      final prefs = await SharedPreferences.getInstance();
+      final size = AppConfig.novitaImageSize(
+          prefs.getString('settings_image_size_gallery') ?? 'standard');
       final tempPath =
-      await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed());
+      await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed(), size: size);
 
       return PreviewResult(
         tempPath: tempPath,
@@ -226,8 +234,12 @@ class GalleryRepository {
       final prompt = (template['prompt_template'] as String)
           .replaceAll('{description}', effectiveDescription);
       final saveId = _uuid.v4();
+
+      final prefs = await SharedPreferences.getInstance();
+      final size = AppConfig.novitaImageSize(
+          prefs.getString('settings_image_size_gallery') ?? 'standard');
       final localPath =
-          await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed());
+          await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed(), size: size);
 
       final now = DateTime.now();
       await _db.insertGalleryImage(

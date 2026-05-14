@@ -25,8 +25,8 @@ class NovitaImageService {
   /// Generates an image, saves to standard persona gallery path.
   Future<String> generateImage(
       String promptTemplate, String personaId, String saveId,
-      {int seed = AppConfig.defaultSeed}) async {
-    final bytes = await _generateBytes(promptTemplate, seed: seed);
+      {int seed = AppConfig.defaultSeed, String size = '768*1024'}) async {
+    final bytes = await _generateBytes(promptTemplate, seed: seed, size: size);
     final docsDir = await getApplicationDocumentsDirectory();
     final dirPath = '${docsDir.path}/characters/$personaId/gallery';
     await Directory(dirPath).create(recursive: true);
@@ -38,8 +38,8 @@ class NovitaImageService {
   /// Generates an image, saves to a custom directory.
   Future<String> generateImageTo(
       String promptTemplate, String saveDir, String saveId,
-      {int seed = AppConfig.defaultSeed}) async {
-    final bytes = await _generateBytes(promptTemplate, seed: seed);
+      {int seed = AppConfig.defaultSeed, String size = '768*1024'}) async {
+    final bytes = await _generateBytes(promptTemplate, seed: seed, size: size);
     await Directory(saveDir).create(recursive: true);
     final savePath = '$saveDir/$saveId.webp';
     await File(savePath).writeAsBytes(bytes, flush: true);
@@ -48,7 +48,7 @@ class NovitaImageService {
 
   /// Core generation logic: submit → poll → download bytes.
   Future<List<int>> _generateBytes(String promptTemplate,
-      {int seed = AppConfig.defaultSeed}) async {
+      {int seed = AppConfig.defaultSeed, String size = '768*1024'}) async {
       // 0. Get API key from secure storage
       final apiKey = await AppConfig.getNovitaApiKey();
       if (apiKey.isEmpty) {
@@ -67,9 +67,8 @@ class NovitaImageService {
         },
         body: jsonEncode({
           'seed': seed,
-          'size': '768*1024',
+          'size': size,        // было хардкод
           'prompt': promptTemplate,
-          // 'negative_prompt': _negativePrompt,
         }),
       );
       final submitJson =

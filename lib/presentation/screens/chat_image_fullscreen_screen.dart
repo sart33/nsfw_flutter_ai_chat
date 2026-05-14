@@ -66,6 +66,8 @@ class _ChatImageFullscreenScreenState
                 maxScale: PhotoViewComputedScale.covered * 2.5,
                 backgroundDecoration:
                 const BoxDecoration(color: Colors.black),
+                filterQuality: FilterQuality.medium, // <-- добавить
+
               );
             },
           ),
