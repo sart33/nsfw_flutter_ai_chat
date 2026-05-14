@@ -20,8 +20,12 @@ class KeyStorageService {
 
   static Future<String> read(String key) async {
     if (_useMacOSFallback) {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(key) ?? '';
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        return prefs.getString(key) ?? '';
+      } catch (_) {
+        return '';
+      }
     }
     try {
       return await _secureStorage.read(key: key) ?? '';
