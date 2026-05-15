@@ -687,8 +687,8 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     final modes = [
       (
         value: 'romantic',
-        label: context.l10n.romantic,
-        icon: Icons.favorite_border,
+        label: context.l10n.galleryModeDailyLife,
+        icon: Icons.event_available,
       ),
       (
         value: 'erotic',
