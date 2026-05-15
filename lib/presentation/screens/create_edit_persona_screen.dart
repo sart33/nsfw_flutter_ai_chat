@@ -15,6 +15,7 @@ import 'package:nsfw_chat/data/models/avatar_style_option_model.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/factory/database_helper.dart';
@@ -416,8 +417,8 @@ class _CreateEditPersonaScreenState
 
   bool get _isEdit => widget.personaId != null;
 
-  static const int _descMax = 4000;
-  static const int _greetMax = 200;
+  static const int _descMax = 1000;
+  static const int _greetMax = 600;
 
   @override
   void initState() {
@@ -816,7 +817,7 @@ class _CreateEditPersonaScreenState
                 controller: _greetCtrl,
                 label: context.l10n.greeting,
                 maxChars: _greetMax,
-                maxLines: 3,
+                maxLines: 5,
               ),
               const SizedBox(height: 16),
 
@@ -824,7 +825,7 @@ class _CreateEditPersonaScreenState
               TextFormField(
                 controller: _behaviorCtrl,
                 style: const TextStyle(color: AppTheme.textPrimary),
-                maxLines: 5,
+                maxLines: 8,
                 decoration: _fieldDecoration(
                   context.l10n.behaviorOptional,
                 ).copyWith(hintText: context.l10n.aiInstructions),
@@ -1014,7 +1015,7 @@ class _CreateEditPersonaScreenState
     // Generated preview (not yet confirmed)
     final previewPath = _generatedAvatarPreviewPath;
     if (previewPath != null && File(previewPath).existsSync()) {
-      return Container(
+      final previewContainer = Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
           border: Border.all(color: AppTheme.userBubble, width: 2),
@@ -1023,6 +1024,29 @@ class _CreateEditPersonaScreenState
           borderRadius: BorderRadius.circular(radius > 0 ? radius - 1 : 0),
           child: Image.file(File(previewPath), fit: BoxFit.cover),
         ),
+      );
+
+      return GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: const BackButton(color: Colors.white),
+              ),
+              body: PhotoView(
+                imageProvider: FileImage(File(previewPath)),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 4.0,
+                backgroundDecoration: const BoxDecoration(color: Colors.black),
+              ),
+            ),
+          ),
+        ),
+        child: previewContainer,
       );
     }
 
@@ -1035,46 +1059,73 @@ class _CreateEditPersonaScreenState
     final assetPath = persona?.avatarAssetPath;
     final hasAsset = !hasFile && assetPath != null && assetPath.isNotEmpty;
 
-    return Container(
+    final container = Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: AppTheme.userBubble),
         image:
-            hasFile
-                ? DecorationImage(
-                  image: FileImage(File(_avatarPath!)),
-                  filterQuality: FilterQuality.medium,
-                  fit: BoxFit.cover,
-                )
-                : hasAsset
-                ? DecorationImage(
-                  image: AssetImage(assetPath),
-              filterQuality: FilterQuality.medium,
-              fit: BoxFit.cover,
-                )
-                : null,
+        hasFile
+            ? DecorationImage(
+          image: FileImage(File(_avatarPath!)),
+          filterQuality: FilterQuality.medium,
+          fit: BoxFit.cover,
+        )
+            : hasAsset
+            ? DecorationImage(
+          image: AssetImage(assetPath),
+          filterQuality: FilterQuality.medium,
+          fit: BoxFit.cover,
+        )
+            : null,
       ),
       child:
-          (hasFile || hasAsset)
-              ? null
-              : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.add_a_photo_outlined,
-                    color: AppTheme.textSecondary,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.l10n.avatar,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+      (hasFile || hasAsset)
+          ? null
+          : Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.add_a_photo_outlined,
+            color: AppTheme.textSecondary,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            context.l10n.avatar,
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!hasFile && !hasAsset) return container;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: const BackButton(color: Colors.white),
+            ),
+            body: PhotoView(
+              imageProvider: hasFile
+                  ? FileImage(File(_avatarPath!)) as ImageProvider
+                  : AssetImage(assetPath!),
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.covered * 4.0,
+              backgroundDecoration: const BoxDecoration(color: Colors.black),
+            ),
+          ),
+        ),
+      ),
+      child: container,
     );
   }
 
