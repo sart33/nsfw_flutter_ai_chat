@@ -444,5 +444,7 @@
     }
   },
   "imageSizeStandard": "Стандартний",
-  "imageSizeLarge": "Великий"
+  "imageSizeLarge": "Великий",
+  "readMore": "Читати далі",
+  "collapse": "Згорнути"
 }

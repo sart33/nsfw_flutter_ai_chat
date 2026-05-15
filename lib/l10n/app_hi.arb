@@ -483,9 +483,9 @@
   "supportChatMessageSecond": "Support से app का development आगे बढ़ता है",
   "supportChatMessageSupport": "Support",
 
-  "imageSizeAvatar": "Avatar size",
-  "imageSizeGallery": "Gallery image size",
-  "imageSizeChat": "Chat image size",
+  "imageSizeAvatar": "Avatar का size",
+  "imageSizeGallery": "Gallery image का size",
+  "imageSizeChat": "Chat image का size",
   "imageSizeLabel": "{size}px",
   "@imageSizeLabel": {
     "placeholders": {
@@ -494,7 +494,9 @@
 
     "imageSizeStandard": "Standard",
     "imageSizeLarge": "Large"
-  }
+  },
+  "readMore": "और पढ़ें",
+  "collapse": "Collapse करें"
 
 }
 

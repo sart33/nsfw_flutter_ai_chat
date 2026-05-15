@@ -449,7 +449,9 @@
     }
   },
   "imageSizeStandard": "Стандартный",
-  "imageSizeLarge": "Большой"
+  "imageSizeLarge": "Большой",
+  "readMore": "Читать далее",
+  "collapse": "Свернуть"
 
 
 

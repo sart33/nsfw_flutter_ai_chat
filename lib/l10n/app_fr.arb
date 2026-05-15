@@ -447,5 +447,7 @@
     }
   },
   "imageSizeStandard": "Standard",
-  "imageSizeLarge": "Grand"
+  "imageSizeLarge": "Grand",
+  "readMore": "Lire plus",
+  "collapse": "Réduire"
 }

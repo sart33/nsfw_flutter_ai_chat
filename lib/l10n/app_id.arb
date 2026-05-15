@@ -539,6 +539,8 @@
     }
   },
   "imageSizeStandard": "Standar",
-  "imageSizeLarge": "Besar"
+  "imageSizeLarge": "Besar",
+  "readMore": "Baca selengkapnya",
+  "collapse": "Ciutkan"
 }
 

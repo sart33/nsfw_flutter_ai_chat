@@ -263,6 +263,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                         context.l10n.description,
                         currentPersona.description,
                         selectable: true,
+                        maxLines: 4
                       ),
                       const SizedBox(height: 16),
 
@@ -273,6 +274,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                           currentPersona.greeting,
                           italic: true,
                           textColor: const Color(0xFFCCCCCC),
+                          maxLines: 4,
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -658,52 +660,24 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   }
 
   Widget _buildInfoCard(
-    String title,
-    String content, {
-    bool selectable = false,
-    bool italic = false,
-    Color textColor = AppTheme.textPrimary,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: AppTheme.cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title.toUpperCase(),
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 8),
-          selectable
-              ? SelectableText(
-                content,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 14,
-                  height: 1.5,
-                  fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-                ),
-              )
-              : Text(
-                content,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 14,
-                  height: 1.5,
-                  fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-                ),
-              ),
-        ],
-      ),
+      String title,
+      String content, {
+        bool selectable = false,
+        bool italic = false,
+        Color textColor = AppTheme.textPrimary,
+        int maxLines = 6,
+      }) {
+    return _CollapsibleInfoCard(
+      title: title,
+      content: content,
+      selectable: selectable,
+      italic: italic,
+      textColor: textColor,
+      maxLines: maxLines,
     );
   }
+
+
 
   Widget _buildModeSelector(
     GalleryState state,
@@ -1044,5 +1018,118 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+}
+
+class _CollapsibleInfoCard extends StatefulWidget {
+  final String title;
+  final String content;
+  final bool selectable;
+  final bool italic;
+  final Color textColor;
+  final int maxLines;
+
+  const _CollapsibleInfoCard({
+    required this.title,
+    required this.content,
+    this.selectable = false,
+    this.italic = false,
+    this.textColor = AppTheme.textPrimary,
+    this.maxLines = 6,
+  });
+
+  @override
+  State<_CollapsibleInfoCard> createState() => _CollapsibleInfoCardState();
+}
+
+class _CollapsibleInfoCardState extends State<_CollapsibleInfoCard> {
+  bool _expanded = false;
+  bool _hasOverflow = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = TextStyle(
+      color: widget.textColor,
+      fontSize: 14,
+      height: 1.5,
+      fontStyle: widget.italic ? FontStyle.italic : FontStyle.normal,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: AppTheme.cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.title.toUpperCase(),
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Измеряем overflow через LayoutBuilder
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tp = TextPainter(
+                text: TextSpan(text: widget.content, style: textStyle),
+                maxLines: widget.maxLines,
+                textDirection: TextDirection.ltr,
+              )..layout(maxWidth: constraints.maxWidth);
+
+              final overflow = tp.didExceedMaxLines;
+
+              // Обновляем флаг после билда, если изменился
+              if (overflow != _hasOverflow) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) setState(() => _hasOverflow = overflow);
+                });
+              }
+
+              final textWidget = widget.selectable
+                  ? SelectableText(
+                widget.content,
+                style: textStyle,
+                maxLines: _expanded ? null : widget.maxLines,
+              )
+                  : Text(
+                widget.content,
+                style: textStyle,
+                maxLines: _expanded ? null : widget.maxLines,
+                overflow: _expanded ? null : TextOverflow.ellipsis,
+              );
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  textWidget,
+                  if (overflow) ...[
+                    const SizedBox(height: 6),
+                    GestureDetector(
+                      onTap: () => setState(() => _expanded = !_expanded),
+                      child: Text(
+                        _expanded
+                            ? context.l10n.collapse   // "Свернуть"
+                            : context.l10n.readMore,  // "Читать дальше"
+                        style: const TextStyle(
+                          color: AppTheme.primaryAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
