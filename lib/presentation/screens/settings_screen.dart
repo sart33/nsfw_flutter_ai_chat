@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:nsfw_chat/presentation/screens/api_keys_screen.dart';
 import 'package:nsfw_chat/presentation/screens/support_the_project_screen.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'about_app_screen.dart';
 
 bool get _isDesktopPlatform =>
@@ -231,6 +233,45 @@ class SettingsScreen extends ConsumerWidget {
     ),
     ]);
 
+    final userAppearanceCard = _SettingsCard(
+      children: [
+        _SwitchTile(
+          title: context.l10n.userShowInImagesTitle,
+          subtitle: context.l10n.userShowInImagesSubtitle,
+          value: settings.userAppearanceEnabled,
+          onChanged: (v) => notifier.setUserAppearanceEnabled(v),
+        ),
+        if (settings.userAppearanceEnabled) ...[
+          _Divider(),
+          _AppearanceToggleRow(
+            label: context.l10n.userGender,
+            options: const ['man', 'woman'],
+            labels:  [context.l10n.userGenderMan, context.l10n.userGenderWoman],
+            value: settings.userGender,
+            onChanged: (v) => notifier.setUserGender(v),
+          ),
+          _Divider(),
+          _AppearanceToggleRow(
+            label: context.l10n.userAge,
+            options: const ['young', 'adult', 'mature', 'senior', 'elderly'],
+            labels: [context.l10n.userAgeYoung, context.l10n.userAgeAdult, context.l10n.userAgeMature, context.l10n.userAgeSenior, context.l10n.userAgeElderly],
+            value: settings.userAge,
+            onChanged: (v) => notifier.setUserAge(v),
+          ),
+
+          _Divider(),
+          _EthnicityRow(
+            value: settings.userEthnicity,
+            onChanged: (v) => notifier.setUserEthnicity(v),
+          ),
+          _Divider(),
+          _HairColorRow(
+            value: settings.userHairColor,
+            onChanged: (v) => notifier.setUserHairColor(v),
+          ),
+        ],
+      ],
+    );
     final personalityCard = _SettingsCard(children: [
       _SwitchTile(
         title: context.l10n.personalityReminder,
@@ -251,6 +292,8 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ],
     ]);
+
+
 
     final creativityCard = _SettingsCard(children: [
       _SliderTile(
@@ -426,6 +469,7 @@ class SettingsScreen extends ConsumerWidget {
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
+        userAppearanceCard: userAppearanceCard,
 
       )
           : _buildMobileBody(
@@ -443,6 +487,8 @@ class SettingsScreen extends ConsumerWidget {
         userInputCard: userInputCard,
         aiResponseCard: aiResponseCard,
         clearCard: clearCard,
+        userAppearanceCard: userAppearanceCard,
+
       ),
     );
   }
@@ -466,6 +512,7 @@ class SettingsScreen extends ConsumerWidget {
     required Widget backupCard,
     required Widget languageCard,
     required Widget imageSizeCard,
+    required Widget userAppearanceCard,
   }) {
     const gap = SizedBox(height: 12);
     return ListView(
@@ -482,6 +529,7 @@ class SettingsScreen extends ConsumerWidget {
         summarizationCard, gap,
         clearCard,       gap,
         imageSizeCard,   gap,
+        userAppearanceCard,   gap,
         autoDeleteCard,  gap,
         userInputCard,   gap,
         aiResponseCard,
@@ -509,6 +557,8 @@ class SettingsScreen extends ConsumerWidget {
     required Widget backupCard,
     required Widget languageCard,
     required Widget imageSizeCard,
+    required Widget userAppearanceCard,
+
   }) {
     const gap = SizedBox(height: 12);
 
@@ -518,8 +568,10 @@ class SettingsScreen extends ConsumerWidget {
       chatFontCard,      gap,
       creativityCard,    gap,
       personalityCard,   gap,
-      imageSizeCard,     gap,
-      autoDeleteCard,    gap,
+      summarizationCard,gap,
+      clearCard,        gap,
+      aiResponseCard,   gap,
+      userInputCard,
 
 
 
@@ -529,10 +581,9 @@ class SettingsScreen extends ConsumerWidget {
       apiKeysCard,      gap,
       languageCard,     gap,
       backupCard,       gap,
-      summarizationCard,gap,
-      clearCard,        gap,
-      aiResponseCard,   gap,
-      userInputCard,
+      imageSizeCard,     gap,
+      userAppearanceCard, gap,
+      autoDeleteCard,
 
     ];
 
@@ -720,6 +771,7 @@ class _SizeToggle extends StatelessWidget {
             label: context.l10n.imageSizeLarge,
             selected: value == 'large',
             isLeft: false,
+            isRight: true,
             onTap: () => onChanged('large'),
           ),
         ],
@@ -734,11 +786,14 @@ class _ToggleSegment extends StatelessWidget {
     required this.selected,
     required this.isLeft,
     required this.onTap,
+    this.isRight = false, // новый параметр
+
   });
 
   final String label;
   final bool selected;
   final bool isLeft;
+  final bool isRight;
   final VoidCallback onTap;
 
   @override
@@ -752,8 +807,8 @@ class _ToggleSegment extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppTheme.accentVividButton : Colors.transparent,
           borderRadius: BorderRadius.horizontal(
-            left:  Radius.circular(isLeft ? 16 : 0),
-            right: Radius.circular(isLeft ? 0 : 16),
+            left: Radius.circular(isLeft ? 16 : 0),
+            right: Radius.circular(isRight ? 16 : 0),
           ),
         ),
         alignment: Alignment.center,
@@ -762,9 +817,239 @@ class _ToggleSegment extends StatelessWidget {
           style: TextStyle(
             color: selected ? Colors.white : AppTheme.textSecondary,
             fontSize: 13,
-            fontWeight: selected ? FontWeight.w400 : FontWeight.w400,
+            fontWeight: FontWeight.w400,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Hair color — горизонтальный скролл с чипами ─────────
+
+class _HairColorRow extends StatelessWidget {
+  const _HairColorRow({required this.value, required this.onChanged});
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+
+
+  @override
+  Widget build(BuildContext context) {
+     var _options = [
+    ('black', context.l10n.userHairBlack),
+    ('brown', context.l10n.userHairBrown),
+    ('blonde', context.l10n.userHairBlonde),
+    ('red', context.l10n.userHairRed),
+    ('gray', context.l10n.userHairGray),
+    ('white', context.l10n.userHairWhite),
+    ('bald', context.l10n.userHairBald),
+  ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+           Text(
+            context.l10n.userHair,
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+              },
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _options.map((opt) {
+                  final selected = value == opt.$1;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => onChanged(opt.$1),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? AppTheme.accentVividButton
+                              : AppTheme.cardBg,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: selected
+                                ? AppTheme.accentVividButton
+                                : AppTheme.cardBorder,
+                          ),
+                        ),
+                        child: Text(
+                          opt.$2,
+                          style: TextStyle(
+                            color: selected
+                                ? Colors.white
+                                : AppTheme.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Ethnicity — bottom sheet ─────────────────────────────
+
+class _EthnicityRow extends StatelessWidget {
+  const _EthnicityRow({required this.value, required this.onChanged});
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+
+  static List<(String, String)> _getOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+    ('white', l10n.userEthnicityWhite),
+    ('black', l10n.userEthnicityBlack),
+    ('asian', l10n.userEthnicityAsian),
+    ('arab', l10n.userEthnicityArab),
+    ('indian', l10n.userEthnicityIndian),
+    ('latino', l10n.userEthnicityLatino),
+    ('slavic', l10n.userEthnicitySlavic),
+  ];
+  }
+
+  String _currentLabel (BuildContext context) {
+    final _options = _getOptions(context);
+    return _options.firstWhere((o) => o.$1 == value, orElse: () => _options.first).$2;
+
+  }
+  void _showPicker(BuildContext context) {
+    final options = _getOptions(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.bottomSheetBackground,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.4,
+        minChildSize: 0.3,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollController) => Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.cardBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                children: options.map((opt) {
+                  final selected = value == opt.$1;
+                  return ListTile(
+                    title: Text(opt.$2,
+                      style: TextStyle(
+                        color: selected
+                            ? AppTheme.primaryAccent
+                            : AppTheme.textPrimary,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                    trailing: selected
+                        ? Icon(Icons.check, color: AppTheme.primaryAccent)
+                        : null,
+                    onTap: () {
+                      onChanged(opt.$1);
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.l10n.userEthnicity,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _showPicker(context),
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: AppTheme.cardBg,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.cardBorder),
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _currentLabel(context),
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.expand_more,
+                    size: 16,
+                    color: AppTheme.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1048,6 +1333,108 @@ class _LangCard extends StatelessWidget {
     );
   }
 }
+
+class _AppearanceToggleRow extends StatelessWidget {
+  const _AppearanceToggleRow({
+    required this.label,
+    required this.options,
+    required this.labels,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final List<String> options;
+  final List<String> labels;
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final toggle = _MultiToggle(
+      options: options,
+      labels: labels,
+      value: value,
+      onChanged: onChanged,
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // если тоггл не влезает рядом с лейблом — идём в колонку
+          final tight = constraints.maxWidth < 360;
+          if (tight) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: _labelStyle),
+                const SizedBox(height: 8),
+                toggle,
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: Text(label, style: _labelStyle)),
+              const SizedBox(width: 12),
+              toggle,
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  static const _labelStyle = TextStyle(
+    color: AppTheme.textPrimary,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+  );
+
+}
+
+// ── MultiToggle — расширение _SizeToggle на N вариантов ─
+
+class _MultiToggle extends StatelessWidget {
+  const _MultiToggle({
+    required this.options,
+    required this.labels,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final List<String> options;
+  final List<String> labels;
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 34,
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.cardBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(options.length, (i) {
+          final isFirst = i == 0;
+          final isLast = i == options.length - 1;
+          return _ToggleSegment(
+            label: labels[i],
+            selected: value == options[i],
+            isLeft: isFirst,
+            isRight: isLast,
+            onTap: () => onChanged(options[i]),
+          );
+        }),
+      ),
+    );
+  }
+}
+
 
 // ── Мобильный bottom sheet ────────────────────────────────────────────────
 class _LanguageSheet extends StatelessWidget {

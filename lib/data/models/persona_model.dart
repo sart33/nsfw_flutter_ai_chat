@@ -11,7 +11,13 @@ class PersonaModel {
   final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
-  final bool ageVerified; // NEW
+  final bool ageVerified;
+  final bool? userAppearanceEnabled; // null = брать из settings
+
+  final String? userGender;
+  final String? userAge;
+  final String? userHairColor;
+  final String? userEthnicity;// NEW
 
   PersonaModel({
     String? id,
@@ -23,6 +29,11 @@ class PersonaModel {
     this.behavior,
     this.ageVerified = false, // NEW
     this.galleryMode = 'nude',
+    this.userAppearanceEnabled,
+    this.userGender,
+    this.userAge,
+    this.userHairColor,
+    this.userEthnicity,
   }) : id = id ?? const Uuid().v4();
 
   // ── JSON serialisation ────────────────────────────────────────────────
@@ -37,6 +48,13 @@ class PersonaModel {
     'behavior': behavior,
     'gallery_mode': galleryMode,
     'age_verified': ageVerified ? 1 : 0, // NEW
+    'user_appearance_enabled': userAppearanceEnabled == null
+        ? null
+        : (userAppearanceEnabled! ? 1 : 0),
+    'user_gender': userGender,
+    'user_age': userAge,
+    'user_hair_color': userHairColor,
+    'user_ethnicity': userEthnicity,
   };
 
   factory PersonaModel.fromMap(Map<String, dynamic> map) => PersonaModel(
@@ -48,7 +66,14 @@ class PersonaModel {
     avatarAssetPath: map['avatar_asset_path'] as String?,
     behavior: map['behavior'] as String?,
     galleryMode: (map['gallery_mode'] as String?) ?? 'nude',
-    ageVerified: ((map['age_verified'] as int?) ?? 0) == 1,   // NEW
+    ageVerified: ((map['age_verified'] as int?) ?? 0) == 1,
+    userAppearanceEnabled: map['user_appearance_enabled'] == null
+        ? null
+        : ((map['user_appearance_enabled'] as int) == 1),
+    userGender: map['user_gender'] as String?,
+    userAge: map['user_age'] as String?,
+    userHairColor: map['user_hair_color'] as String?,
+    userEthnicity: map['user_ethnicity'] as String?,// NEW
   );
 
   String toJson() => jsonEncode(toMap());
@@ -66,6 +91,11 @@ class PersonaModel {
     String? behavior,
     String? galleryMode,
     bool? ageVerified,
+    bool? userAppearanceEnabled,
+    String? userGender,
+    String? userAge,
+    String? userHairColor,
+    String? userEthnicity,
   }) => PersonaModel(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -76,5 +106,10 @@ class PersonaModel {
     behavior: behavior ?? this.behavior,
     galleryMode: galleryMode ?? this.galleryMode,
     ageVerified: ageVerified ?? this.ageVerified,
+    userAppearanceEnabled: userAppearanceEnabled ?? this.userAppearanceEnabled,
+    userGender: userGender ?? this.userGender,
+    userAge: userAge ?? this.userAge,
+    userHairColor: userHairColor ?? this.userHairColor,
+    userEthnicity: userEthnicity ?? this.userEthnicity,
   );
 }

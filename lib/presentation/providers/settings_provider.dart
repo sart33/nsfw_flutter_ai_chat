@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
@@ -24,6 +25,13 @@ class SettingsState {
   final String imageSizeChat;
   final String imageSizeAvatar;
 
+  final bool userAppearanceEnabled;
+  final String userGender;      // 'man' | 'woman'
+  final String userAge;         // 'young' | 'middle_aged' | 'old'
+  final String userHairColor;   // 'black' | 'brown' | 'blonde' | 'red' | 'gray' | 'white' | 'bald'
+  final String userEthnicity;   // 'caucasian' | 'slavic' | 'black' | 'asian' | 'arabic' | 'indian' | 'latina'
+
+
 
 
   const SettingsState({
@@ -42,7 +50,12 @@ class SettingsState {
     this.selectedLocale, // default from AppConfig
     this.imageSizeGallery = 'standard', // default 'standard'
     this.imageSizeChat = 'standard',    // default 'standard'
-    this.imageSizeAvatar = 'standard',  // default 'standard'
+    this.imageSizeAvatar = 'standard',
+    this.userAppearanceEnabled = false,
+    this.userGender = 'man',
+    this.userAge = 'young',
+    this.userHairColor = 'black',
+    this.userEthnicity = 'white',// default 'standard'
 
   });
 
@@ -63,6 +76,11 @@ class SettingsState {
     String? imageSizeGallery,
     String? imageSizeChat,
     String? imageSizeAvatar,
+    bool? userAppearanceEnabled,
+    String? userGender,
+    String? userAge,
+    String? userHairColor,
+    String? userEthnicity,
   }) =>
       SettingsState(
         userInputLimit: userInputLimit ?? this.userInputLimit,
@@ -83,6 +101,11 @@ class SettingsState {
         imageSizeGallery: imageSizeGallery ?? this.imageSizeGallery,
         imageSizeChat: imageSizeChat ?? this.imageSizeChat,
         imageSizeAvatar: imageSizeAvatar ?? this.imageSizeAvatar,
+        userAppearanceEnabled: userAppearanceEnabled ?? this.userAppearanceEnabled,
+        userGender: userGender ?? this.userGender,
+        userAge: userAge ?? this.userAge,
+        userHairColor: userHairColor ?? this.userHairColor,
+        userEthnicity: userEthnicity ?? this.userEthnicity,
       );
 }
 
@@ -108,6 +131,12 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _keyImageSizeChat    = 'settings_image_size_chat';
   static const _keyImageSizeAvatar  = 'settings_image_size_avatar';
 
+  static const _keyUserAppearanceEnabled = 'settings_user_appearance_enabled';
+  static const _keyUserGender = 'settings_user_gender';
+  static const _keyUserAge = 'settings_user_age';
+  static const _keyUserHairColor = 'settings_user_hair_color';
+  static const _keyUserEthnicity = 'settings_user_ethnicity';
+
 
   SettingsNotifier() : super(const SettingsState()) {
     _load();
@@ -132,6 +161,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         final imageSizeGallery = prefs.getString(_keyImageSizeGallery) ?? 'standard';
     final imageSizeChat = prefs.getString(_keyImageSizeChat) ?? 'standard';
     final imageSizeAvatar = prefs.getString(_keyImageSizeAvatar) ?? 'standard';
+    final userAppearanceEnabled = prefs.getBool(_keyUserAppearanceEnabled) ?? false;
+    final userGender = prefs.getString(_keyUserGender) ?? 'man';
+    final userAge = prefs.getString(_keyUserAge) ?? 'young';
+    final userHairColor = prefs.getString(_keyUserHairColor) ?? 'black';
+    final userEthnicity = prefs.getString(_keyUserEthnicity) ?? 'white';
 
     final locale = prefs.getString(_keyLocale); // null если не установлен
     state = SettingsState(
@@ -151,6 +185,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       imageSizeGallery:  imageSizeGallery,
       imageSizeChat:     imageSizeChat,
       imageSizeAvatar:   imageSizeAvatar,
+      userAppearanceEnabled: userAppearanceEnabled,
+      userGender: userGender,
+      userAge: userAge,
+      userHairColor: userHairColor,
+      userEthnicity: userEthnicity,
     );
   _ready.complete();
   }
@@ -284,6 +323,36 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final p = await SharedPreferences.getInstance();
     await p.setString(_keyImageSizeAvatar, v);
     state = state.copyWith(imageSizeAvatar: v);
+  }
+
+  Future<void> setUserAppearanceEnabled(bool value) async {
+    state = state.copyWith(userAppearanceEnabled: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyUserAppearanceEnabled, value);
+  }
+
+  Future<void> setUserGender(String value) async {
+    state = state.copyWith(userGender: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUserGender, value);
+  }
+
+  Future<void> setUserAge(String value) async {
+    state = state.copyWith(userAge: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUserAge, value);
+  }
+
+  Future<void> setUserHairColor(String value) async {
+    state = state.copyWith(userHairColor: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUserHairColor, value);
+  }
+
+  Future<void> setUserEthnicity(String value) async {
+    state = state.copyWith(userEthnicity: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUserEthnicity, value);
   }
 }
 

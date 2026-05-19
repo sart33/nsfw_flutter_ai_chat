@@ -12,8 +12,11 @@ import 'package:nsfw_chat/data/repositories/chat_repository.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:nsfw_chat/presentation/providers/persona_provider.dart';
+import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../debug/scene_test_data.dart';
 
 /// Chat state — persisted in SQLite per branch.
 class ChatState {
@@ -704,6 +707,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
   /// If regen=true: deletes last image message first, then regenerates.
   Future<void> generateSceneImage({
     required PersonaEntity persona,
+    required SettingsState settings,   // новый
+
     bool regen = false,
   }) async {
     // If regenerating: find and remove last image message
@@ -744,6 +749,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
         personaId: persona.id,
         personaName: persona.name,
         branchId: _branchId,
+        persona:  persona,
+        settings: settings,
         scene: scene,
         regen: regen,
       );
@@ -786,6 +793,49 @@ class ChatNotifier extends StateNotifier<ChatState> {
             ? e
             : NovitaApiException(e.toString()),
       );
+    }
+  }
+
+  Future<void> debugTestGenerateSceneImage({
+    required PersonaEntity persona,
+    required SettingsState settings,   // новый
+
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await ChatImageService.instance.debugRunSceneBatch(
+        personaId: persona.id,
+        personaName: persona.name,
+        rawSnapshots: kTestScenes,
+        settings: settings,   // новый
+        persona: persona,     // новый
+        onImageGenerated: (localPath, index) {
+          final imgMsg = ChatMessageModel(
+            id: const Uuid().v4(),
+            personaId: persona.id,
+            senderName: persona.name,
+            content: '[BatchTest ${index + 1}]',
+            isUser: false,
+            imageLocalPath: localPath,
+          );
+          // await repo.saveMessage(imgMsg, _branchId);
+
+          state = state.copyWith(
+            messages: [...state.messages, imgMsg],
+          );
+        },
+      );
+    } on NetworkException catch (e) {
+      state = state.copyWith(error: e);
+    } on NovitaApiException catch (e) {
+      state = state.copyWith(error: e);
+    } catch (e) {
+      state = state.copyWith(
+        error: e is AppException ? e : NovitaApiException(e.toString()),
+      );
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 

@@ -19,6 +19,7 @@ import 'package:nsfw_chat/presentation/widgets/pending_image_widget.dart';
 import 'package:photo_view/photo_view.dart';
 
 import '../../core/utils/app_snack_bar.dart';
+import '../widgets/user_appearance_card.dart';
 
 bool get _isDesktopPlatform =>
     Platform.isWindows || Platform.isMacOS || Platform.isLinux;
@@ -210,6 +211,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                     currentPersona,
                     crossAxisCount: 3,
                   ),
+                  const SizedBox(height: 8),
+                  PersonaAppearanceCollapsible(persona: currentPersona),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -533,11 +537,15 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                   onPressed: () => _confirmDelete(context, ref),
                 ),
               ),
+
             ],
           ),
         ),
-
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        SizedBox(
+            width: double.infinity,
+            child: PersonaAppearanceCollapsible(persona: widget.persona)),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -716,9 +724,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               itemBuilder: (context, index) {
                 final mode = modes[index];
                 final isSelected = state.galleryMode == mode.value;
-
                 return GestureDetector(
-                  onTap: () => notifier.setGalleryMode(mode.value),
+                  onTap: () {
+                    final updated = widget.persona.copyWith(
+                      galleryMode: mode.value,
+                    );
+                    notifier.setGalleryMode(mode.value);
+                    ref.read(personaProvider.notifier).updatePersona(updated);
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(

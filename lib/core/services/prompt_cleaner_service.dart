@@ -49,6 +49,8 @@ romantic:
 office:
 - apply all romantic rules above
 - remove all tattoo mentions entirely
+- remove leg mentions entirely (legs, toned legs, athletic legs, slender legs, long legs, shapely legs, etc.)
+- remove all adjectives directly attached to leg descriptions
 - remove any fetish clothing, BDSM elements, or sexualized accessories
 - remove any phrases implying seduction, sexual intent, or provocative use of the body
 - append "properly dressed" at the end
@@ -96,7 +98,7 @@ Return only this JSON, nothing else:
           'response_format':{
             'type': 'json_object'
           },
-         'max_tokens': 500,
+         'max_tokens': 800,
           'temperature': 0.1,
           "thinking": {"type": "disabled"},
           "stream": false

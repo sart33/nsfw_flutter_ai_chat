@@ -447,5 +447,39 @@
   "imageSizeLarge": "Великий",
   "readMore": "Читати далі",
   "collapse": "Згорнути",
-  "galleryModeDailyLife": "Повсякденність"
+
+  "galleryModeDailyLife": "Повсякденність",
+
+  "userShowInImagesTitle": "Присутність на зображеннях в чаті",
+  "userShowInImagesSubtitle": "Додавайте себе та риси свої зовності у згенеровані у чаті зображення, якщо ви присутні там за сюжетом. Вимкнено для явних інтимних сцен.",
+
+  "userGenderMan": "Чоловік",
+  "userGenderWoman": "Жінка",
+
+  "userGender": "Стать",
+  "userAge": "Вік",
+  "userHair": "Волосся",
+  "userEthnicity": "Етнічна належність",
+
+  "userAgeYoung": "18-24",
+  "userAgeAdult": "25-37",
+  "userAgeMature": "38-54",
+  "userAgeSenior": "55-70",
+  "userAgeElderly": "71+",
+
+  "userHairBlack": "Чорне",
+  "userHairBrown": "Каштанове",
+  "userHairBlonde": "Блондин",
+  "userHairRed": "Руде",
+  "userHairGray": "Сиве",
+  "userHairWhite": "Біле",
+  "userHairBald": "Лисий",
+
+  "userEthnicityWhite": "Білий",
+  "userEthnicityBlack": "Чорний",
+  "userEthnicityAsian": "Азіат",
+  "userEthnicityLatino": "Латиноамериканець",
+  "userEthnicityArab": "Араб",
+  "userEthnicityIndian": "Індієць",
+  "userEthnicitySlavic": "Слов'янин"
 }

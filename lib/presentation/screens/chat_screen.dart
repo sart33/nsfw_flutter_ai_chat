@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -27,7 +26,6 @@ import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/factory/database_helper.dart';
-import '../../core/services/summarization_service.dart';
 import '../../core/utils/app_snack_bar.dart';
 import '../../data/models/persona_model.dart';
 import '../../domain/mappers/persona_mapper.dart';
@@ -928,7 +926,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                     msg.imageLocalPath != null &&
                             !chatState.isLoading &&
                             isLastAi
-                        ? () => _regenSceneImage()
+                        ? () => _regenSceneImage(settings)
                         : null,
                 chatFontSize: settings.chatFontSize,
                 showRegenButton: isLastAi,
@@ -1053,7 +1051,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                               onTap:
                                   isVerifyingOrFailed
                                       ? null
-                                      : () => _generateSceneImage(),
+                                      : () => _generateSceneImage(settings),
                             ),
                           // if (useDesktop) ...[
                           //   const SizedBox(width: 8),
@@ -1385,18 +1383,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     }
   }
 
-  void _generateSceneImage() async {
+  void _generateSceneImage(SettingsState settings) async {
     if (_singlePersona == null) return;
     ref
         .read(chatProvider(widget.branchId).notifier)
-        .generateSceneImage(persona: _singlePersona!);
+        .generateSceneImage(persona: _singlePersona!, settings: settings);
   }
 
-  void _regenSceneImage() async {
+  void _regenSceneImage(SettingsState settings) async {
     if (_singlePersona == null) return;
     ref
         .read(chatProvider(widget.branchId).notifier)
-        .generateSceneImage(persona: _singlePersona!, regen: true);
+        .generateSceneImage(persona: _singlePersona!, settings: settings, regen: true);
   }
 
   void _showMessageActions(
@@ -1677,99 +1675,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 
-  // ── DEBUG: Summarization test ──────────────────────────────────────────
-  Future<void> _runSummarizationTest() async {
-    const tag = 'DEBUG_SUMMARIZE';
-    final chatState = ref.read(chatProvider(widget.branchId));
-    final messages = chatState.messages;
 
-    if (messages.isEmpty) {
-      log('No messages to summarize', name: tag);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('[DEBUG] Нет сообщений для суммаризации')),
-        );
-      }
-      return;
-    }
-
-    // Берём последние 30 (или сколько есть)
-    const batchSize = 30;
-    final toSummarize = messages.length > batchSize
-        ? messages.sublist(messages.length - batchSize)
-        : messages;
-
-    log('--- SUMMARIZATION TEST START ---', name: tag);
-    log('Total messages in chat: ${messages.length}', name: tag);
-    log('Sending to summarize: ${toSummarize.length}', name: tag);
-    log(
-      'Messages preview:\n${toSummarize.map((m) => '${m.senderName}: ${m.content.substring(0, m.content.length.clamp(0, 80))}...').join('\n')}',
-      name: tag,
-    );
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('[DEBUG] Отправляем ${toSummarize.length} сообщений на суммаризацию...')),
-      );
-    }
-
-    try {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
-      log('API key present: ${apiKey.isNotEmpty}', name: tag);
-
-      final service = SummarizationService.create();
-      final summary = await service.summarize(
-        toSummarize,
-        apiKey,
-        AppConfig.deepSeekV4FlashModel,
-      );
-
-      log('--- SUMMARIZATION RESULT ---', name: tag);
-      log(summary, name: tag);
-      log('--- END ---', name: tag);
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('[DEBUG] Результат суммаризации'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Сообщений обработано: ${toSummarize.length}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Модель: ${AppConfig.deepSeekV4FlashModel}',
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                  const Divider(),
-                  Text(summary),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      log('SUMMARIZATION FAILED: $e', name: tag);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('[DEBUG] Ошибка: $e')),
-        );
-      }
-    }
-  }
 }
 
 // ── Quick action button ────────────────────────────────────────────────────

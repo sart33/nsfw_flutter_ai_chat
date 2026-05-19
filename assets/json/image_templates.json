@@ -21,7 +21,7 @@
   {"id":20,"name":"After Sex","prompt_template":"{description}, lying on bed, messy hair, flushed cheeks, sheet draped loosely, satisfied expression, nsfw, masterpiece, ultra detailed"},
 
   {"id":21, "name":"Summer dress on balcony", "prompt_template":"{description}, wearing a light summer dress on a balcony, wind blowing the hem, sunlight shining through the fabric, smiling, masterpiece, best quality, ultra detailed, sharp focus"},
-  {"id":22, "name":"At a cafe table", "prompt_template":"{description}, sitting at a table in a cafe in a white blouse and jeans, smile over the shoulder, coffee cup, cozy lighting, masterpiece, best quality, ultra detailed"},
+  {"id":22, "name":"Morning Coffee on the Terrace", "prompt_template":"{description}, street cafe terrace, sitting, drinking coffee, casual chic outfit, sitting alone at the table, looking thoughtful, morning"},
   {"id":23, "name":"Walking in the park", "prompt_template":"{description}, walking in the park in a long coat and boots, hands in pockets, autumn leaves, natural lighting, masterpiece, best quality, ultra detailed"},
   {"id":24, "name":"In a store fitting room", "prompt_template":"{description}, in a clothing store fitting room, trying on a short black dress, looking in the mirror, soft lighting, masterpiece, best quality, ultra detailed"},
   {"id":25, "name":"In the kitchen wearing an apron", "prompt_template":"{description}, in the kitchen wearing an apron and tank top, making coffee, morning light, cozy atmosphere, masterpiece, best quality, ultra detailed"},

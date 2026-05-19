@@ -497,7 +497,40 @@
   },
   "readMore": "और पढ़ें",
   "collapse": "Collapse करें",
-  "galleryModeDailyLife": "Daily Life जीवन"
+  "galleryModeDailyLife": "Daily Life जीवन",
+
+  "userShowInImagesTitle": "Chat images में उपस्थित रहें",
+  "userShowInImagesSubtitle": "Generated chat images में खुद को और अपनी appearance traits जोड़ें, यदि आप scene में मौजूद हैं. Explicit intimate scenes के लिए यह disabled है.",
+
+  "userGender": "Gender",
+  "userAge": "Age",
+  "userHair": "Hair",
+  "userEthnicity": "Ethnicity",
+
+  "userGenderMan": "Man",
+  "userGenderWoman": "Woman",
+
+  "userAgeYoung": "18-24",
+  "userAgeAdult": "25-37",
+  "userAgeMature": "38-54",
+  "userAgeSenior": "55-70",
+  "userAgeElderly": "71+",
+
+  "userHairBlack": "Black",
+  "userHairBrown": "Brown",
+  "userHairBlonde": "Blonde",
+  "userHairRed": "Red",
+  "userHairGray": "Gray",
+  "userHairWhite": "White",
+  "userHairBald": "Bald",
+
+  "userEthnicityWhite": "White",
+  "userEthnicityBlack": "Black",
+  "userEthnicityAsian": "Asian",
+  "userEthnicityLatino": "Latino",
+  "userEthnicityArab": "Arab",
+  "userEthnicityIndian": "Indian",
+  "userEthnicitySlavic": "Slavic"
 
 }
 

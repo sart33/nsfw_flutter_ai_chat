@@ -34,12 +34,27 @@ class DatabaseHelper {
       final path = p.join(dbPath, 'chat_history.db');
       _db = await openDatabase(
         path,
-        version: 18,
+        version: 19,
         onCreate: (db, version) async {
           await _createAllTables(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 19) {
+            await db.execute(
+              'ALTER TABLE personas ADD COLUMN user_gender TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE personas ADD COLUMN user_age TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE personas ADD COLUMN user_hair_color TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE personas ADD COLUMN user_ethnicity TEXT',
+            );
+            await db.execute('ALTER TABLE personas ADD COLUMN user_appearance_enabled INTEGER');
 
+          }
         },
       );
       await _db!.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
@@ -143,6 +158,11 @@ class DatabaseHelper {
     behavior         TEXT,
     gallery_mode     TEXT NOT NULL DEFAULT 'nude',
     age_verified     INTEGER NOT NULL DEFAULT 0,
+    user_appearance_enabled INTEGER,
+    user_gender       TEXT,
+    user_age          TEXT,
+    user_hair_color   TEXT,
+    user_ethnicity    TEXT,
     created_at       INTEGER NOT NULL,
     updated_at       INTEGER NOT NULL
   )
@@ -855,6 +875,13 @@ class DatabaseHelper {
         'gallery_mode': persona.galleryMode,
         'age_verified': persona.ageVerified ? 1 : 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
+        'user_appearance_enabled': persona.userAppearanceEnabled == null
+            ? null
+            : (persona.userAppearanceEnabled! ? 1 : 0),
+        'user_gender': persona.userGender,
+        'user_age': persona.userAge,
+        'user_hair_color': persona.userHairColor,
+        'user_ethnicity': persona.userEthnicity,
       };
       await db.update(
         'personas',

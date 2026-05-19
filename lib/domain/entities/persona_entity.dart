@@ -9,7 +9,13 @@ class PersonaEntity {
   final String? avatarAssetPath;
   final String? behavior;
   final String galleryMode;
-  final bool ageVerified;  // NEW
+  final bool ageVerified;
+  final bool? userAppearanceEnabled; // null = брать из settings
+  final String? userGender;
+  final String? userAge;
+  final String? userHairColor;
+  final String? userEthnicity;
+
 
   const PersonaEntity({
     required this.id,
@@ -20,7 +26,12 @@ class PersonaEntity {
     this.avatarAssetPath,
     this.behavior,
     required this.galleryMode,
-    this.ageVerified = false, // NEW
+    this.ageVerified = false,
+    this.userAppearanceEnabled,
+    this.userGender,
+    this.userAge,
+    this.userHairColor,
+    this.userEthnicity,// NEW
   });
 
   PersonaEntity copyWith({
@@ -33,6 +44,11 @@ class PersonaEntity {
     String? behavior,
     String? galleryMode,
     bool? ageVerified,
+    bool? userAppearanceEnabled,
+    String? userGender,
+    String? userAge,
+    String? userHairColor,
+    String? userEthnicity,
   }) =>
       PersonaEntity(
         id: id ?? this.id,
@@ -44,5 +60,11 @@ class PersonaEntity {
         behavior: behavior ?? this.behavior,
         galleryMode: galleryMode ?? this.galleryMode,
         ageVerified: ageVerified ?? this.ageVerified,
+        userAppearanceEnabled:
+        userAppearanceEnabled ?? this.userAppearanceEnabled,
+        userGender: userGender ?? this.userGender,
+        userAge: userAge ?? this.userAge,
+        userHairColor: userHairColor ?? this.userHairColor,
+        userEthnicity: userEthnicity ?? this.userEthnicity,
       );
 }

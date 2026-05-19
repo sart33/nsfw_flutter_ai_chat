@@ -14,7 +14,12 @@ class PersonaMapper {
     avatarAssetPath: model.avatarAssetPath,
     behavior: model.behavior,
     galleryMode: model.galleryMode,
-    ageVerified: model.ageVerified, // NEW
+    ageVerified: model.ageVerified,
+    userAppearanceEnabled: model.userAppearanceEnabled,
+    userAge: model.userAge,
+    userEthnicity: model.userEthnicity,
+    userGender: model.userGender,
+    userHairColor: model.userHairColor,
   );
 
   static PersonaModel toModel(PersonaEntity entity) => PersonaModel(
@@ -26,7 +31,12 @@ class PersonaMapper {
     avatarAssetPath: entity.avatarAssetPath,
     behavior: entity.behavior,
     galleryMode: entity.galleryMode,
-    ageVerified: entity.ageVerified, // NEW
+    ageVerified: entity.ageVerified,
+    userAppearanceEnabled: entity.userAppearanceEnabled,
+    userAge: entity.userAge,
+    userEthnicity: entity.userEthnicity,
+    userGender: entity.userGender,
+    userHairColor: entity.userHairColor,
   );
 
   static List<PersonaEntity> toEntityList(List<PersonaModel> models) =>

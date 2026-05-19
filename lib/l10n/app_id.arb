@@ -542,6 +542,39 @@
   "imageSizeLarge": "Besar",
   "readMore": "Baca selengkapnya",
   "collapse": "Ciutkan",
-  "galleryModeDailyLife": "Kehidupan sehari-hari"
+
+  "galleryModeDailyLife": "Kehidupan sehari-hari",
+
+  "userShowInImagesTitle": "Muncul di gambar chat",
+  "userShowInImagesSubtitle": "Tambahkan diri Anda dan ciri penampilan Anda ke gambar yang dibuat di chat saat Anda hadir dalam adegan. Dinonaktifkan untuk adegan intim eksplisit.",
+  "userGender": "Jenis kelamin",
+  "userAge": "Usia",
+  "userHair": "Rambut",
+  "userEthnicity": "Etnisitas",
+
+  "userGenderMan": "Pria",
+  "userGenderWoman": "Wanita",
+
+  "userAgeYoung": "18-24",
+  "userAgeAdult": "25-37",
+  "userAgeMature": "38-54",
+  "userAgeSenior": "55-70",
+  "userAgeElderly": "71+",
+
+  "userHairBlack": "Hitam",
+  "userHairBrown": "Cokelat",
+  "userHairBlonde": "Pirang",
+  "userHairRed": "Merah",
+  "userHairGray": "Abu-abu",
+  "userHairWhite": "Putih",
+  "userHairBald": "Botak",
+
+  "userEthnicityWhite": "Putih",
+  "userEthnicityBlack": "Hitam",
+  "userEthnicityAsian": "Asia",
+  "userEthnicityLatino": "Latino",
+  "userEthnicityArab": "Arab",
+  "userEthnicityIndian": "India",
+  "userEthnicitySlavic": "Slavia"
 }
 

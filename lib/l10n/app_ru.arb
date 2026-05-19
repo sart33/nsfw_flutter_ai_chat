@@ -452,7 +452,41 @@
   "imageSizeLarge": "Большой",
   "readMore": "Читать далее",
   "collapse": "Свернуть",
-  "galleryModeDailyLife": "Повседневность"
+
+  "galleryModeDailyLife": "Повседневность",
+
+  "userShowInImagesTitle": "Присутствие на изображениях в чате",
+  "userShowInImagesSubtitle": "Добавьте себя и черты своей внешности в генерируемые в чате изображения, если вы присутствуете там по сюжету. Отключено для явных интимных сцен.",
+
+  "userGender": "Пол",
+  "userAge": "Возраст",
+  "userHair": "Волосы",
+  "userEthnicity": "Этническая принадлежность",
+
+  "userGenderMan": "Мужчина",
+  "userGenderWoman": "Женщина",
+
+  "userAgeYoung": "18-24",
+  "userAgeAdult": "25-37",
+  "userAgeMature": "38-54",
+  "userAgeSenior": "55-70",
+  "userAgeElderly": "71+",
+
+  "userHairBlack": "Чёрные",
+  "userHairBrown": "Каштановые",
+  "userHairBlonde": "Блондин",
+  "userHairRed": "Рыжие",
+  "userHairGray": "Седые",
+  "userHairWhite": "Белые",
+  "userHairBald": "Лысый",
+
+  "userEthnicityWhite": "Белый",
+  "userEthnicityBlack": "Чёрный",
+  "userEthnicityAsian": "Азиат",
+  "userEthnicityLatino": "Латиноамериканец",
+  "userEthnicityArab": "Араб",
+  "userEthnicityIndian": "Индиец",
+  "userEthnicitySlavic": "Славянин"
 
 
 

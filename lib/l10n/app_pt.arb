@@ -446,5 +446,39 @@
   "imageSizeLarge": "Grande",
   "readMore": "Ler mais",
   "collapse": "Recolher",
-  "galleryModeDailyLife": "Vida cotidiana"
+
+  "galleryModeDailyLife": "Vida cotidiana",
+
+  "userShowInImagesTitle": "Aparecer nas imagens do chat",
+  "userShowInImagesSubtitle": "Adicione você e suas características de aparência às imagens geradas no chat quando você estiver presente na cena. Desativado para cenas íntimas explícitas.",
+
+  "userGender": "Gênero",
+  "userAge": "Idade",
+  "userHair": "Cabelo",
+  "userEthnicity": "Etnia",
+
+  "userGenderMan": "Homem",
+  "userGenderWoman": "Mulher",
+
+  "userAgeYoung": "18-24",
+  "userAgeAdult": "25-37",
+  "userAgeMature": "38-54",
+  "userAgeSenior": "55-70",
+  "userAgeElderly": "71+",
+
+  "userHairBlack": "Preto",
+  "userHairBrown": "Castanho",
+  "userHairBlonde": "Loiro",
+  "userHairRed": "Ruivo",
+  "userHairGray": "Cinza",
+  "userHairWhite": "Branco",
+  "userHairBald": "Careca",
+
+  "userEthnicityWhite": "Branco",
+  "userEthnicityBlack": "Negro",
+  "userEthnicityAsian": "Asiático",
+  "userEthnicityLatino": "Latino",
+  "userEthnicityArab": "Árabe",
+  "userEthnicityIndian": "Indiano",
+  "userEthnicitySlavic": "Eslavo"
 }

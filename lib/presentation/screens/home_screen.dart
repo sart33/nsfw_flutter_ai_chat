@@ -136,7 +136,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0D0D10),
+      backgroundColor: AppTheme.bottomSheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
