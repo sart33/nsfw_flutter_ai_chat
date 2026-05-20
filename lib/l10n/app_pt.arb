@@ -243,7 +243,7 @@
   "copy": "Copiar",
   "enterNameTwo": "Digite o nome",
 
-  "defaultModeHint": "O modo escolhido no cartão do personagem (18+, Erótico ou Romântico) define quais imagens serão exibidas ao tocar no avatar no chat",
+  "defaultModeHint": "O modo escolhido no cartão do personagem (18+, Erótico ou Vida cotidiana) define quais imagens serão exibidas ao tocar no avatar no chat",
   "costPrivacySupport": "Custo, privacidade, apoio ao projeto",
   "autoDeleteOldChatImages": "Excluir imagens antigas automaticamente",
   "autoDeleteOldChatImagesDescription": "Exclui automaticamente imagens de chat mais antigas que o número de dias definido",
@@ -480,5 +480,13 @@
   "userEthnicityLatino": "Latino",
   "userEthnicityArab": "Árabe",
   "userEthnicityIndian": "Indiano",
-  "userEthnicitySlavic": "Eslavo"
+  "userEthnicitySlavic": "Eslavo",
+
+  "appFontSize": "Escala de texto no aplicativo",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
 }

@@ -305,7 +305,7 @@
 
   "enterNameTwo": "Masukkan nama",
 
-  "defaultModeHint": "Mode galeri yang dipilih di kartu karakter (18+, Erotika, atau Romantis) menentukan gambar yang muncul saat kamu membuka avatar karakter di chat",
+  "defaultModeHint": "Mode galeri yang dipilih di kartu karakter (18+, Erotika, atau Kehidupan sehari-hari) menentukan gambar yang ditampilkan saat membuka avatar karakter di chat",
 
   "costPrivacySupport": "Biaya, privasi, dukungan proyek",
 
@@ -575,6 +575,15 @@
   "userEthnicityLatino": "Latino",
   "userEthnicityArab": "Arab",
   "userEthnicityIndian": "India",
-  "userEthnicitySlavic": "Slavia"
+  "userEthnicitySlavic": "Slavia",
+
+  "appFontSize": "Skala teks di aplikasi",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
+
 }
 

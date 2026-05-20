@@ -305,7 +305,7 @@
   "allTemplatesGenerated": "Les 20 modèles ont déjà été générés",
   "galleryFull": "Les 20 modèles ont déjà été générés",
   "browseGalleryOrCreatePersona": "Parcourez la galerie ou créez un nouveau personnage personnalisé.",
-  "defaultModeHint": "Le mode galerie choisi dans la carte du personnage (18+, Érotique ou Romance) détermine les images affichées lorsque vous appuyez sur l'avatar du personnage dans le chat",
+  "defaultModeHint": "Le mode galerie choisi dans la carte du personnage (18+, Érotique ou Vie quotidienne) détermine les images affichées lorsque vous appuyez sur l'avatar du personnage dans le chat",
   "defaultModeDescription": "Le mode par défaut est défini dans l'écran de modification du personnage",
 
   "personaValidated": "Personnage validé avec succès",
@@ -482,5 +482,13 @@
   "userEthnicityAsian": "Asiatique",
   "userEthnicityArab": "Arabe",
   "userEthnicityIndian": "Indien",
-  "userEthnicitySlavic": "Slave"
+  "userEthnicitySlavic": "Slave",
+
+  "appFontSize": "Mise à l'échelle du texte dans l'application",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
 }

@@ -261,7 +261,7 @@
   "copy": "Copy",
   "enterNameTwo": "Name दर्ज करें",
 
-  "defaultModeHint": "Character card में चुना गया gallery mode (18+, Erotica या Romance) तय करता है कि chat में avatar पर tap करने पर कौन-सी images दिखेंगी",
+  "defaultModeHint": "Character card में चुना गया gallery mode (18+, Erotica या Daily Life) तय करता है कि chat में avatar पर tap करने पर कौन-सी images दिखेंगी",
 
   "costPrivacySupport": "Cost, privacy, project support",
 
@@ -497,7 +497,7 @@
   },
   "readMore": "और पढ़ें",
   "collapse": "Collapse करें",
-  "galleryModeDailyLife": "Daily Life जीवन",
+  "galleryModeDailyLife": "Daily Life",
 
   "userShowInImagesTitle": "Chat images में उपस्थित रहें",
   "userShowInImagesSubtitle": "Generated chat images में खुद को और अपनी appearance traits जोड़ें, यदि आप scene में मौजूद हैं. Explicit intimate scenes के लिए यह disabled है.",
@@ -530,7 +530,16 @@
   "userEthnicityLatino": "Latino",
   "userEthnicityArab": "Arab",
   "userEthnicityIndian": "Indian",
-  "userEthnicitySlavic": "Slavic"
+  "userEthnicitySlavic": "Slavic",
+
+  "appFontSize": "Application में text scaling",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
+
 
 }
 

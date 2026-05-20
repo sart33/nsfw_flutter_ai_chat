@@ -254,7 +254,7 @@
   "copy": "Copiar",
   "enterNameTwo": "Introduce el nombre",
 
-  "defaultModeHint": "El modo de galería elegido en la tarjeta del personaje (18+, Erótico o Romántico) determina qué imágenes se mostrarán al tocar el avatar en el chat",
+  "defaultModeHint": "El modo de galería elegido en la tarjeta del personaje (18+, Erótico o Vida cotidiana) determina qué imágenes se mostrarán al tocar el avatar en el chat",
   "costPrivacySupport": "Costo, privacidad y apoyo al proyecto",
   "autoDeleteOldChatImages": "Eliminar automáticamente imágenes antiguas del chat",
   "autoDeleteOldChatImagesDescription": "Elimina automáticamente las imágenes del chat después de cierto número de días",
@@ -446,7 +446,7 @@
   "imageSizeLarge": "Grande",
   "readMore": "Leer más",
   "collapse": "Ocultar",
-  "galleryModeDailyLife": "Vida diaria",
+  "galleryModeDailyLife": "Vida cotidiana",
 
   "userShowInImagesTitle": "Aparecer en imágenes del chat",
   "userShowInImagesSubtitle": "Añade tu apariencia y tus rasgos físicos a las imágenes generadas en el chat cuando estés presente en la escena. Desactivado para escenas íntimas explícitas.",
@@ -479,7 +479,16 @@
   "userEthnicityLatino": "Latino",
   "userEthnicityArab": "Árabe",
   "userEthnicityIndian": "Indio",
-  "userEthnicitySlavic": "Eslavo"
+  "userEthnicitySlavic": "Eslavo",
+
+  "appFontSize": "Escalado de texto en la aplicación",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
+
 
 }
 

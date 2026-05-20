@@ -240,7 +240,7 @@
   "photo": "Фото",
   "copy": "Копіювати",
   "enterNameTwo": "Введіть назву",
-  "defaultModeHint": "Режим, вибраний у картці персонажа (18+, Еротика, Романтика), визначає, які зображення відкриваються при натисканні на іконку персонажа в чаті",
+  "defaultModeHint": "Режим, вибраний у картці персонажа (18+, Еротика, Повсякденне життя), визначає, які зображення відкриваються при натисканні на іконку персонажа в чаті",
   "costPrivacySupport": "Вартість, приватність, підтримка проекту",
   "autoDeleteOldChatImages": "Авто-видалення старих зображень чату",
   "autoDeleteOldChatImagesDescription": "Автоматично видаляти зображення чату старші зазначеної кількості днів",
@@ -481,5 +481,14 @@
   "userEthnicityLatino": "Латиноамериканець",
   "userEthnicityArab": "Араб",
   "userEthnicityIndian": "Індієць",
-  "userEthnicitySlavic": "Слов'янин"
+  "userEthnicitySlavic": "Слов'янин",
+
+  "appFontSize": "Масштабування тексту у застосунку",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
+
 }

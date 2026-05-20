@@ -86,7 +86,6 @@
   "noImagesClickPlus": "No images.\nPress + to generate.",
   "characterAndGalleryWillBeDeleted": "Character and all gallery will be deleted. This action cannot be undone.",
   "generatingWait": "Generating... (~4-12 sec)",
-
   "userInputLimit": "User input limit",
   "charactersLabel": "{count} characters",
   "@charactersLabel": {
@@ -121,8 +120,6 @@
       "size": {}
     }
   },
-
-
   "personalityReminder": "Character personality reminder",
   "reminderNote": "Every N messages adds a reminder to the prompt (not saved in history)",
   "yamlProfile": "YAML character profile",
@@ -159,10 +156,8 @@
   "clear": "Clear",
   "allSummarizationsCleared": "All summaries cleared",
   "errorClearingSummaries": "Error: {error}",
-
   "noApiKeyMessage": "To start chatting, you need a DeepSeek API key. Takes 1–2 minutes.",
   "noApiKeyAction": "Add key",
-
   "errorDeepSeekKeyInvalid": "DeepSeek key is invalid. Please update it in settings.",
   "errorDeepSeekNotSet": "DeepSeek key not set. Please add it in settings.",
   "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
@@ -170,21 +165,17 @@
   "errorNovitaKeyInvalid": "Novita key is invalid. Please update it in settings.",
   "errorNovitaKeyNotSet": "Novita key not set. Please add it in settings.",
   "errorNovitaInsufficientBalance": "Insufficient balance on Novita account. Please top up.",
-
   "errorApiKeyInvalid": "API key is invalid. Please update it in settings.",
   "errorConnectionFailed": "Connection error. Check your internet.",
   "errorImageGeneration": "Image generation failed. Please try again.",
-
   "mainTitle": "Uncensored AI Roleplay",
   "mainSubtitle": "Create characters and any scenarios. Generate scenes directly in chat.",
   "mainText": "• Fully local\n• No subscription\n• Very low cost",
-
   "aboutAppTitle": "About the App",
   "aboutTitle": "🧠 About the App",
   "aboutNoCensorshipTitle": "\uD83D\uDD13 No Censorship",
   "aboutNoCensorshipText": "You can discuss any topics, in any form and style — with no restrictions or limits.",
   "aboutNoCensorshipImages": "There is no censorship in image generation either. Create any scenes and characters exactly as you envision them.",
-
   "aboutStorage": "All chats, characters, images and API keys are stored only on your device.",
   "imagesWarningLabel": "⚠️ Images:",
   "imagesHiddenFromGallery": "Not visible in the Android gallery",
@@ -215,32 +206,25 @@
   "supportIntroTitle": "☕ Support the Project",
   "supportDescription": "The app works without subscriptions or feature limitations.\n\nIf you enjoy using it and want new features to keep coming, you can support its development.",
   "supportDescriptionLite": "If you enjoy using the app and want new features, you can support its development.",
-
   "supportOptionsTitle": "💵 Support Options",
   "supportOption2": "$2 — support development",
   "supportOption5": "$5 — noticeable support",
   "supportOption10": "$10 — strong support",
-
   "supportCryptoTitle": "\uD83D\uDCB8 Cryptocurrency",
-
-
   "supportCardTitle": "Bank card (USD)",
   "supportCardNumber": "Card number:",
   "supportCardName": "Name:",
-
   "supportIbanTitle": "\uD83C\uDFE6 Bank transfer (IBAN)",
   "supportIban": "IBAN:",
   "supportRecipient": "Recipient:",
-
   "romantic": "Romantic",
   "erotic": "Erotic",
   "nsfw": "NSFW",
   "office": "Office",
-
   "photo": "Photo",
   "copy": "Copy",
   "enterNameTwo": "Enter name",
-  "defaultModeHint": "The gallery mode chosen in the character card (18+, Erotica, or Romance) decides which images will be shown when you tap the character's avatar in the chat",
+  "defaultModeHint": "The gallery mode chosen in the character card (18+, Erotica, or Daily Life) decides which images will be shown when you tap the character's avatar in the chat",
   "costPrivacySupport": "Cost, privacy, project support",
   "autoDeleteOldChatImages": "Auto-delete old chat images",
   "autoDeleteOldChatImagesDescription": "Automatically delete chat images older than specified days",
@@ -275,8 +259,7 @@
   "days": "days",
   "projectSupport": "Project support",
   "appSettingsDescription": "Pricing, privacy, and app settings",
-
-    "ageGateTitle": "Adult Content",
+  "ageGateTitle": "Adult Content",
   "ageGateCardTitle": "You must be 18 or older",
   "ageGateCardBody": "This app contains explicit content intended for adults only. By continuing, you confirm that you are at least 18 years of age and that viewing such content is permitted in your country.",
   "ageGateConfirm": "I'm 18 or older",
@@ -289,9 +272,6 @@
   "resetShortStyle": "Continue with very short replies, 3-5 sentences max. No long descriptions.",
   "collapsePanel": "Collapse",
   "expandPanel": "Expand",
-
-
-
   "chooseAvatarStyle": "Choose avatar style",
   "avatarStyleEveningDress": "Evening Elegance",
   "avatarStyleSummerDress": "Summer Walk",
@@ -302,16 +282,11 @@
   "avatarStyleMorningCoffee": "Morning Coffee",
   "avatarStyleCafeTerrace": "Parisian Cafe",
   "avatarStyleNude": "Art Nude",
-
   "avatarStatusCheckingAge": "Checking age...",
   "avatarStatusPreparingPrompts": "Preparing prompts...",
   "avatarStatusGeneratingImage": "Generating image...",
-
   "language": "Language",
   "systemLanguage": "System",
-
-
-
   "walletAddressCopied": "Wallet address copied to clipboard",
   "supportTonTitle": "TON",
   "supportLightningError": "Failed to create invoice. Try again.",
@@ -319,28 +294,25 @@
   "supportLightningScanOrOpen": "Scan QR or open in your Lightning wallet",
   "supportLightningOpenWallet": "Open in wallet",
   "supportLightningCopyInvoice": "Copy invoice",
-
   "supportLightningDonateAmount": "Donate ${amount}",
   "@supportLightningDonateAmount": {
     "placeholders": {
-      "amount": { "type": "int" }
+      "amount": {
+        "type": "int"
+      }
     }
   },
   "supportLightningNoWallet": "No Lightning wallet found",
   "viaLightning": "via Lightning",
   "sendTon": "Send TON",
-
   "supportKofiTitle": "Ko-fi",
-
   "supportKofi2": "Support development",
   "supportKofi5": "Speed up new features",
   "supportKofi10": "Accelerate updates",
   "supportKofiButton": "Support on Ko-fi",
-
   "supportUsdtTitle": "USDT (TRC20)",
   "supportNowPaymentsTitle": "Via payment service (NOWPayments)",
   "supportAdditionalTitle": "Additional options",
-
   "supportLightningDescription": "Lightning Network — fast, near-zero fee payments.\nRequires a Lightning wallet (Phoenix, Muun, Blink, Wallet of Satoshi).",
   "supportKofiDescription": "Support via Ko-fi — cards & PayPal. Minimum $2. Small processing fee (~3%).\nYou will be redirected to \"USouls AI\" — this is the official payment page for Uncensored Souls.",
   "supportUsdtDescription": "No minimum amount. Low network fee (usually < $1)",
@@ -348,18 +320,13 @@
   "supportIbanDescription": "fees depend on your bank",
   "supportNowpaymentsDescription": "More payment methods (fees and minimums may vary).",
   "supportTonDescription": "Tap the button to open in Tonkeeper, or scan the QR code with any TON wallet",
-
   "showQr": "Show QR",
   "hideQr": "Hide QR",
-
   "summaryMaxBlocks": "Summary blocks",
   "summaryMaxBlocksDesc": "More blocks mean better long-term memory but higher token usage",
-
-
   "personaValidated": "Character passed verification",
   "ageLabel": "Age",
   "ageMustBe18": "Minimum age is 18",
-
   "personaNotValidatedKeyNotSet": "Unable to verify character age: DeepSeek API key not set. Please add it in settings.",
   "personaNotValidatedKeyInvalid": "Unable to verify character age: invalid DeepSeek API key. Please update it in settings.",
   "personaNotValidatedNoBalance": "Unable to verify character age: insufficient DeepSeek balance. Please top up.",
@@ -367,13 +334,10 @@
   "personaNotValidatedGeneric": "Unable to verify character age: validation unavailable.",
   "personaNotValidatedNetworkError": "Unable to verify character age: network error. Please check your internet connection and try again.",
   "networkError": "Network error.Please check your internet connection and try again.",
-
   "verifyingPersona": "Verifying character...",
   "preparingPrompts": "Preparing prompts...",
-
   "personaAgeConflictHint": "Fix character description (18+)",
   "personaAgeConflictHintPlural": "Fix character descriptions (18+)",
-
   "andMore": "and {count} more",
   "@andMore": {
     "placeholders": {
@@ -387,7 +351,6 @@
   "personaDescriptionConflictMedium": "The description does not meet age requirements. Please edit it.",
   "personaDescriptionAgeRequirement": "The character must be an adult (18+).\nAvoid underage indicators in the description.",
   "personaAutoValidationInfo": "Verification runs automatically. Non-compliant descriptions will not be saved.",
-
   "characterSavedNotVerifiedKeyNotSet": "Character saved, but not verified: DeepSeek API key not set. Please add it in settings.",
   "characterSavedNotVerifiedKeyInvalid": "Character saved, but not verified: invalid DeepSeek API key. Please update it in settings.",
   "characterSavedNotVerifiedNoBalance": "Character saved, but not verified: insufficient DeepSeek balance. Please top up your account.",
@@ -399,7 +362,6 @@
   "backupExportDesc": "Save characters and chat history",
   "backupImport": "Import data",
   "confirm": "Confirm",
-
   "backupImportDesc": "Import from file",
   "backupExporting": "Exporting data...",
   "backupImporting": "Importing data...",
@@ -420,10 +382,9 @@
   "hi": "Hindi",
   "id": "Indonesian",
   "fr": "French",
-
   "supportChatMessageFirst": "If you're enjoying the conversation, you can support development",
-  "supportChatMessageSecond" : "Support helps the app grow",
-  "supportChatMessageSupport" : "Support",
+  "supportChatMessageSecond": "Support helps the app grow",
+  "supportChatMessageSupport": "Support",
   "imageSizeAvatar": "Avatar size",
   "imageSizeGallery": "Gallery image size",
   "imageSizeChat": "Chat image size",
@@ -432,30 +393,25 @@
     "placeholders": {
       "size": {}
     }
-    },
-
+  },
   "imageSizeStandard": "Standard",
   "imageSizeLarge": "Large",
   "readMore": "Read more",
   "collapse": "Collapse",
   "galleryModeDailyLife": "Daily Life",
-
   "userShowInImagesTitle": "Appear in chat images",
   "userShowInImagesSubtitle": "Add yourself and your appearance traits to generated chat images when you are present in the scene. Disabled for explicit intimate scenes.",
   "userGender": "Gender",
   "userAge": "Age",
   "userHair": "Hair",
   "userEthnicity": "Ethnicity",
-
   "userGenderMan": "Man",
   "userGenderWoman": "Woman",
-
   "userAgeYoung": "18-24",
   "userAgeAdult": "25-37",
   "userAgeMature": "38-54",
   "userAgeSenior": "55-70",
   "userAgeElderly": "71+",
-
   "userHairBlack": "Black",
   "userHairBrown": "Brown",
   "userHairBlonde": "Blonde",
@@ -463,15 +419,18 @@
   "userHairGray": "Gray",
   "userHairWhite": "White",
   "userHairBald": "Bald",
-
   "userEthnicityWhite": "White",
   "userEthnicityBlack": "Black",
   "userEthnicityAsian": "Asian",
   "userEthnicityLatino": "Latino",
   "userEthnicityArab": "Arab",
   "userEthnicityIndian": "Indian",
-  "userEthnicitySlavic": "Slavic"
-
-
-
+  "userEthnicitySlavic": "Slavic",
+  "appFontSize": "Scaling text in the application",
+  "appFontSizeLabel": "{size}%",
+  "@appFontSizeLabel": {
+    "placeholders": {
+      "size": { "type": "double" }
+    }
+  }
 }
