@@ -1517,6 +1517,11 @@ class _CreateEditPersonaScreenState
                 : _behaviorCtrl.text.trim(),
         galleryMode: _galleryMode,
         ageVerified: ageVerified,
+        userGender: persona?.userGender,
+        userAge: persona?.userAge,
+        userHairColor: persona?.userHairColor,
+        userEthnicity: persona?.userEthnicity,
+        userAppearanceEnabled: persona?.userAppearanceEnabled,
       );
 
       if (!mounted) return;
