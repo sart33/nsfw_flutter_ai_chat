@@ -109,6 +109,22 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
       _age       = settings.userAge;
       _ethnicity = settings.userEthnicity;
       _hairColor = settings.userHairColor;
+    } else {
+      ref.listen<AsyncValue<List<PersonaEntity>>>(personaProvider, (_, next) {
+        final fresh = next.valueOrNull?.firstWhere(
+              (p) => p.id == widget.persona!.id,
+          orElse: () => widget.persona!,
+        );
+        if (fresh == null) return;
+        final settings = ref.read(settingsProvider);
+        setState(() {
+          _enabled   = fresh.userAppearanceEnabled ?? settings.userAppearanceEnabled;
+          _gender    = fresh.userGender            ?? settings.userGender;
+          _age       = fresh.userAge               ?? settings.userAge;
+          _ethnicity = fresh.userEthnicity         ?? settings.userEthnicity;
+          _hairColor = fresh.userHairColor         ?? settings.userHairColor;
+        });
+      });
     }
 
 
@@ -204,21 +220,17 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
 // Вставляй её и на десктопе (в левую панель), и на мобиле (в самый низ)
 // ─────────────────────────────────────────────────────────────────────────────
 
-class PersonaAppearanceCollapsible extends StatefulWidget {
-  const PersonaAppearanceCollapsible({
-    super.key,
-    required this.persona,
-  });
-
+class PersonaAppearanceCollapsible extends ConsumerStatefulWidget {
+  const PersonaAppearanceCollapsible({super.key, required this.persona});
   final PersonaEntity persona;
 
   @override
-  State<PersonaAppearanceCollapsible> createState() =>
+  ConsumerState<PersonaAppearanceCollapsible> createState() =>
       _PersonaAppearanceCollapsibleState();
 }
 
 class _PersonaAppearanceCollapsibleState
-    extends State<PersonaAppearanceCollapsible> {
+    extends ConsumerState<PersonaAppearanceCollapsible> {
   bool _expanded = false;
   bool _wasExpanded = false;
   bool _isDesktop(BuildContext context) {
@@ -235,6 +247,11 @@ class _PersonaAppearanceCollapsibleState
 
   @override
   Widget build(BuildContext context) {
+    final personas = ref.watch(personaProvider).valueOrNull ?? [];
+    final currentPersona = personas.firstWhere(
+          (p) => p.id == widget.persona.id,
+      orElse: () => widget.persona,
+    );
     return Container(
       padding: _isDesktop(context) ? EdgeInsets.symmetric(horizontal: 16, vertical: 8): EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       // отступ от других карточек
@@ -315,7 +332,7 @@ class _PersonaAppearanceCollapsibleState
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(16),
                 ),
-                child: UserAppearanceCard(persona: widget.persona, expanded: _expanded,  onSaved: () => setState(() => _expanded = false),),
+                child: UserAppearanceCard(persona: currentPersona, expanded: _expanded,  onSaved: () => setState(() => _expanded = false),),
               ),
             )
                 : const SizedBox.shrink(),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
@@ -90,10 +91,10 @@ class SceneSnapshot {
     if (clothingState?.toLowerCase() == 'nude') {
       return 3;
     }
-    if(clothingState?.toLowerCase() == 'light_dressed') {
+    if (clothingState?.toLowerCase() == 'light_dressed') {
       return 1;
     }
-    if(clothingState?.toLowerCase() == 'fully_dressed') {
+    if (clothingState?.toLowerCase() == 'fully_dressed') {
       return 0;
     }
     //if (intimacyLevel >= 3) return 2;
@@ -107,10 +108,8 @@ class SceneSnapshot {
   }
 
   bool get _isExplicitIntercourse {
-    final fields = [
-      activity ?? '',
-      charactersPositioning ?? '',
-    ].join(' ').toLowerCase();
+    final fields =
+        [activity ?? '', charactersPositioning ?? ''].join(' ').toLowerCase();
 
     // Убрать исключение для blowjob — оно блокировало детектор
     return RegExp(
@@ -134,28 +133,42 @@ class SceneSnapshot {
     ).hasMatch(fields);
   }
 
+  static String _normalizeYouToUser(String s) {
+    bool first = true;
+    return s.replaceAllMapped(RegExp(r'\byou\b', caseSensitive: false), (m) {
+      if (first) {
+        first = false;
+        return 'user';
+      }
+      return 'him';
+    });
+  }
+
   String toImagePrompt({String? userDescription}) {
     final parts = <String>[];
     final userRef = userDescription ?? '';
 
-// 1. Детект юзера в сцене
+    // 1. Детект юзера в сцене
     final posLower = charactersPositioning?.toLowerCase() ?? '';
-    final userInScene = userRef.isNotEmpty &&
+    final userInScene =
+        userRef.isNotEmpty &&
         (posLower.contains('user') ||
             RegExp(r'\bhim\b').hasMatch(posLower) ||
             RegExp(r'\byou\b').hasMatch(posLower));
-    final isMovementActivity = activity != null && RegExp(
-      r'\b(walk|run|swim|swim|ride|cycle|drive|climb|descend|ascend|'
-      r'stroll|jog|hike|skate|ski|surf|sail|fly|jump|dance|'
-      r'going|moving|traveling|heading)\w*\b',
-      caseSensitive: false,
-    ).hasMatch(activity!);
+    final isMovementActivity =
+        activity != null &&
+        RegExp(
+          r'\b(walk|run|swim|swim|ride|cycle|drive|climb|descend|ascend|'
+          r'stroll|jog|hike|skate|ski|surf|sail|fly|jump|dance|'
+          r'going|moving|traveling|heading)\w*\b',
+          caseSensitive: false,
+        ).hasMatch(activity!);
 
-// 2. Location — пропускаем если locationDetails уже содержит это слово
+    // 2. Location — пропускаем если locationDetails уже содержит это слово
     if (location != null) {
       final locLower = location!.toLowerCase();
       final detailsLower = (locationDetails ?? '').toLowerCase();
-      if (!detailsLower.contains(locLower)&&
+      if (!detailsLower.contains(locLower) &&
           !detailsLower.contains(locLower.replaceAll('cafe', 'café'))) {
         parts.add(location!);
       }
@@ -170,85 +183,133 @@ class SceneSnapshot {
           'blowing a kiss',
         );
       }
+      s = s.replaceAll(RegExp(r'\bdoggy_?style\b', caseSensitive: false), '');
       s = s.replaceAll(
-          RegExp(r'\bdoggy_?style\b', caseSensitive: false), '');
+        RegExp(r'\bmissionary\b', caseSensitive: false),
+        'lying_on_back',
+      );
       s = s.replaceAll(
-          RegExp(r'\bmissionary\b', caseSensitive: false), 'lying_on_back');
+        RegExp(r'\bspooning\b', caseSensitive: false),
+        'lying_on_side',
+      );
       s = s.replaceAll(
-          RegExp(r'\bspooning\b', caseSensitive: false), 'lying_on_side');
+        RegExp(r'\bcowgirl\b', caseSensitive: false),
+        'sitting upright',
+      );
       s = s.replaceAll(
-          RegExp(r'\bcowgirl\b', caseSensitive: false), 'sitting upright');
-      s = s.replaceAll(
-          RegExp(r'\b69_?position\b', caseSensitive: false), 'lying_on_back');
+        RegExp(r'\b69_?position\b', caseSensitive: false),
+        'lying_on_back',
+      );
       if (userRef.isEmpty) {
         s = s.replaceAll(
-            RegExp(r'\b(together|sitting together|with user|holding user|beside user)\b',
-                caseSensitive: false), 'alone');
-        s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
+          RegExp(
+            r'\b(together|sitting together|with user|holding user|beside user)\b',
+            caseSensitive: false,
+          ),
+          'alone',
+        );
+        s = s.replaceAll(
+          RegExp(r'\bwith\b', caseSensitive: false),
+          'by herself',
+        );
       } else {
         s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef);
       }
       final trimmed = s.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
       if (trimmed.isNotEmpty) parts.add(trimmed);
     }
-    final bool hadBlowjob = activity != null && RegExp(
-        r'\b(blowjob|blow\s+job|deepthroat|oral\s+sex|sucking)\b',
-        caseSensitive: false).hasMatch(activity!);
-
+    final bool hadBlowjob =
+        activity != null &&
+        RegExp(
+          r'\b(blowjob|blow\s+job|deepthroat|oral\s+sex|sucking)\b',
+          caseSensitive: false,
+        ).hasMatch(activity!);
 
     if (activity != null) {
-      var s = activity!;
+      var s = _normalizeYouToUser(activity!);
       if (_isExplicitIntercourse) s = _cleanExplicitIntercourse(s);
 
       // titjob, handjob, standing doggy
       s = s.replaceAll(
-          RegExp(r'\b(titjob|handjob)\b[^,]*', caseSensitive: false), '');
+        RegExp(r'\b(titjob|handjob)\b[^,]*', caseSensitive: false),
+        '',
+      );
       s = s.replaceAll(
-          RegExp(r'\bstanding\s+doggy\b[^,]*', caseSensitive: false), '');
+        RegExp(r'\bstanding\s+doggy\b[^,]*', caseSensitive: false),
+        '',
+      );
 
-// deepthroat перед blowjob — чтобы не было "deepthroat deepthroating"
-// Сначала убрать blowjob/oral sex
+      // deepthroat перед blowjob — чтобы не было "deepthroat deepthroating"
+      // Сначала убрать blowjob/oral sex
       s = s.replaceAll(
-          RegExp(r'\b(blowjob|blow\s+job|giving\s+head|oral\s+sex|mutual\s+oral\s+sex)\b',
-              caseSensitive: false), '');
-// Потом заменить deepthroat → deepthroating
+        RegExp(
+          r'\b(blowjob|blow\s+job|giving\s+head|oral\s+sex|mutual\s+oral\s+sex)\b',
+          caseSensitive: false,
+        ),
+        '',
+      );
+      // Потом заменить deepthroat → deepthroating
       s = s.replaceAll(
-          RegExp(r'\bdeepthroat\b', caseSensitive: false), 'deepthroating');
+        RegExp(r'\bdeepthroat\b', caseSensitive: false),
+        'deepthroating',
+      );
       // vaginal/anal/deep penetration — вся клауза
       s = s.replaceAll(
-          RegExp(r'\b(vaginal|anal|deep|ass)\s+penetration\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\b(vaginal|anal|deep|ass)\s+penetration\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
 
-// cowgirl → sitting upright
+      // cowgirl → sitting upright
       s = s.replaceAll(
-          RegExp(r'\bcowgirl\b', caseSensitive: false), 'sitting upright');
+        RegExp(r'\bcowgirl\b', caseSensitive: false),
+        'sitting upright',
+      );
 
-// riding user/him → убрать всю клаузу
+      // riding user/him → убрать всю клаузу
       s = s.replaceAll(
-          RegExp(r'\briding\s+(users?|him)\b[^,]*', caseSensitive: false), '');
+        RegExp(r'\briding\s+(users?|him)\b[^,]*', caseSensitive: false),
+        '',
+      );
 
-// user везде где остался
-
+      // user везде где остался
 
       s = s.replaceAll(
-          RegExp(r'\b(cock|penis|dick|erection)\b', caseSensitive: false), '');
+        RegExp(r'\b(cock|penis|dick|erection)\b', caseSensitive: false),
+        '',
+      );
 
-// mutual oral sex целиком → deepthroating:
+      // mutual oral sex целиком → deepthroating:
       s = s.replaceAll(
-          RegExp(r'\bmutual\s+oral\s+sex\b', caseSensitive: false), 'deepthroating');
+        RegExp(r'\bmutual\s+oral\s+sex\b', caseSensitive: false),
+        'deepthroating',
+      );
       s = s.replaceAll(
-          RegExp(r'\b(blowjob|blow\s+job|giving\s+head|oral\s+sex)\b',
-              caseSensitive: false), 'deepthroating');
-
+        RegExp(
+          r'\b(blowjob|blow\s+job|giving\s+head|oral\s+sex)\b',
+          caseSensitive: false,
+        ),
+        'deepthroating',
+      );
 
       if (userRef.isEmpty) {
         s = s.replaceAll(
-            RegExp(r'\b(passionate\s+)?kissing\b', caseSensitive: false),
-            'blowing a kiss');
+          RegExp(r'\b(passionate\s+)?kissing\b', caseSensitive: false),
+          'blowing a kiss',
+        );
         s = s.replaceAll(
-            RegExp(r'\b(together|sitting together|with user|talking with|holding arm with)\b',
-                caseSensitive: false), 'alone');
-        s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
+          RegExp(
+            r'\b(together|sitting together|with user|talking with|holding arm with)\b',
+            caseSensitive: false,
+          ),
+          'alone',
+        );
+        s = s.replaceAll(
+          RegExp(r'\bwith\b', caseSensitive: false),
+          'by herself',
+        );
         s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), '');
       } else {
         s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef);
@@ -256,21 +317,33 @@ class SceneSnapshot {
       s = s.replaceAll(RegExp(r'\bwith\b', caseSensitive: false), 'by herself');
       // Безусловно — эти слова нигде кроме секса не нужны
       s = s.replaceAll(
-          RegExp(r'\b(anal|vaginal|deep|ass)\s+(sex|penetration)\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\b(anal|vaginal|deep|ass)\s+(sex|penetration)\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
       s = s.replaceAll(
-          RegExp(r'\bpenetrat\w*\b[^,]*', caseSensitive: false), '');
+        RegExp(r'\bpenetrat\w*\b[^,]*', caseSensitive: false),
+        '',
+      );
       s = s.replaceAll(
-          RegExp(r'\b(anal|vaginal|anus)\b', caseSensitive: false), '');
+        RegExp(r'\b(anal|vaginal|anus)\b', caseSensitive: false),
+        '',
+      );
       s = s.replaceAll(
-          RegExp(r'\bdeeply\s+inside\b[^,]*', caseSensitive: false), '');
+        RegExp(r'\bdeeply\s+inside\b[^,]*', caseSensitive: false),
+        '',
+      );
 
       s = s.replaceAll(
-          RegExp(r'\binviting\s+partner\b[^,]*', caseSensitive: false), '');
-      s = s.replaceAll(
-          RegExp(r'\bpartner\b', caseSensitive: false), '');
+        RegExp(r'\binviting\s+partner\b[^,]*', caseSensitive: false),
+        '',
+      );
+      s = s.replaceAll(RegExp(r'\bpartner\b', caseSensitive: false), '');
       s = s.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
-      if (s.isNotEmpty && (!userInScene || intimacyLevel >= 2 || isMovementActivity)) {
+      if (s.isNotEmpty &&
+          (!userInScene || intimacyLevel >= 2 || isMovementActivity)) {
         parts.add(s);
       }
     }
@@ -279,9 +352,10 @@ class SceneSnapshot {
     if (clothingState?.toLowerCase() == 'nude') parts.add('nude, naked');
 
     if (charactersPositioning != null) {
-      var pos = charactersPositioning!;
+      var pos = _normalizeYouToUser(charactersPositioning!);
       if (_isExplicitIntercourse) pos = _cleanExplicitIntercourse(pos);
-      if (pose?.toLowerCase() == 'standing') pos = _cleanStandingContext(pos, userRef: userRef);
+      if (pose?.toLowerCase() == 'standing')
+        pos = _cleanStandingContext(pos, userRef: userRef);
       var cleaned = _cleanPositioning(pos, userRef: userRef);
       // Добавить deepthroating если был blowjob
       if (hadBlowjob) {
@@ -294,139 +368,196 @@ class SceneSnapshot {
     return parts.join(', ');
   }
 
-
-
   static String _cleanExplicitIntercourse(String raw) {
     var s = raw;
 
     // Разбить по ; как по ,
     s = s.replaceAll(';', ',');
-// stroking and sucking user's cock — вся клауза
+    // stroking and sucking user's cock — вся клауза
 
     s = s.replaceAll(
-        RegExp(r'\bblowjob\b[^,]*', caseSensitive: false), 'deepthroating');
+      RegExp(r'\bblowjob\b[^,]*', caseSensitive: false),
+      'deepthroating',
+    );
     s = s.replaceAll(
-        RegExp(r'\bgiving\s+the\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bgiving\s+the\b[^,]*', caseSensitive: false),
+      '',
+    );
     s = s.replaceAll(
-        RegExp(r'\bentire\s+(cock|penis|dick)\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bentire\s+(cock|penis|dick)\b[^,]*', caseSensitive: false),
+      '',
+    );
     s = s.replaceAll(
-        RegExp(r'\bdeep\s+in\s+her\s+throat\b[^,]*', caseSensitive: false), '');
-// Дублирующиеся слова рядом
-    s = s.replaceAll(
-        RegExp(r'\b(\w+)\s+\1\b', caseSensitive: false), r'\1');
+      RegExp(r'\bdeep\s+in\s+her\s+throat\b[^,]*', caseSensitive: false),
+      '',
+    );
+    // Дублирующиеся слова рядом
+    s = s.replaceAll(RegExp(r'\b(\w+)\s+\1\b', caseSensitive: false), r'\1');
 
     s = s.replaceAll(
-        RegExp(r"\b(stroking|sucking)\s+\w+\'?s?\s+(cock|penis|dick)\b[^,]*",
-            caseSensitive: false), '');
+      RegExp(
+        r"\b(stroking|sucking)\s+\w+\'?s?\s+(cock|penis|dick)\b[^,]*",
+        caseSensitive: false,
+      ),
+      '',
+    );
 
-// titjob — убрать
-    s = s.replaceAll(
-        RegExp(r'\btitjob\b[^,]*', caseSensitive: false), '');
+    // titjob — убрать
+    s = s.replaceAll(RegExp(r'\btitjob\b[^,]*', caseSensitive: false), '');
 
-// testicles/balls — убрать клаузу
+    // testicles/balls — убрать клаузу
     s = s.replaceAll(
-        RegExp(r'\b(testicles|balls|inner\s+thigh)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(r'\b(testicles|balls|inner\s+thigh)\b[^,]*', caseSensitive: false),
+      '',
+    );
 
-// tip of the penis — убрать клаузу
+    // tip of the penis — убрать клаузу
     s = s.replaceAll(
-        RegExp(r'\btip\s+of\s+the\s+(cock|penis|dick)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r'\btip\s+of\s+the\s+(cock|penis|dick)\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
-// licking the tip — убрать клаузу
+    // licking the tip — убрать клаузу
     s = s.replaceAll(
-        RegExp(r'\blicking\s+the\s+tip\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\blicking\s+the\s+tip\b[^,]*', caseSensitive: false),
+      '',
+    );
     // 69 позиция
     s = s.replaceAll(
-        RegExp(r'\bin\s+69\s+position\b[^,]*', caseSensitive: false),
-        'lying on back, spreading legs');
+      RegExp(r'\bin\s+69\s+position\b[^,]*', caseSensitive: false),
+      'lying on back, spreading legs',
+    );
 
     // sucking/licking cock — вся клауза
     s = s.replaceAll(
-        RegExp(r'\b(sucking|licking)\s+(his\s+)?(cock|penis|dick)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r'\b(sucking|licking)\s+(his\s+)?(cock|penis|dick)\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
     // while he ... — вся клауза
     s = s.replaceAll(
-        RegExp(r'\b(while\s+)?he\s+\w+[^,]*', caseSensitive: false), '');
+      RegExp(r'\b(while\s+)?he\s+\w+[^,]*', caseSensitive: false),
+      '',
+    );
 
     // его член — расширенный паттерн
     s = s.replaceAll(
-        RegExp(
-            r"\b(his|(the\s+)?(male\s+)?(character'?s?|partner'?s?))\s+"
-            r'(cock|penis|dick|erection)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r"\b(his|(the\s+)?(male\s+)?(character'?s?|partner'?s?))\s+"
+        r'(cock|penis|dick|erection)\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
     // проникновение — вся клауза
-    s = s.replaceAll(
-        RegExp(r'\bpenetrat\w*\b[^,]*', caseSensitive: false), '');
+    s = s.replaceAll(RegExp(r'\bpenetrat\w*\b[^,]*', caseSensitive: false), '');
 
     // receiving ... sex/penetration — расширен на несколько слов
     s = s.replaceAll(
-        RegExp(r'\breceiving\s+(\w+\s+)?(sex|penetration)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r'\breceiving\s+(\w+\s+)?(sex|penetration)\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
     // on top thrusting deeply ... — расширен
     s = s.replaceAll(
-        RegExp(r'\bon\s+top\s+thrusting\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bon\s+top\s+thrusting\b[^,]*', caseSensitive: false),
+      '',
+    );
 
     // thrusting ... inside — вся клауза
-    s = s.replaceAll(
-        RegExp(r'\bthrusting\b[^,]*', caseSensitive: false), '');
+    s = s.replaceAll(RegExp(r'\bthrusting\b[^,]*', caseSensitive: false), '');
 
     // impaled
     s = s.replaceAll(
-        RegExp(r'\bimpaled\s+on\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bimpaled\s+on\b[^,]*', caseSensitive: false),
+      '',
+    );
 
     // пальцы в отверстия
     s = s.replaceAll(
-        RegExp(r'\binsert\w*\b[^,]*(finger|anus|anal)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r'\binsert\w*\b[^,]*(finger|anus|anal)\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
     // legs wrapped around → legs raised
     s = s.replaceAll(
-        RegExp(r'\blegs?\s+(tightly\s+)?wrapped\s+around\b[^,]*',
-            caseSensitive: false), 'legs raised');
+      RegExp(
+        r'\blegs?\s+(tightly\s+)?wrapped\s+around\b[^,]*',
+        caseSensitive: false,
+      ),
+      'legs raised',
+    );
 
     // legs over shoulders → legs spread
     s = s.replaceAll(
-        RegExp(r'\blegs?\s+over\b[^,]*', caseSensitive: false), 'legs spread');
-// vaginal/anal/deep penetration — вся клауза
+      RegExp(r'\blegs?\s+over\b[^,]*', caseSensitive: false),
+      'legs spread',
+    );
+    // vaginal/anal/deep penetration — вся клауза
     s = s.replaceAll(
-        RegExp(r'\b(vaginal|anal|deep|ass)\s+penetration\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r'\b(vaginal|anal|deep|ass)\s+penetration\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
-// sex in bathtub/shower/etc — вся клауза
+    // sex in bathtub/shower/etc — вся клауза
     s = s.replaceAll(
-        RegExp(r'\bsex\s+in\s+\w+\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bsex\s+in\s+\w+\b[^,]*', caseSensitive: false),
+      '',
+    );
 
-// partner в сексуальном контексте
+    // partner в сексуальном контексте
     s = s.replaceAll(
-        RegExp(r'\b(around|with|on)\s+partner\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\b(around|with|on)\s+partner\b[^,]*', caseSensitive: false),
+      '',
+    );
 
-// riding user/him
+    // riding user/him
     s = s.replaceAll(
-        RegExp(r'\briding\s+(users?|him)\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\briding\s+(users?|him)\b[^,]*', caseSensitive: false),
+      '',
+    );
 
-// user везде где остался
+    // user везде где остался
     s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), '');
     // scratching his back
     s = s.replaceAll(
-        RegExp(r'\bscratching\s+his\s+\w+\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bscratching\s+his\s+\w+\b[^,]*', caseSensitive: false),
+      '',
+    );
 
     // holds her up → pressed against the wall
     s = s.replaceAll(
-        RegExp(r'\bholds?\s+her\s+up\b[^,]*', caseSensitive: false),
-        'pressed against the wall');
+      RegExp(r'\bholds?\s+her\s+up\b[^,]*', caseSensitive: false),
+      'pressed against the wall',
+    );
 
     // все клаузы где he — субъект
-    s = s.replaceAll(
-        RegExp(r'\bhe\s+\w+[^,]*', caseSensitive: false), '');
+    s = s.replaceAll(RegExp(r'\bhe\s+\w+[^,]*', caseSensitive: false), '');
 
     // его руки
     s = s.replaceAll(
-        RegExp(r'\bhis\s+arms?\s+(around|wrapped\s+around)\b[^,]*',
-            caseSensitive: false), '');
+      RegExp(
+        r'\bhis\s+arms?\s+(around|wrapped\s+around)\b[^,]*',
+        caseSensitive: false,
+      ),
+      '',
+    );
 
     // остатки his/he/erect
     s = s.replaceAll(RegExp(r'\bhis\b', caseSensitive: false), '');
@@ -435,10 +566,13 @@ class SceneSnapshot {
 
     // зачистка мусора
     s = s.replaceAll(
-        RegExp(
-            r'\b(and|but|while|from|on|of|at|to|for|with|by|the|into|'
-            r'behind|against|alongside|deeply|inside)\s*(?=,|$)',
-            caseSensitive: false), '');
+      RegExp(
+        r'\b(and|but|while|from|on|of|at|to|for|with|by|the|into|'
+        r'behind|against|alongside|deeply|inside)\s*(?=,|$)',
+        caseSensitive: false,
+      ),
+      '',
+    );
     s = s.replaceAll(RegExp(r'\s{2,}'), ' ');
     s = s.replaceAll(RegExp(r',\s*,'), ',');
     s = s.trim().replaceAll(RegExp(r'^,+|,+$'), '');
@@ -448,13 +582,21 @@ class SceneSnapshot {
 
   static String _cleanStandingContext(String raw, {String userRef = ''}) {
     var s = raw;
+    bool firstUser = true;
+    s = s.replaceAllMapped(RegExp(r'\buser\b', caseSensitive: false), (m) {
+      if (firstUser) {
+        firstUser = false;
+        return userRef;
+      }
+      return 'him';
+    });
     if (userRef.isNotEmpty) {
       s = s.replaceAllMapped(
         RegExp(
           r'\b(right\s+)?(very\s+close\s+to|close\s+to|next\s+to|near)\s+(the\s+)?users?\b[^,]*',
           caseSensitive: false,
         ),
-            (m) => '${m.group(1) ?? ''}${m.group(2)} $userRef',
+        (m) => '${m.group(1) ?? ''}${m.group(2)} $userRef',
       );
     } else {
       s = s.replaceAll(
@@ -479,7 +621,14 @@ class SceneSnapshot {
   static String _cleanPositioning(String raw, {String userRef = ''}) {
     var s = raw;
     final hasUser = userRef.isNotEmpty;
-
+    bool firstUser = true;
+    s = s.replaceAllMapped(RegExp(r'\buser\b', caseSensitive: false), (m) {
+      if (firstUser) {
+        firstUser = false;
+        return userRef;
+      }
+      return 'him';
+    });
     // Баг 1 — только для sitting
     if (raw.toLowerCase().contains('sitting')) {
       if (hasUser) {
@@ -489,7 +638,7 @@ class SceneSnapshot {
             r'close\s+to|near|behind)\s+(the\s+)?users?\b',
             caseSensitive: false,
           ),
-              (m) => '${m.group(1)!} $userRef',  // сохраняем предлог
+          (m) => '${m.group(1)!} $userRef', // сохраняем предлог
         );
       } else {
         s = s.replaceAll(
@@ -503,11 +652,13 @@ class SceneSnapshot {
       }
     }
 
-// links her arm — убирать всегда (нет визуального смысла)
+    // links her arm — убирать всегда (нет визуального смысла)
     s = s.replaceAll(
-        RegExp(r'\blinks?\s+her\s+arm\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\blinks?\s+her\s+arm\b[^,]*', caseSensitive: false),
+      '',
+    );
 
-// 1. Физконтакт holds/grabs/etc
+    // 1. Физконтакт holds/grabs/etc
     if (hasUser) {
       // заменяем только user/him внутри клаузы
       // 1. Физконтакт
@@ -516,8 +667,9 @@ class SceneSnapshot {
           r'\b(holds?|grabs?|pulls?|pushes?|leads?|drags?|guides?|takes?|wraps?|climbs?|presses?|pins?)\s[^,]*\busers?\b[^,]*',
           caseSensitive: false,
         ),
-            (m) => m.group(0)!.replaceAll(
-            RegExp(r'\busers?\b', caseSensitive: false), userRef),
+        (m) => m
+            .group(0)!
+            .replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef),
       );
       // him оставляем как есть — это может быть не юзер
     } else {
@@ -530,54 +682,77 @@ class SceneSnapshot {
       );
     }
 
-// 2. holding his hand ... and
+    // 2. holding his hand ... and
     if (hasUser) {
       // оставляем, him → userRef
-      s = s.replaceAll(RegExp(r'\bhis\s+hand\b', caseSensitive: false), '$userRef hand');
+      s = s.replaceAll(
+        RegExp(r'\bhis\s+hand\b', caseSensitive: false),
+        '$userRef hand',
+      );
     } else {
       s = s.replaceAll(
-          RegExp(r'\bholding\s+his\s+hand\b[^,]*?\band\s+', caseSensitive: false), '');
+        RegExp(r'\bholding\s+his\s+hand\b[^,]*?\band\s+', caseSensitive: false),
+        '',
+      );
     }
 
-// 3. holding user's/user hand ... and
+    // 3. holding user's/user hand ... and
     if (hasUser) {
-      s = s.replaceAll(
-          RegExp(r'\busers?\b', caseSensitive: false), userRef);
+      s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef);
     } else {
       s = s.replaceAll(
-          RegExp(r'\bholding\s+users?\s+hand\b[^,]*?\band\s+', caseSensitive: false), '');
+        RegExp(
+          r'\bholding\s+users?\s+hand\b[^,]*?\band\s+',
+          caseSensitive: false,
+        ),
+        '',
+      );
     }
 
-// 4. hand in hand / holding hands
+    // 4. hand in hand / holding hands
     if (hasUser) {
       // оставляем как есть — визуально понятно
     } else {
       s = s.replaceAll(
-          RegExp(r'\b(holding hands?|hand in hand)\b', caseSensitive: false), '');
+        RegExp(r'\b(holding hands?|hand in hand)\b', caseSensitive: false),
+        '',
+      );
     }
 
-// 4b. side by side / arms brushing — убирать всегда (нет чёткого визуала)
+    // 4b. side by side / arms brushing — убирать всегда (нет чёткого визуала)
     s = s.replaceAll(
-        RegExp(r'\bside\s+by\s+side\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\bside\s+by\s+side\b[^,]*', caseSensitive: false),
+      '',
+    );
     s = s.replaceAll(
-        RegExp(r',?\s*\barms?\s+brushing\b[^,]*', caseSensitive: false), '');
+      RegExp(r',?\s*\barms?\s+brushing\b[^,]*', caseSensitive: false),
+      '',
+    );
 
-// 5. Объятия hugs/embraces
+    // 5. Объятия hugs/embraces
     if (hasUser) {
       s = s.replaceAllMapped(
-        RegExp(r'\b(hugs?|embraces?)\s[^,]*\busers?\b[^,]*', caseSensitive: false),
-            (m) => m.group(0)!.replaceAll(
-            RegExp(r'\busers?\b', caseSensitive: false), userRef),
+        RegExp(
+          r'\b(hugs?|embraces?)\s[^,]*\busers?\b[^,]*',
+          caseSensitive: false,
+        ),
+        (m) => m
+            .group(0)!
+            .replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef),
       );
       // him оставляем
     } else {
       s = s.replaceAll(
-          RegExp(r'\b(hugs?|embraces?)\s[^,]*\b(users?|him)\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\b(hugs?|embraces?)\s[^,]*\b(users?|him)\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
     }
 
-// 5b. while [кто-то] kneels beside/next to her — убирать только kneels
-// stands/sits/walks — оставлять
+    // 5b. while [кто-то] kneels beside/next to her — убирать только kneels
+    // stands/sits/walks — оставлять
     if (hasUser) {
       // оставляем всё
     } else {
@@ -590,68 +765,90 @@ class SceneSnapshot {
       );
     }
 
-// 6. Поцелуй
+    // 6. Поцелуй
     if (hasUser) {
       s = s.replaceAllMapped(
         RegExp(r'\bkisses?\s+users?\b[^,]*', caseSensitive: false),
-            (m) => m.group(0)!.replaceAll(
-            RegExp(r'\busers?\b', caseSensitive: false), userRef),
+        (m) => m
+            .group(0)!
+            .replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef),
       );
       // him оставляем
     } else {
       s = s.replaceAll(
-          RegExp(r'\bkisses?\s+(users?|him|his\s+\w+)\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\bkisses?\s+(users?|him|his\s+\w+)\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
     }
 
-// 7. jumps into user's arms
+    // 7. jumps into user's arms
     if (hasUser) {
       s = s.replaceAll(RegExp(r"user's", caseSensitive: false), '$userRef\'s');
       s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef);
     } else {
       s = s.replaceAll(
-          RegExp(r'\bjumps?\s+into\s+(the\s+)?users?\s+\w+\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\bjumps?\s+into\s+(the\s+)?users?\s+\w+\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
     }
 
-// 8. sits on user's lap
+    // 8. sits on user's lap
     if (hasUser) {
       s = s.replaceAll(RegExp(r"user's", caseSensitive: false), '$userRef\'s');
       s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef);
     } else {
       s = s.replaceAll(
-          RegExp(r'\bsits?\s+on\s+(the\s+)?users?\s+\w+\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\bsits?\s+on\s+(the\s+)?users?\s+\w+\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
       s = s.replaceAll(RegExp(r"user's", caseSensitive: false), 'user');
     }
 
-// wrapping her arms around his — если юзер есть, оставляем (his → userRef)
+    // wrapping her arms around his — если юзер есть, оставляем (his → userRef)
     if (hasUser) {
       s = s.replaceAll(RegExp(r'\bhis\b', caseSensitive: false), userRef);
     } else {
       s = s.replaceAll(
-          RegExp(r'\bwrapping\s+her\s+arms\s+around\s+his\s+\w+\b[^,]*',
-              caseSensitive: false), '');
+        RegExp(
+          r'\bwrapping\s+her\s+arms\s+around\s+his\s+\w+\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
     }
 
-// whispering
+    // whispering
     if (hasUser) {
       s = s.replaceAllMapped(
         RegExp(r'\bwhispering\b[^,]*\busers?\b[^,]*', caseSensitive: false),
-            (m) => m.group(0)!.replaceAll(
-            RegExp(r'\busers?\b', caseSensitive: false), userRef),
+        (m) => m
+            .group(0)!
+            .replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef),
       );
       // him оставляем как есть
     } else {
       // убираем только если есть упоминание user/him, иначе оставляем
       s = s.replaceAll(
-          RegExp(r'\bwhispering\b[^,]*\b(users?|him)\b[^,]*', caseSensitive: false), '');
+        RegExp(
+          r'\bwhispering\b[^,]*\b(users?|him)\b[^,]*',
+          caseSensitive: false,
+        ),
+        '',
+      );
     }
 
-// Шаг 9 — финальная зачистка user/him
+    // Шаг 9 — финальная зачистка user/him
     if (hasUser) {
       s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), userRef);
-      s = s.replaceAll(RegExp(r'\bhim\b', caseSensitive: false), userRef);
       s = s.replaceAll(RegExp(r'\byou\b', caseSensitive: false), userRef);
     } else {
       s = s.replaceAll(RegExp(r'\busers?\b', caseSensitive: false), '');
@@ -659,40 +856,42 @@ class SceneSnapshot {
       s = s.replaceAll(RegExp(r'\byou\b', caseSensitive: false), '');
     }
 
-      // 10. Танцевальный контекст — восстанавливаем партнёра
-      // "dancing closely with the ," → "dancing closely with a partner,"
-      s = s.replaceAll(
-        RegExp(r'\b(dancing[\w\s]+with)\s+(the\s+)?,', caseSensitive: false),
-        'dancing closely with a partner,',
-      );
-      s = s.replaceAll(
-        RegExp(r'\b(dancing[\w\s]+with)\s*$', caseSensitive: false),
-        'dancing closely with a partner',
-      );
-
-      // 11. Висячие предлоги/союзы перед запятой или концом
-      s = s.replaceAll(
-        RegExp(
-          r'\b(and|but|while|in front of|on top of|of|at|to|for|with|by|the|into|onto|behind|against)\s*(?=,|$)',
-          caseSensitive: false,
-        ),
-        '',
-      );
-// В _cleanPositioning, перед зачисткой мусора:
+    // 10. Танцевальный контекст — восстанавливаем партнёра
+    // "dancing closely with the ," → "dancing closely with a partner,"
     s = s.replaceAll(
-        RegExp(r'\bpenetrat\w*\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\b(dancing[\w\s]+with)\s+(the\s+)?,', caseSensitive: false),
+      'dancing closely with a partner,',
+    );
     s = s.replaceAll(
-        RegExp(r'\b(anus|anal|vaginal)\b[^,]*', caseSensitive: false), '');
+      RegExp(r'\b(dancing[\w\s]+with)\s*$', caseSensitive: false),
+      'dancing closely with a partner',
+    );
+
+    // 11. Висячие предлоги/союзы перед запятой или концом
     s = s.replaceAll(
-        RegExp(r'\bdeeply\s+inside\b[^,]*', caseSensitive: false), '');
-      // 12. Зачистка мусора
-      s = s.replaceAll(RegExp(r'\s{2,}'), ' ');
-      s = s.replaceAll(RegExp(r',\s*,'), ',');
-      s = s.trim().replaceAll(RegExp(r'^,+|,+$'), '');
+      RegExp(
+        r'\b(and|but|while|in front of|on top of|of|at|to|for|with|by|the|into|onto|behind|against)\s*(?=,|$)',
+        caseSensitive: false,
+      ),
+      '',
+    );
+    // В _cleanPositioning, перед зачисткой мусора:
+    s = s.replaceAll(RegExp(r'\bpenetrat\w*\b[^,]*', caseSensitive: false), '');
+    s = s.replaceAll(
+      RegExp(r'\b(anus|anal|vaginal)\b[^,]*', caseSensitive: false),
+      '',
+    );
+    s = s.replaceAll(
+      RegExp(r'\bdeeply\s+inside\b[^,]*', caseSensitive: false),
+      '',
+    );
+    // 12. Зачистка мусора
+    s = s.replaceAll(RegExp(r'\s{2,}'), ' ');
+    s = s.replaceAll(RegExp(r',\s*,'), ',');
+    s = s.trim().replaceAll(RegExp(r'^,+|,+$'), '');
 
-      return s;
-    }
-
+    return s;
+  }
 
   Map<String, dynamic> toMap() => {
     'location': location,
@@ -712,6 +911,7 @@ class SceneExtractorService {
   SceneExtractorService._();
 
   static final SceneExtractorService instance = SceneExtractorService._();
+
   static String buildUserDescription({
     required String gender,
     required String age,
@@ -720,11 +920,11 @@ class SceneExtractorService {
   }) {
     // 1. Этничность → слово для промпта
     final ethnicityWord = switch (ethnicity) {
-      'white' || 'slavic' => 'European',
+      'white' || 'slavic' => 'european',
       'latino' => gender == 'woman' ? 'latina' : 'latino',
-      'arab' => 'Middle Eastern',
-      'asian' => 'Asian',
-      'black' => 'Black',
+      'arab' => 'middle eastern',
+      'asian' => 'asian',
+      'black' => 'black',
       _ => ethnicity,
     };
 
@@ -744,12 +944,12 @@ class SceneExtractorService {
       hairDesc = '';
     } else {
       hairDesc = switch (hairColor) {
-        'red'    => 'redhead',
+        'red' => 'redhead',
         'blonde' => 'blonde',
-        'black'  => 'dark-haired',
-        'gray'   => 'gray-haired',
-        'brown'  => 'brown-haired',
-        _        => '$hairColor-haired',
+        'black' => 'dark-haired',
+        'gray' => 'gray-haired',
+        'brown' => 'brown-haired',
+        _ => '$hairColor-haired',
       };
     }
 
@@ -766,6 +966,7 @@ class SceneExtractorService {
     // → 'adult Middle Eastern dark-haired man'
     // → 'old Black woman'
   }
+
   // ── Scene switch detection patterns ────────────────────────────────
   // These patterns are used to detect when a new scene begins in the chat history.
   // Everything before the first matching pattern is considered part of the previous scene
@@ -885,9 +1086,8 @@ $context
     if (textOnly.isEmpty) return SceneSnapshot.fallback;
     // Step 1: detect language
     final lastCharMsg = _getLastCharacterMessage(textOnly);
-    final detectedLang = lastCharMsg != null
-        ? langdetect.detect(lastCharMsg.content)
-        : 'en';
+    final detectedLang =
+        lastCharMsg != null ? langdetect.detect(lastCharMsg.content) : 'en';
     // Step 2: find current scene window
     final sceneWindow = _extractCurrentSceneWindow(textOnly, detectedLang);
 
@@ -909,12 +1109,18 @@ $context
     final currentText = _formatMessage(lastMsg);
     final contextText = previousMsgs.map(_formatMessage).join('\n');
 
-
     try {
       final rawSnapshot = await _extractWithLLM(currentText, contextText);
 
       // Step 4: validate
       final validated = _validateAndFix(rawSnapshot);
+      assert(() {
+        debugPrint(
+          '[SceneExtractor] Final snapshot: '
+          '${jsonEncode(validated.toMap())}',
+        );
+        return true;
+      }());
 
       // Step 5: cache and return
       final cacheKey = _computeWindowHash(sceneWindow);
@@ -938,6 +1144,7 @@ $context
     final content = window.map((m) => '${m.id}:${m.content}').join('|');
     return content.hashCode;
   }
+
   // ── Scene window extraction ─────────────────────────────────────────
   ChatMessageModel? _getLastCharacterMessage(List<ChatMessageModel> messages) {
     for (int i = messages.length - 1; i >= 0; i--) {
@@ -951,20 +1158,23 @@ $context
     }
     return null;
   }
+
   /// Finds where the current scene starts.
   /// Scans messages from newest to oldest.
   /// When a scene-switch pattern is found in a message,
   /// everything from that message forward = current scene.
   /// If no switch found, returns last 6 messages.
   List<ChatMessageModel> _extractCurrentSceneWindow(
-      List<ChatMessageModel> messages,
-      String lang,
-      ) {
-    final textMessages = messages
-        .where((m) => m.imageLocalPath == null && m.content.trim().isNotEmpty)
-        .toList();
+    List<ChatMessageModel> messages,
+    String lang,
+  ) {
+    final textMessages =
+        messages
+            .where(
+              (m) => m.imageLocalPath == null && m.content.trim().isNotEmpty,
+            )
+            .toList();
     if (textMessages.isEmpty) return [];
-
 
     final pattern = SceneSwitchPatterns.forLang(lang);
     if (pattern == null) {
@@ -976,16 +1186,18 @@ $context
     for (int i = textMessages.length - 1; i >= 0; i--) {
       if (pattern.hasMatch(textMessages[i].content)) {
         final window = textMessages.sublist(i);
-        final limited = window.length > AppConfig.maxSceneWindowSize
-            ? window.sublist(window.length - AppConfig.maxSceneWindowSize)
-            : window;
+        final limited =
+            window.length > AppConfig.maxSceneWindowSize
+                ? window.sublist(window.length - AppConfig.maxSceneWindowSize)
+                : window;
         return limited;
       }
     }
 
-    final fallback = textMessages.length > 6
-        ? textMessages.sublist(textMessages.length - 6)
-        : textMessages;
+    final fallback =
+        textMessages.length > 6
+            ? textMessages.sublist(textMessages.length - 6)
+            : textMessages;
     return fallback;
   }
 
@@ -993,7 +1205,6 @@ $context
     final role = m.isUser ? 'User' : 'Character';
     return '$role: ${m.content}';
   }
-
 
   // ── LLM extraction ──────────────────────────────────────────────────
 
@@ -1003,7 +1214,6 @@ $context
   ) async {
     final apiKey = await AppConfig.getDeepSeekApiKey();
     if (apiKey.isEmpty) throw const DeepSeekApiException('key_not_set');
-
 
     final response = await http.post(
       Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),
@@ -1019,7 +1229,7 @@ $context
             'content': _buildExtractionPrompt(currentText, contextText),
           },
         ],
-        'max_tokens': 500,
+        'max_tokens': 800,
         'temperature': 0.1,
       }),
     );
@@ -1037,10 +1247,27 @@ $context
       throw DeepSeekApiException('http_error', statusCode: response.statusCode);
     }
 
+    /// ----demonstration Snapshot for presentation----
+    ///
+//     final demoJson = '''
+// {
+//   "choices": [
+//     {
+//       "message": {
+// "content": "{\\"location\\":\\"cafe\\",\\"locationDetails\\":\\"a cozy cafe with a blue awning, quiet late afternoon\\",\\"pose\\":\\"sitting\\",\\"activity\\":\\"sliding into the seat across from you, setting down her bag\\",\\"clothingState\\":\\"fully_dressed\\",\\"clothingDetails\\":\\"worn denim jacket over a simple sweater, messenger bag slung across her body\\",\\"intimacyLevel\\":0,\\"charactersPositioning\\":\\"she sits across the table from you, facing you\\",\\"timeOfDay\\":\\"afternoon\\",\\"confidence\\":0.0}"
+//       }
+//     }
+//   ]
+// }''';
+
     final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
     final rawContent =
         (responseJson['choices'] as List).first['message']['content'] as String;
 
+    assert(() {
+      debugPrint('[SceneExtractor] Raw LLM response: $rawContent');
+      return true;
+    }());
 
     final cleaned =
         rawContent.replaceAll('```json', '').replaceAll('```', '').trim();
@@ -1057,7 +1284,12 @@ $context
 
     // Public locations: intimacyLevel 3 → cap to 1
     final publicLocations = {
-      'cafe', 'street', 'park', 'restaurant', 'office', 'supermarket',
+      'cafe',
+      'street',
+      'park',
+      'restaurant',
+      'office',
+      'supermarket',
     };
     if (s.location != null &&
         publicLocations.contains(s.location!.toLowerCase())) {
@@ -1067,8 +1299,7 @@ $context
     }
 
     // Bed/bedroom + intimacyLevel 0 → force selectLevel 2
-    if (s.location != null &&
-        (s.location!.toLowerCase() == 'bed')) {
+    if (s.location != null && (s.location!.toLowerCase() == 'bed')) {
       if (s.intimacyLevel == 0) {
         s = s.copyWith(intimacyLevel: 2);
       }
@@ -1076,7 +1307,7 @@ $context
 
     // Баг 2: Минет в спальне/ванной → добавить floor в locationDetails
     if (s.pose?.toLowerCase() == 'kneeling' &&
-        s.activity?.toLowerCase().contains('blowjob') == true ||
+            s.activity?.toLowerCase().contains('blowjob') == true ||
         s.activity?.toLowerCase().contains('oral') == true &&
             s.activity?.toLowerCase().contains('mutual') != true) {
       if (s.location != null &&
@@ -1084,9 +1315,10 @@ $context
               s.location!.toLowerCase().contains('bathroom') ||
               s.location!.toLowerCase().contains('room'))) {
         s = s.copyWith(
-          locationDetails: s.locationDetails != null
-              ? '${s.locationDetails}, floor'
-              : 'floor',
+          locationDetails:
+              s.locationDetails != null
+                  ? '${s.locationDetails}, floor'
+                  : 'floor',
         );
       }
     }

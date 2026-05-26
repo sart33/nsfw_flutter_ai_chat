@@ -155,7 +155,11 @@ class ChatImageService {
     // 1. Get cleaned description for current gallery mode
     final prompts =
         await DatabaseHelper.instance.getPersonaPrompts(personaId);
-
+    assert(() {
+    debugPrint('[ChatImageService] scene.selectLevel: ${scene.selectLevel}');
+    debugPrint('[ChatImageService] prompts: ${prompts != null ? prompts.keys.join(", ") : "null"}');
+      return true;
+    }());
     final String baseDescription;
     if (prompts != null) {
       baseDescription = switch (scene.selectLevel) {
@@ -182,17 +186,19 @@ class ChatImageService {
 
 
     final prompt = baseDescription.isNotEmpty
-        ? '$baseDescription, $sceneStr'
+        ? '$baseDescription, $sceneStr, masterpiece, best quality, ultra detailed'
         : sceneStr;
 
     // Log for debugging — save to DB
+    assert(() {
+    debugPrint('[ChatImageService] Final prompt: $prompt'); return true;}());
 
     // 3. Seed logic
     const int seedBase = AppConfig.defaultSeed;
     final seed = !regen
         ? seedBase
         : regenSeed(); // new random seed for first gen, or if regenerating use same seed
-
+    assert(() { debugPrint('[ChatImageService] Using seed: $seed (regen: $regen)'); return true;}());
     // 4. Save to chat_images folder
     final docsDir = await getApplicationDocumentsDirectory();
     final saveDir =

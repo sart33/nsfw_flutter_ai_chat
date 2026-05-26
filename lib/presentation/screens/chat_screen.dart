@@ -26,6 +26,7 @@ import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/factory/database_helper.dart';
+import '../../core/services/demo_serviece.dart';
 import '../../core/utils/app_snack_bar.dart';
 import '../../data/models/persona_model.dart';
 import '../../domain/mappers/persona_mapper.dart';
@@ -44,6 +45,8 @@ class ChatScreen extends ConsumerStatefulWidget {
   final bool isMulti;
   final String greeting;
   final String title;
+  final String? demoJsonPath; // ← NEW
+
 
   const ChatScreen({
     super.key,
@@ -52,6 +55,7 @@ class ChatScreen extends ConsumerStatefulWidget {
     this.isMulti = false,
     this.greeting = '',
     this.title = '',
+    this.demoJsonPath, // ← NEW
   });
 
   @override
@@ -64,6 +68,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   bool _initialized = false;
 
   bool _sidePanelCollapsed = false;
+  DemoConfig? _demoConfig;
+
 
   PersonaEntity? _singlePersona;
   List<PersonaEntity> _multiPersonas = [];
@@ -142,6 +148,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
       } else {
         notifier.init();
       }
+// // ← NEW: загрузить demo config если путь передан
+//       if (widget.demoJsonPath != null) {
+//         debugPrint('[ChatScreen] demoJsonPath = ${widget.demoJsonPath}');
+//
+//         DemoService.instance.load(widget.demoJsonPath!).then((cfg) {
+//           debugPrint('[ChatScreen] demo loaded: ${cfg.demoId}');
+//
+//           if (mounted) setState(() => _demoConfig = cfg);
+//         }).catchError((e) {
+//           debugPrint('[ChatScreen] demo load FAILED: $e');
+//         });
+//       }
     });
   }
 
@@ -1053,15 +1071,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                                       ? null
                                       : () => _generateSceneImage(settings),
                             ),
-                          // if (useDesktop) ...[
-                          //   const SizedBox(width: 8),
-                          //   // TODO: remove debug button
-                          //   _QuickActionButton(
-                          //     label: '[DEBUG] Summarize',
-                          //     icon: Icons.bug_report,
-                          //     onTap: _runSummarizationTest,
-                          //   ),
-                          // ],
+
                         ],
                       ),
                     ),
@@ -1185,72 +1195,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
-              // Verification status indicator for multi-persona
-              // if (chatState.isVerifying || chatState.verificationFailed)
-              //   Container(
-              //     margin: const EdgeInsets.only(bottom: 12),
-              //     padding: const EdgeInsets.symmetric(
-              //       horizontal: 16,
-              //       vertical: 10,
-              //     ),
-              //     decoration: BoxDecoration(
-              //       color:
-              //           chatState.verificationFailed
-              //               ? AppTheme.error.withValues(alpha: 0.15)
-              //               : AppTheme.primaryAccent.withValues(alpha: 0.15),
-              //       borderRadius: BorderRadius.circular(12),
-              //       border: Border.all(
-              //         color:
-              //             chatState.verificationFailed
-              //                 ? AppTheme.error.withValues(alpha: 0.3)
-              //                 : AppTheme.primaryAccent.withValues(alpha: 0.3),
-              //         width: 1,
-              //       ),
-              //     ),
-              //     child: Row(
-              //       mainAxisSize: MainAxisSize.min,
-              //       children: [
-              //         if (chatState.isVerifying)
-              //           const SizedBox(
-              //             width: 16,
-              //             height: 16,
-              //             child: CircularProgressIndicator(
-              //               strokeWidth: 2,
-              //               color: AppTheme.primaryAccent,
-              //             ),
-              //           ),
-              //         if (chatState.verificationFailed)
-              //           const Icon(
-              //             Icons.warning_amber,
-              //             size: 16,
-              //             color: AppTheme.error,
-              //           ),
-              //         const SizedBox(width: 8),
-              //         if (chatState.isVerifying)
-              //           Text(
-              //             context.l10n.verifyingPersona,
-              //             style: const TextStyle(
-              //               color: AppTheme.primaryAccent,
-              //               fontSize: 13,
-              //               fontWeight: FontWeight.w500,
-              //             ),
-              //           ),
-              //         if (chatState.verificationFailed)
-              //           Text(
-              //             chatState.failedPersonas.isEmpty
-              //                 ? context.l10n.personaDescriptionConflict
-              //                 : chatState.failedPersonas.take(3).map((p) => p.name).join(', ') +
-              //                     (chatState.failedPersonas.length > 3
-              //                         ? ' ${context.l10n.andMore(chatState.failedPersonas.length - 3)}'
-              //                         : ''),
-              //             style: const TextStyle(
-              //               color: Colors.red,
-              //               fontSize: 12,
-              //             ),
-              //           ),
-              //       ],
-              //     ),
-              //   ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children:
@@ -1316,6 +1260,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     if (content.isEmpty) return;
     _inputCtrl.clear();
     setState(() {});
+
+    // // ← NEW: demo mode intercept
+    // final demo = _demoConfig;
+    // if (demo != null && demo.textSequence != null) {
+    //   ref.read(chatProvider(widget.branchId).notifier).addDemoExchange(
+    //     userText: content,
+    //     aiText: demo.textSequence!.aiResponse,
+    //     personaName: _singlePersona?.name ?? 'Kristina',
+    //     personaId: _singlePersona?.id ?? demo.personaId,
+    //     thinkingMs: demo.textSequence!.thinkingDelayMs,
+    //   );
+    //   return; // не идём в реальный API
+    // }
 
     final tokens = _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
@@ -1385,6 +1342,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
 
   void _generateSceneImage(SettingsState settings) async {
     if (_singlePersona == null) return;
+    // Demo mode: use pre-made images instead of real generation
+    assert(() {
+      debugPrint('[ChatScreen] demo config: $_demoConfig');
+      return true;
+    }());
+    // final demo = _demoConfig;
+    // if (demo != null && demo.photoSequence != null) {
+    //   ref.read(chatProvider(widget.branchId).notifier).addDemoImageSequence(
+    //     personaName: _singlePersona!.name,
+    //     personaId: _singlePersona!.id,
+    //     imagePaths: demo.photoSequence!.images,
+    //     spinnerMs: demo.photoSequence!.spinnerDurationMs,
+    //   );
+    //   return;
+    // }
+
+    // Normal mode
     ref
         .read(chatProvider(widget.branchId).notifier)
         .generateSceneImage(persona: _singlePersona!, settings: settings);

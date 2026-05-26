@@ -36,6 +36,23 @@ class PersonaViewScreen extends ConsumerStatefulWidget {
 
 class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
 
+  late String _galleryMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _galleryMode = widget.persona.galleryMode;
+    _loadGalleryMode();
+
+  }
+
+  Future<void> _loadGalleryMode() async {
+    final persona = await ref.read(personaProvider.notifier).getByIdFromDb(widget.persona.id);
+    if (persona != null && mounted) {
+      setState(() => _galleryMode = persona.galleryMode);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final personasAsync = ref.watch(personaProvider);
@@ -81,16 +98,26 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
           final l10n = context.l10n;
           switch (next.error) {
             case DeepSeekApiException():
-              AppSnackBar.showPersonaValidationError(next.error as DeepSeekApiException, l10n);
+              AppSnackBar.showPersonaValidationError(
+                next.error as DeepSeekApiException,
+                l10n,
+              );
             case NetworkException():
               AppSnackBar.show(l10n.networkError, isError: true);
             case AgeVerificationException(:final reason):
-              AppSnackBar.showAgeConflictSingle(l10n, widget.persona.id, reason);
+              AppSnackBar.showAgeConflictSingle(
+                l10n,
+                widget.persona.id,
+                reason,
+              );
             case GalleryFullException():
               AppSnackBar.show(l10n.galleryFull);
 
             case NovitaApiException():
-              AppSnackBar.showNovitaError(next.error as NovitaApiException, l10n);
+              AppSnackBar.showNovitaError(
+                next.error as NovitaApiException,
+                l10n,
+              );
 
             case SaveException():
               AppSnackBar.show(l10n.errorSave);
@@ -267,7 +294,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                         context.l10n.description,
                         currentPersona.description,
                         selectable: true,
-                        maxLines: 4
+                        maxLines: 4,
                       ),
                       const SizedBox(height: 16),
 
@@ -331,40 +358,50 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                 children: [
                   if (hasFile || hasAsset)
                     GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => Scaffold(
-                            backgroundColor: Colors.black,
-                            appBar: AppBar(
-                              backgroundColor: Colors.transparent,
-                              elevation: 0,
-                              leading: const BackButton(color: Colors.white),
-                            ),
-                            body: PhotoView(
-                              imageProvider: hasFile
-                                  ? FileImage(File(p.avatarPath!)) as ImageProvider
-                                  : AssetImage(p.avatarAssetPath!),
-                              minScale: PhotoViewComputedScale.contained,
-                              maxScale: PhotoViewComputedScale.covered * 4.0,
-                              backgroundDecoration: const BoxDecoration(color: Colors.black),
-                              filterQuality: FilterQuality.medium,
-
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => Scaffold(
+                                    backgroundColor: Colors.black,
+                                    appBar: AppBar(
+                                      backgroundColor: Colors.transparent,
+                                      elevation: 0,
+                                      leading: const BackButton(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    body: PhotoView(
+                                      imageProvider:
+                                          hasFile
+                                              ? FileImage(File(p.avatarPath!))
+                                                  as ImageProvider
+                                              : AssetImage(p.avatarAssetPath!),
+                                      minScale:
+                                          PhotoViewComputedScale.contained,
+                                      maxScale:
+                                          PhotoViewComputedScale.covered * 4.0,
+                                      backgroundDecoration: const BoxDecoration(
+                                        color: Colors.black,
+                                      ),
+                                      filterQuality: FilterQuality.medium,
+                                    ),
+                                  ),
                             ),
                           ),
-                        ),
-                      ),
-                      child: hasFile
-                          ? Image.file(
-                        File(p.avatarPath!),
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      )
-                          : Image.asset(
-                        p.avatarAssetPath!,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      ),
+                      child:
+                          hasFile
+                              ? Image.file(
+                                File(p.avatarPath!),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                              )
+                              : Image.asset(
+                                p.avatarAssetPath!,
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                              ),
                     )
                   else
                     Container(
@@ -537,14 +574,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                   onPressed: () => _confirmDelete(context, ref),
                 ),
               ),
-
             ],
           ),
         ),
         const SizedBox(height: 8),
         SizedBox(
-            width: double.infinity,
-            child: PersonaAppearanceCollapsible(persona: widget.persona)),
+          width: double.infinity,
+          child: PersonaAppearanceCollapsible(persona: widget.persona),
+        ),
         const SizedBox(height: 8),
       ],
     );
@@ -567,38 +604,46 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         children: [
           if (hasFile || hasAsset)
             GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    backgroundColor: Colors.black,
-                    appBar: AppBar(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      leading: const BackButton(color: Colors.white),
-                    ),
-                    body: PhotoView(
-                      imageProvider: hasFile
-                          ? FileImage(File(p.avatarPath!)) as ImageProvider
-                          : AssetImage(p.avatarAssetPath!),
-                      minScale: PhotoViewComputedScale.contained,
-                      maxScale: PhotoViewComputedScale.covered * 4.0,
-                      backgroundDecoration: const BoxDecoration(color: Colors.black),
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => Scaffold(
+                            backgroundColor: Colors.black,
+                            appBar: AppBar(
+                              backgroundColor: Colors.transparent,
+                              elevation: 0,
+                              leading: const BackButton(color: Colors.white),
+                            ),
+                            body: PhotoView(
+                              imageProvider:
+                                  hasFile
+                                      ? FileImage(File(p.avatarPath!))
+                                          as ImageProvider
+                                      : AssetImage(p.avatarAssetPath!),
+                              minScale: PhotoViewComputedScale.contained,
+                              maxScale: PhotoViewComputedScale.covered * 4.0,
+                              backgroundDecoration: const BoxDecoration(
+                                color: Colors.black,
+                              ),
+                              filterQuality: FilterQuality.medium,
+                            ),
+                          ),
                     ),
                   ),
-                ),
-              ),
-              child: hasFile
-                  ? Image.file(
-                File(p.avatarPath!),
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-              )
-                  : Image.asset(
-                p.avatarAssetPath!,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-              ),
+              child:
+                  hasFile
+                      ? Image.file(
+                        File(p.avatarPath!),
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                      : Image.asset(
+                        p.avatarAssetPath!,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      ),
             )
           else
             Container(
@@ -668,13 +713,13 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
   }
 
   Widget _buildInfoCard(
-      String title,
-      String content, {
-        bool selectable = false,
-        bool italic = false,
-        Color textColor = AppTheme.textPrimary,
-        int maxLines = 6,
-      }) {
+    String title,
+    String content, {
+    bool selectable = false,
+    bool italic = false,
+    Color textColor = AppTheme.textPrimary,
+    int maxLines = 6,
+  }) {
     return _CollapsibleInfoCard(
       title: title,
       content: content,
@@ -685,12 +730,11 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     );
   }
 
-
-
   Widget _buildModeSelector(
     GalleryState state,
     GalleryNotifier notifier,
     BuildContext context,
+    PersonaEntity currentPersona,
   ) {
     final modes = [
       (
@@ -703,10 +747,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
         label: context.l10n.erotic,
         icon: Icons.local_fire_department,
       ),
-      (
-      value: 'nude',
-      label: '18+',
-      icon: Icons.whatshot),
+      (value: 'nude', label: '18+', icon: Icons.whatshot),
     ];
 
     return Padding(
@@ -723,14 +764,14 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final mode = modes[index];
-                final isSelected = state.galleryMode == mode.value;
+                final isSelected = _galleryMode == mode.value;
                 return GestureDetector(
                   onTap: () {
-                    final updated = widget.persona.copyWith(
-                      galleryMode: mode.value,
-                    );
+                    setState(() => _galleryMode = mode.value);
                     notifier.setGalleryMode(mode.value);
-                    ref.read(personaProvider.notifier).updatePersona(updated);
+                    ref.read(personaProvider.notifier).updateGalleryModeOnly(
+                      currentPersona.copyWith(galleryMode: mode.value),
+                    );
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -806,7 +847,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildModeSelector(state, notifier, context),
+        _buildModeSelector(state, notifier, context, currentPersona),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -838,9 +879,10 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                               () {
                                 ref.invalidate(personaProvider);
                                 AppSnackBar.showSuccess(
-                                    context.l10n.personaValidated,
-                                    isIcon: true);
-                              }
+                                  context.l10n.personaValidated,
+                                  isIcon: true,
+                                );
+                              },
                             ),
                     child: const Icon(
                       Icons.add_a_photo_outlined,
@@ -901,20 +943,24 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               children: [
                 LinearProgressIndicator(
                   color: switch (state.generatingPhase) {
-                    GeneratingPhase.verifying        => AppTheme.warning,
-                    GeneratingPhase.preparingPrompts => AppTheme.primaryAccent, // тоже оранжевый, ещё не генерируем
-                    GeneratingPhase.generating       => AppTheme.accentVividInputBorder,
-                    null                             => AppTheme.accentVividInputBorder,
+                    GeneratingPhase.verifying => AppTheme.warning,
+                    GeneratingPhase.preparingPrompts =>
+                      AppTheme
+                          .primaryAccent, // тоже оранжевый, ещё не генерируем
+                    GeneratingPhase.generating =>
+                      AppTheme.accentVividInputBorder,
+                    null => AppTheme.accentVividInputBorder,
                   },
                   backgroundColor: AppTheme.surface,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   switch (state.generatingPhase) {
-                    GeneratingPhase.verifying        => context.l10n.verifyingPersona,
-                    GeneratingPhase.preparingPrompts => context.l10n.preparingPrompts,
-                    GeneratingPhase.generating       => context.l10n.generatingWait,
-                    null                             => context.l10n.generatingWait,
+                    GeneratingPhase.verifying => context.l10n.verifyingPersona,
+                    GeneratingPhase.preparingPrompts =>
+                      context.l10n.preparingPrompts,
+                    GeneratingPhase.generating => context.l10n.generatingWait,
+                    null => context.l10n.generatingWait,
                   },
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
@@ -1104,18 +1150,19 @@ class _CollapsibleInfoCardState extends State<_CollapsibleInfoCard> {
                 });
               }
 
-              final textWidget = widget.selectable
-                  ? SelectableText(
-                widget.content,
-                style: textStyle,
-                maxLines: _expanded ? null : widget.maxLines,
-              )
-                  : Text(
-                widget.content,
-                style: textStyle,
-                maxLines: _expanded ? null : widget.maxLines,
-                overflow: _expanded ? null : TextOverflow.ellipsis,
-              );
+              final textWidget =
+                  widget.selectable
+                      ? SelectableText(
+                        widget.content,
+                        style: textStyle,
+                        maxLines: _expanded ? null : widget.maxLines,
+                      )
+                      : Text(
+                        widget.content,
+                        style: textStyle,
+                        maxLines: _expanded ? null : widget.maxLines,
+                        overflow: _expanded ? null : TextOverflow.ellipsis,
+                      );
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1127,8 +1174,10 @@ class _CollapsibleInfoCardState extends State<_CollapsibleInfoCard> {
                       onTap: () => setState(() => _expanded = !_expanded),
                       child: Text(
                         _expanded
-                            ? context.l10n.collapse   // "Свернуть"
-                            : context.l10n.readMore,  // "Читать дальше"
+                            ? context
+                                .l10n
+                                .collapse // "Свернуть"
+                            : context.l10n.readMore, // "Читать дальше"
                         style: const TextStyle(
                           color: AppTheme.primaryAccent,
                           fontSize: 13,

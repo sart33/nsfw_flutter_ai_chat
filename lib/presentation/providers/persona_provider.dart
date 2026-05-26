@@ -219,6 +219,12 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
     );
   }
 
+  Future<void> updateGalleryModeOnly(PersonaEntity entity) async {
+    final model = PersonaMapper.toModel(entity);
+    await _repo.update(model); // пишем в базу
+    // state не трогаем
+  }
+
   /// Delete a persona by id.
   Future<void> delete(String id) async {
     final result = await _repo.delete(id);
@@ -240,6 +246,14 @@ class PersonaNotifier extends AsyncNotifier<List<PersonaEntity>> {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<PersonaEntity?> getByIdFromDb(String id) async {
+    final result = await _repo.getById(id);
+    return result.when(
+      success: (model) => PersonaMapper.toEntity(model),
+      failure: (_, __) => null,
+    );
   }
 }
 

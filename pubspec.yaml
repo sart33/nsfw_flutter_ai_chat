@@ -1,7 +1,7 @@
 name: nsfw_chat
 description: "Uncensored Souls"
 publish_to: 'none'
-version: 1.2.0+4
+version: 1.2.1+5
 
 flutter_native_splash:
   color: "#000000"
@@ -57,8 +57,11 @@ flutter:
   assets:
     - assets/json/image_templates.json
     - assets/json/scene_switch_patterns.json
+    - assets/json/demo_scene_1.json
+    - assets/json/demo_scene_2.json
     - assets/characters/
     - assets/images/
+    - assets/demo/
     - assets/avatars/
     - assets/icons/
     - assets/logos/

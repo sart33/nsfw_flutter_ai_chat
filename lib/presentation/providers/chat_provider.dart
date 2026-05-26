@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
 import 'package:nsfw_chat/core/enums/quick_action_type.dart';
@@ -17,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../debug/scene_test_data.dart';
+import '../../debug/scene_with_you_test.dart';
 
 /// Chat state — persisted in SQLite per branch.
 class ChatState {
@@ -283,6 +285,85 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+
+  // ─────────────────────────────────────────────────────────────────────────────
+// ПАТЧ для chat_provider.dart
+// Добавить этот метод внутрь класса ChatNotifier
+// (рядом с generateSceneImage, например перед строкой // ── PRIVATE HELPERS ──)
+// ─────────────────────────────────────────────────────────────────────────────
+
+  /// Demo-only: shows a spinner for [spinnerMs] ms, then adds all [imagePaths]
+  /// as image messages in state (no DB write, no API call).
+  /// The first image is added immediately after the spinner; the rest follow
+  /// so that [ChatImageFullscreenScreen] can swipe through all of them.
+  Future<void> addDemoImageSequence({
+    required String personaName,
+    required String personaId,
+    required List<String> imagePaths,
+    int spinnerMs = 5000,
+  }) async {
+    if (imagePaths.isEmpty) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    await Future.delayed(Duration(milliseconds: spinnerMs));
+    if (_disposed) return;
+
+    final newMessages = imagePaths.mapIndexed((i, path) => ChatMessageModel(
+      id: const Uuid().v4(),
+      personaId: personaId,
+      senderName: personaName,
+      content: '',
+      isUser: false,
+      imageLocalPath: path,
+      isHidden: i > 0, // все кроме первого — скрыты
+    )).toList();
+
+    state = state.copyWith(
+      messages: [...state.messages, ...newMessages],
+      isLoading: false,
+    );
+  }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Опционально для ролика 3 — добавить рядом:
+// ─────────────────────────────────────────────────────────────────────────────
+
+  /// Demo-only: adds a user message instantly, then waits [thinkingMs] ms
+  /// and adds the pre-written AI response. No DB write, no API call.
+  Future<void> addDemoExchange({
+    required String userText,
+    required String aiText,
+    required String personaName,
+    required String personaId,
+    int thinkingMs = 1500,
+  }) async {
+    final userMsg = ChatMessageModel(
+      id: const Uuid().v4(),
+      senderName: 'user',
+      content: userText,
+      isUser: true,
+    );
+    state = state.copyWith(
+      messages: [...state.messages, userMsg],
+      isLoading: false,
+    );
+
+    state = state.copyWith(isLoading: true, error: null);
+    await Future.delayed(Duration(milliseconds: thinkingMs));
+    if (_disposed) return;
+
+    final aiMsg = ChatMessageModel(
+      id: const Uuid().v4(),
+      personaId: personaId,
+      senderName: personaName,
+      content: aiText,
+      isUser: false,
+    );
+    state = state.copyWith(
+      messages: [...state.messages, aiMsg],
+      isLoading: false,
+    );
+  }
   // ── PRIVATE HELPERS ────────────────────────────────────────────────────
 
   Future<void> _saveHiddenReset(String content) async {
@@ -807,7 +888,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       await ChatImageService.instance.debugRunSceneBatch(
         personaId: persona.id,
         personaName: persona.name,
-        rawSnapshots: kTestScenes,
+        rawSnapshots: youTestScenes,
         settings: settings,   // новый
         persona: persona,     // новый
         onImageGenerated: (localPath, index) {

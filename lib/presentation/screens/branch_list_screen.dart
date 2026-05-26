@@ -30,6 +30,7 @@ class BranchListScreen extends ConsumerWidget {
   final bool isMulti;
   final String greeting;
 
+
   const BranchListScreen({
     super.key,
     required this.entityId,
@@ -525,6 +526,9 @@ class BranchListScreen extends ConsumerWidget {
   }
 
   void _openChat(BuildContext context, WidgetRef ref, String branchId) {
+    assert(() {debugPrint('[_openChat] demoJsonPath will be: assets/json/demo_scene_1.json'); return true;
+    }());
+
     final rawId = entityId.contains(':')
         ? entityId.substring(entityId.indexOf(':') + 1)
         : entityId;
@@ -538,6 +542,7 @@ class BranchListScreen extends ConsumerWidget {
           isMulti:   isMulti,
           greeting:  greeting,
           title:     entityName,
+          // demoJsonPath: 'assets/json/demo_scene_2.json',
         ),
       ),
     ).then((_) {

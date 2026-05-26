@@ -5,7 +5,7 @@ class AppConfig {
   AppConfig._();
 
   static const String appTitle = 'Uncensored Souls';
-  static const String appVersion = '1.2.0';
+  static const String appVersion = '1.2.1';
 
   // ── DeepSeek API ──────────────────────────────────────────────────────
   /// Base URL for the DeepSeek chat completions endpoint.
@@ -32,7 +32,12 @@ class AppConfig {
   static const int aiResponseMaxTokens = 1000;
 
   // Image generation
-  static const int defaultSeed = 101;
+  // static const int defaultSeed = 101;
+  // static const int defaultSeed = 261;
+  static const int defaultSeed = 219;
+  // static const int defaultSeed = 38;
+  // static const int defaultSeed = 188;
+
   static const int seedRange = 200;
 
   // Auto-delete for chat images
