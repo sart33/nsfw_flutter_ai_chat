@@ -1,9 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_theme.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
+
 
 /// Maps a raw [senderName] constant to its localised display string.
 ///
@@ -72,7 +74,7 @@ class ChatBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
           mainAxisAlignment:
-              isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+          isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (!isUser) ...[
@@ -90,12 +92,12 @@ class ChatBubble extends StatelessWidget {
             Flexible(
               child: Column(
                 crossAxisAlignment:
-                    isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   // Sender name above AI bubble.
                   if (!isUser)
-                  Padding(
-                      padding: const EdgeInsets.only(bottom: 10,top: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10, top: 10),
                       child: Text(
                         _resolveSenderName(context, senderName),
                         style: const TextStyle(
@@ -170,7 +172,7 @@ class ChatBubble extends StatelessWidget {
                         ),
                       ),
                     )
-    : const SizedBox(height: 8),
+                        : const SizedBox(height: 8),
                   ],
                   // Regen button — only for the last AI message.
                   if (showRegenButton && !isUser && imageLocalPath == null)
@@ -180,13 +182,13 @@ class ChatBubble extends StatelessWidget {
                         onTap: onRegen,
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding: EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(4),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.refresh,
                                   size: 16, color: AppTheme.textSecondary),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
                                 context.l10n.regenerate,
                                 style: TextStyle(

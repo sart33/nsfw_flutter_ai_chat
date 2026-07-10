@@ -20,7 +20,10 @@ class DioFactory {
 
     dio.interceptors.add(LogInterceptor(
       requestBody: true,
-      responseBody: true,
+      requestHeader: false,
+      responseHeader: false,
+      responseBody: true, // оставляем только тело ответа
+      error: true,
     ));
     return dio;
   }

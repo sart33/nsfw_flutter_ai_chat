@@ -348,6 +348,8 @@
   "errorDeepSeekNotSet": "Clé DeepSeek non configurée. Veuillez l'ajouter dans les paramètres.",
   "errorDeepSeekInsufficientBalance": "Solde DeepSeek insuffisant. Veuillez recharger votre compte.",
   "errorDeepseekServiceUnavailable": "Le service DeepSeek est temporairement indisponible. Veuillez réessayer plus tard.",
+  "errorDeepSeekResponseTruncated": "La réponse était trop longue et a été coupée. Réessayez.",
+
   "errorNovitaKeyInvalid": "La clé Novita est invalide. Veuillez la mettre à jour dans les paramètres.",
   "errorNovitaKeyNotSet": "Clé Novita non configurée. Veuillez l'ajouter dans les paramètres.",
   "errorNovitaInsufficientBalance": "Solde Novita insuffisant. Veuillez recharger votre compte.",
@@ -490,5 +492,8 @@
     "placeholders": {
       "size": { "type": "double" }
     }
-  }
+  },
+
+  "close": "Fermer"
+
 }

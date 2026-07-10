@@ -15,6 +15,8 @@ class PersonaEntity {
   final String? userAge;
   final String? userHairColor;
   final String? userEthnicity;
+  final String? role;
+  final int? seed;
 
 
   const PersonaEntity({
@@ -32,6 +34,8 @@ class PersonaEntity {
     this.userAge,
     this.userHairColor,
     this.userEthnicity,// NEW
+    this.role,
+    this.seed,
   });
 
   PersonaEntity copyWith({
@@ -49,6 +53,8 @@ class PersonaEntity {
     String? userAge,
     String? userHairColor,
     String? userEthnicity,
+    String? role,
+    int? seed
   }) =>
       PersonaEntity(
         id: id ?? this.id,
@@ -66,5 +72,7 @@ class PersonaEntity {
         userAge: userAge ?? this.userAge,
         userHairColor: userHairColor ?? this.userHairColor,
         userEthnicity: userEthnicity ?? this.userEthnicity,
+        role: role ?? this.role,
+        seed: seed ?? this.seed,
       );
 }

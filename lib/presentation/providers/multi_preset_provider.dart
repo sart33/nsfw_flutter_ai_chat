@@ -168,10 +168,15 @@ class MultiPresetNotifier extends StateNotifier<List<MultiPresetEntity>> {
   Future<void> create(MultiPresetEntity entity) async {
     final model = MultiPresetMapper.toModel(entity);
     final result = await _repo.create(model);
-    result.when(
-      success: (_) => state = [...state, entity],
-      failure: (_, __) {},
-    );
+    if (result.isSuccess) {
+      state = [...state, entity];
+
+    } else {
+      assert(() {
+        debugPrint('[multiPresetProvider] create FAILED — session not linked');
+        return true;
+      }());
+    }
   }
 
   /// Update an existing multi-preset.

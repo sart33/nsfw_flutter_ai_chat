@@ -18,6 +18,9 @@ class PersonaModel {
   final String? userAge;
   final String? userHairColor;
   final String? userEthnicity;// NEW
+  final String? role;
+  final int? seed;            // NEW: пин сид для галереи; null = рандом как раньше
+
 
   PersonaModel({
     String? id,
@@ -34,6 +37,8 @@ class PersonaModel {
     this.userAge,
     this.userHairColor,
     this.userEthnicity,
+    this.role,
+    this.seed,
   }) : id = id ?? const Uuid().v4();
 
   // ── JSON serialisation ────────────────────────────────────────────────
@@ -55,6 +60,8 @@ class PersonaModel {
     'user_age': userAge,
     'user_hair_color': userHairColor,
     'user_ethnicity': userEthnicity,
+    'role': role,
+    'seed': seed,
   };
 
   factory PersonaModel.fromMap(Map<String, dynamic> map) => PersonaModel(
@@ -74,6 +81,8 @@ class PersonaModel {
     userAge: map['user_age'] as String?,
     userHairColor: map['user_hair_color'] as String?,
     userEthnicity: map['user_ethnicity'] as String?,// NEW
+    role: map['role'] as String?,
+    seed: map['seed'] as int?,   // NEW
   );
 
   String toJson() => jsonEncode(toMap());
@@ -96,6 +105,8 @@ class PersonaModel {
     String? userAge,
     String? userHairColor,
     String? userEthnicity,
+    String? role,
+    int? seed,              // NEW
   }) => PersonaModel(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -111,5 +122,7 @@ class PersonaModel {
     userAge: userAge ?? this.userAge,
     userHairColor: userHairColor ?? this.userHairColor,
     userEthnicity: userEthnicity ?? this.userEthnicity,
+    role: role ?? this.role,
+    seed: seed ?? this.seed,
   );
 }

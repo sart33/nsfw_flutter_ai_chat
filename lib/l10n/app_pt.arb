@@ -165,6 +165,8 @@
   "errorDeepSeekNotSet": "Chave do DeepSeek não definida. Adicione nas configurações.",
   "errorDeepSeekInsufficientBalance": "Saldo insuficiente na conta DeepSeek. Por favor, recarregue.",
   "errorDeepseekServiceUnavailable": "O serviço do DeepSeek está temporariamente indisponível. Tente novamente mais tarde.",
+  "errorDeepSeekResponseTruncated": "La réponse était trop longue et a été coupée. Réessayez.",
+
 
   "errorNovitaKeyInvalid": "A chave do Novita é inválida. Atualize nas configurações.",
   "errorNovitaKeyNotSet": "Chave do Novita não definida. Adicione nas configurações.",
@@ -488,5 +490,10 @@
     "placeholders": {
       "size": { "type": "double" }
     }
-  }
+  },
+
+  "close": "Fechar"
+
+
 }
+

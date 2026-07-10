@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nsfw_chat/core/config/chat_constants.dart';
@@ -17,10 +19,9 @@ import 'package:nsfw_chat/presentation/providers/settings_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../debug/scene_test_data.dart';
-import '../../debug/scene_with_you_test.dart';
-
 /// Chat state — persisted in SQLite per branch.
+///
+///
 class ChatState {
   final List<ChatMessageModel> messages;
   final bool isLoading;
@@ -28,6 +29,8 @@ class ChatState {
   final int verifyingCount;
   final List<PersonaEntity> failedPersonas;
   final bool donatePromptDone;
+  final bool isGeneratingImage;
+
 
 
   const ChatState({
@@ -37,6 +40,7 @@ class ChatState {
     this.verifyingCount = 0,
     this.failedPersonas = const [],
     this.donatePromptDone = false,
+    this.isGeneratingImage = false
 
   });
 
@@ -50,6 +54,7 @@ class ChatState {
     int? verifyingCount,
     List<PersonaEntity>? failedPersonas,
     bool? donatePromptDone,
+    bool? isGeneratingImage
 
   }) =>
       ChatState(
@@ -59,6 +64,7 @@ class ChatState {
         verifyingCount: verifyingCount ?? this.verifyingCount,
         failedPersonas: failedPersonas ?? this.failedPersonas,
         donatePromptDone: donatePromptDone ?? this.donatePromptDone,
+        isGeneratingImage: isGeneratingImage ?? this.isGeneratingImage,
 
       );
 }
@@ -75,7 +81,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   Future<void> _checkDonatePrompt() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_donateKey2) == true) return; // финальный флаг — больше не показываем
+    if (prefs.getBool(_donateKey2) == true)
+      return; // финальный флаг — больше не показываем
 
     final aiCount = prefs.getInt(_aiCountKey) ?? 0;
 
@@ -120,7 +127,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// Optional override used in tests. When provided, skips async creation.
   final ChatRepository? _chatRepoOverride;
-
   final BranchRepository _branchRepo;
   final String _branchId;
   final Ref _ref; // добавить поле
@@ -131,7 +137,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     required Ref ref,
     ChatRepository? chatRepo,
     BranchRepository? branchRepo,
-  })  : _ref = ref,
+  })
+      : _ref = ref,
         _branchId = branchId,
         _chatRepoOverride = chatRepo,
         _branchRepo = branchRepo ?? BranchRepository(),
@@ -179,7 +186,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
               : (personaName ?? ChatConstants.aiSender),
           content: greeting,
           isUser: false,
-          isGreeting: true,  // ← добавить
+          isGreeting: true, // ← добавить
 
         );
         await repo.saveMessage(msg, _branchId);
@@ -233,7 +240,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       if (_disposed) return;
 
-      if (result.hasConflict && (result.severity == 'high' || result.severity == 'medium')) {
+      if (result.hasConflict &&
+          (result.severity == 'high' || result.severity == 'medium')) {
         final reason = result.severity == 'high'
             ? AgeCheckFailReason.conflictHigh
             : AgeCheckFailReason.conflictMedium;
@@ -286,84 +294,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
 
-  // ─────────────────────────────────────────────────────────────────────────────
-// ПАТЧ для chat_provider.dart
-// Добавить этот метод внутрь класса ChatNotifier
-// (рядом с generateSceneImage, например перед строкой // ── PRIVATE HELPERS ──)
-// ─────────────────────────────────────────────────────────────────────────────
 
-  /// Demo-only: shows a spinner for [spinnerMs] ms, then adds all [imagePaths]
-  /// as image messages in state (no DB write, no API call).
-  /// The first image is added immediately after the spinner; the rest follow
-  /// so that [ChatImageFullscreenScreen] can swipe through all of them.
-  Future<void> addDemoImageSequence({
-    required String personaName,
-    required String personaId,
-    required List<String> imagePaths,
-    int spinnerMs = 5000,
-  }) async {
-    if (imagePaths.isEmpty) return;
 
-    state = state.copyWith(isLoading: true, error: null);
-    await Future.delayed(Duration(milliseconds: spinnerMs));
-    if (_disposed) return;
-
-    final newMessages = imagePaths.mapIndexed((i, path) => ChatMessageModel(
-      id: const Uuid().v4(),
-      personaId: personaId,
-      senderName: personaName,
-      content: '',
-      isUser: false,
-      imageLocalPath: path,
-      isHidden: i > 0, // все кроме первого — скрыты
-    )).toList();
-
-    state = state.copyWith(
-      messages: [...state.messages, ...newMessages],
-      isLoading: false,
-    );
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Опционально для ролика 3 — добавить рядом:
-// ─────────────────────────────────────────────────────────────────────────────
-
-  /// Demo-only: adds a user message instantly, then waits [thinkingMs] ms
-  /// and adds the pre-written AI response. No DB write, no API call.
-  Future<void> addDemoExchange({
-    required String userText,
-    required String aiText,
-    required String personaName,
-    required String personaId,
-    int thinkingMs = 1500,
-  }) async {
-    final userMsg = ChatMessageModel(
-      id: const Uuid().v4(),
-      senderName: 'user',
-      content: userText,
-      isUser: true,
-    );
-    state = state.copyWith(
-      messages: [...state.messages, userMsg],
-      isLoading: false,
-    );
-
-    state = state.copyWith(isLoading: true, error: null);
-    await Future.delayed(Duration(milliseconds: thinkingMs));
-    if (_disposed) return;
-
-    final aiMsg = ChatMessageModel(
-      id: const Uuid().v4(),
-      personaId: personaId,
-      senderName: personaName,
-      content: aiText,
-      isUser: false,
-    );
-    state = state.copyWith(
-      messages: [...state.messages, aiMsg],
-      isLoading: false,
-    );
-  }
   // ── PRIVATE HELPERS ────────────────────────────────────────────────────
 
   Future<void> _saveHiddenReset(String content) async {
@@ -414,7 +346,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(isLoading: true, error: null);
 
     // Update preview if this is the first user message.
-    if (state.messages.where((m) => m.isUser).length == 1) {
+    if (state.messages
+        .where((m) => m.isUser)
+        .length == 1) {
       await _branchRepo.updatePreview(
         _branchId,
         content.length > 80 ? '${content.substring(0, 80)}…' : content,
@@ -431,7 +365,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
         branchId: _branchId,
         suppressHidden: suppressHidden,
       );
-      if (reply.trim().length > 200) {
+      if (reply
+          .trim()
+          .length > 200) {
         await _incrementAiResponseCount();
       }
       final aiMsg = ChatMessageModel(
@@ -512,7 +448,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(isLoading: true, error: null);
 
     // Update preview if this is the first user message.
-    if (state.messages.where((m) => m.isUser).length == 1) {
+    if (state.messages
+        .where((m) => m.isUser)
+        .length == 1) {
       await _branchRepo.updatePreview(
         _branchId,
         content.length > 80 ? '${content.substring(0, 80)}…' : content,
@@ -521,8 +459,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     final effectiveTokens = (maxTokens * personas.length).clamp(1, 8192);
 
     try {
-      final suppressHidden = quickActionType == QuickActionType.moreDetails || 
-                            quickActionType == QuickActionType.shorter;
+      final suppressHidden = quickActionType == QuickActionType.moreDetails ||
+          quickActionType == QuickActionType.shorter;
       final reply = await repo.sendMultiMessage(
         history: state.messages,
         personas: personas,
@@ -530,8 +468,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
         maxTokens: effectiveTokens,
         branchId: _branchId,
         suppressHidden: suppressHidden,
+ // ←
+
       );
-      if (reply.trim().length > 100) {
+      if (reply
+          .trim()
+          .length > 100) {
         await _incrementAiResponseCount();
       }
       final parsed = _parseMultiReply(reply, personas);
@@ -552,7 +494,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: [...state.messages, ...newMessages],
         isLoading: false,
       );
-      
+
       // Save hidden reset message if provided (after AI messages are saved)
       if (hiddenResetContent != null && hiddenResetContent.isNotEmpty) {
         await _saveHiddenReset(hiddenResetContent);
@@ -618,7 +560,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
           personas: personas,
           behavior: behavior,
           maxTokens: maxTokens,
-          skipSave: true, // Don't save user message again.
+          skipSave: true,
+          // Don't save user message again.
           quickActionType: QuickActionType.none,
         );
       }
@@ -688,9 +631,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
           isLoading: false,
         );
         await repo.saveMessage(aiMsg, _branchId);
-        
+
         // Update branch preview and timestamp
-        final previewText = reply.length > 100 ? '${reply.substring(0, 100)}…' : reply;
+        final previewText = reply.length > 100
+            ? '${reply.substring(0, 100)}…'
+            : reply;
         await _branchRepo.updatePreview(_branchId, previewText);
         await _branchRepo.touchTimestamp(_branchId);
       } on DeepSeekApiException catch (e) {
@@ -788,7 +733,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   /// If regen=true: deletes last image message first, then regenerates.
   Future<void> generateSceneImage({
     required PersonaEntity persona,
-    required SettingsState settings,   // новый
+    required SettingsState settings, // новый
 
     bool regen = false,
   }) async {
@@ -816,7 +761,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       }
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, isGeneratingImage: true, error: null);
 
     try {
       // Extract scene from last 8 messages
@@ -830,7 +775,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         personaId: persona.id,
         personaName: persona.name,
         branchId: _branchId,
-        persona:  persona,
+        persona: persona,
         settings: settings,
         scene: scene,
         regen: regen,
@@ -850,26 +795,30 @@ class ChatNotifier extends StateNotifier<ChatState> {
       state = state.copyWith(
         messages: [...state.messages, imgMsg],
         isLoading: false,
+        isGeneratingImage: false,
       );
     } on NetworkException catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isGeneratingImage: false,
         error: e,
       );
     } on DeepSeekApiException catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isGeneratingImage: false,
         error: e,
       );
     } on NovitaApiException catch (e) {
-       state = state.copyWith(
+      state = state.copyWith(
         isLoading: false,
+        isGeneratingImage: false,
         error: e,
       );
     } catch (e) {
-
       state = state.copyWith(
         isLoading: false,
+        isGeneratingImage: false,
         error: e is AppException
             ? e
             : NovitaApiException(e.toString()),
@@ -877,48 +826,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
-  Future<void> debugTestGenerateSceneImage({
-    required PersonaEntity persona,
-    required SettingsState settings,   // новый
 
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      await ChatImageService.instance.debugRunSceneBatch(
-        personaId: persona.id,
-        personaName: persona.name,
-        rawSnapshots: youTestScenes,
-        settings: settings,   // новый
-        persona: persona,     // новый
-        onImageGenerated: (localPath, index) {
-          final imgMsg = ChatMessageModel(
-            id: const Uuid().v4(),
-            personaId: persona.id,
-            senderName: persona.name,
-            content: '[BatchTest ${index + 1}]',
-            isUser: false,
-            imageLocalPath: localPath,
-          );
-          // await repo.saveMessage(imgMsg, _branchId);
-
-          state = state.copyWith(
-            messages: [...state.messages, imgMsg],
-          );
-        },
-      );
-    } on NetworkException catch (e) {
-      state = state.copyWith(error: e);
-    } on NovitaApiException catch (e) {
-      state = state.copyWith(error: e);
-    } catch (e) {
-      state = state.copyWith(
-        error: e is AppException ? e : NovitaApiException(e.toString()),
-      );
-    } finally {
-      state = state.copyWith(isLoading: false);
-    }
-  }
 
 
   // ── PRIVATE HELPERS ────────────────────────────────────────────────────
@@ -933,6 +841,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     final pattern = RegExp(
       r'^\s*(?:\[(?:' + nameAlts + r')\]|(?:' + nameAlts + r'))\s*:\s*',
       multiLine: true,
+      unicode: true,
     );
 
     final matches = pattern.allMatches(reply).toList();

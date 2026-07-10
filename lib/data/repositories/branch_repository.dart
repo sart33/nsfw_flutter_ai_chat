@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 import 'package:nsfw_chat/domain/entities/branch_entity.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/recent_chat_entity.dart';
+import '../../domain/entities/recent_multichat_entity.dart';
 
 /// Repository that manages conversation branches via SQLite.
 class BranchRepository {
@@ -21,7 +24,7 @@ class BranchRepository {
     }
   }
 
-  Future<List<RecentChatEntity>> getRecentChats({int limit = 5}) async {
+  Future<List<RecentChatEntity>> getRecentChats({int limit = 8}) async {
     final rows = await _db.getRecentSingleBranches(limit: limit);
 
     return rows.map((row) {
@@ -41,6 +44,18 @@ class BranchRepository {
     }).toList();
   }
 
+
+
+// Толерантный парсер: понимает и JSON-массив ["a","b"], и "a,b" через запятую.
+  List<String> _parsePersonaIds(Object? raw) {
+  if (raw is! String || raw.isEmpty) return const [];
+  try {
+  final decoded = jsonDecode(raw);
+  if (decoded is List) return decoded.map((e) => e.toString()).toList();
+  } catch (_) {}
+  return raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  }
+
   /// Creates a new branch for [entityId], inserts it, and returns the entity.
   Future<BranchEntity> createBranch(String entityId) async {
     try {
@@ -57,6 +72,22 @@ class BranchRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<List<RecentMultiEntity>> getRecentMultiChats({int limit = 8}) async {
+    final rows = await _db.getRecentMultiBranches(limit: limit);
+    return rows.map((row) {
+      final updatedAtMs = (row['real_updated_at'] ?? row['updated_at']) as int;
+      return RecentMultiEntity(
+        branchId: row['id'] as String,
+        presetId: (row['entity_id'] as String).replaceFirst('multi:', ''),
+        presetName: row['preset_name'] as String,
+        personaIds: _parsePersonaIds(row['persona_ids']),
+        greeting: (row['greeting'] as String?) ?? '',
+        preview: row['preview'] as String?,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(updatedAtMs),
+      );
+    }).toList();
   }
 
   /// Deletes a branch and all its messages.

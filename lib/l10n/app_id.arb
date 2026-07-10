@@ -222,6 +222,8 @@
   "errorDeepSeekNotSet": "Kunci DeepSeek belum diset. Tambahkan di pengaturan.",
   "errorDeepSeekInsufficientBalance": "Saldo DeepSeek tidak cukup. Silakan isi ulang.",
   "errorDeepseekServiceUnavailable": "Layanan DeepSeek sedang tidak tersedia untuk sementara. Coba lagi nanti.",
+  "errorDeepSeekResponseTruncated": "La réponse était trop longue et a été coupée. Réessayez.",
+
   "errorNovitaKeyInvalid": "Kunci Novita tidak valid. Perbarui di pengaturan.",
   "errorNovitaKeyNotSet": "Kunci Novita belum diset. Tambahkan di pengaturan.",
   "errorNovitaInsufficientBalance": "Saldo Novita tidak cukup. Silakan isi ulang.",
@@ -583,7 +585,9 @@
     "placeholders": {
       "size": { "type": "double" }
     }
-  }
+  },
+
+  "close": "Tutup"
 
 }
 

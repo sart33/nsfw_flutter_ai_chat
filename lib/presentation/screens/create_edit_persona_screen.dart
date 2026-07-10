@@ -22,6 +22,7 @@ import '../../core/factory/database_helper.dart';
 import '../../core/utils/app_snack_bar.dart';
 import '../../domain/exceptions/app_exceptions.dart';
 import '../widgets/custom_app_bar_widget.dart';
+import '../widgets/perimeter_loader_button.dart';
 
 /// Create or edit a persona.
 class CreateEditPersonaScreen extends ConsumerStatefulWidget {
@@ -54,6 +55,8 @@ class _CreateEditPersonaScreenState
   String? _cachedCleanedDescription; // описание, которое уже было очищено
   // String? _cachedCleanedLevel;
   String? _lastSentDescription; // то, что последний раз отправляли в DeepSeek
+  late final String _personaId; // реальный id, один раз на весь экран
+
 
   bool get _isDesktopPlatform =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
@@ -188,7 +191,7 @@ class _CreateEditPersonaScreenState
   Future<String> _persistAvatarFile(String sourcePath) async {
     final docsDir = await getApplicationDocumentsDirectory();
     // Используем уже известный id при редактировании, иначе временный
-    final personaId = widget.personaId ?? 'avatar_preview';
+    final personaId = _personaId;
     final dirPath = '${docsDir.path}/characters/$personaId/avatar';
     await Directory(dirPath).create(recursive: true);
     final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.webp';
@@ -207,7 +210,7 @@ class _CreateEditPersonaScreenState
     final description = _descCtrl.text.trim();
     if (description.isEmpty) return;
 
-    final personaId = widget.personaId ?? 'avatar_preview_temp';
+    final personaId = _personaId;
     final needsClean = description != _lastSentDescription;
 
     if (needsClean) {
@@ -331,7 +334,7 @@ class _CreateEditPersonaScreenState
       final path = await NovitaAvatarService.generateAvatarFromPrompt(
         finalPrompt,
         dir.path,
-        seed: AppConfig.defaultSeed,
+        seed: AppConfig.bigImageDefaultSeed,
       );
 
       if (mounted) setState(() => _generatedAvatarPreviewPath = path);
@@ -423,6 +426,7 @@ class _CreateEditPersonaScreenState
   @override
   void initState() {
     super.initState();
+    _personaId = widget.personaId ?? const Uuid().v4();
     if (_isEdit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final persona = ref
@@ -623,55 +627,12 @@ class _CreateEditPersonaScreenState
             _buildInfoHintPreSave(context.l10n.personaAutoValidationInfo),
             const SizedBox(height: 16),
 
-            SizedBox(
+            PerimeterLoaderButton(
+              label: _isEdit ? context.l10n.save : context.l10n.create,
+              loadingLabel: context.l10n.verifyingPersona,
+              isLoading: _isSaving,
+              onPressed: _save,
               height: 52,
-              child: ElevatedButton(
-                onPressed: (_isGeneratingAvatar || _isSaving) ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentVivid,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppTheme.cardBg,
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                ),
-                child:
-                    _isSaving
-                        ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppTheme.accentVividInputBorder,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              context.l10n.verifyingPersona,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white54,
-                              ),
-                            ),
-                          ],
-                        )
-                        : Text(
-                          _isEdit ? context.l10n.save : context.l10n.create,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-              ),
             ),
           ],
         ),
@@ -839,53 +800,12 @@ class _CreateEditPersonaScreenState
                 child: SizedBox(
                   width: 260,
                   height: 48,
-                  child: ElevatedButton(
-                    onPressed: (_isGeneratingAvatar || _isSaving) ? null : _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentVivid,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: AppTheme.cardBg,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                    ),
-                    child:
-                        _isSaving
-                            ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppTheme
-                                          .accentVividInputBorder, // оранжевый — идёт процесс
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  context.l10n.verifyingPersona, // 'Валидация...'
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white54,
-                                  ),
-                                ),
-                              ],
-                            )
-                            : Text(
-                              _isEdit ? context.l10n.save : context.l10n.create,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
+                  child: PerimeterLoaderButton(
+                    label: _isEdit ? context.l10n.save : context.l10n.create,
+                    loadingLabel: context.l10n.verifyingPersona,
+                    isLoading: _isSaving,
+                    onPressed: _save,
+                    height: 52,
                   ),
                 ),
               ),
@@ -1506,7 +1426,7 @@ class _CreateEditPersonaScreenState
               : null;
 
       final entity = PersonaEntity(
-        id: widget.personaId ?? const Uuid().v4(),
+        id: _personaId,
         name: _nameCtrl.text.trim(),
         description: _descCtrl.text.trim(),
         greeting: _greetCtrl.text.trim(),
@@ -1523,6 +1443,8 @@ class _CreateEditPersonaScreenState
         userHairColor: persona?.userHairColor,
         userEthnicity: persona?.userEthnicity,
         userAppearanceEnabled: persona?.userAppearanceEnabled,
+        seed: persona?.seed,            // NEW: тащим пиннутый сид из старого персонажа
+
       );
 
       if (!mounted) return;

@@ -1,19 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
-import 'package:nsfw_chat/core/factory/dio_factory.dart';
 import 'package:nsfw_chat/core/services/summarization_service.dart';
 import 'package:nsfw_chat/data/models/chat_message_model.dart';
 import 'package:nsfw_chat/domain/entities/persona_entity.dart';
 import 'package:nsfw_chat/domain/exceptions/app_exceptions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../core/factory/deep_seek_connector.dart';
 
 // NOTE: YAML files must be added to pubspec.yaml assets manually per persona.
 // File naming: assets/characters/character_{persona.id}.yaml
@@ -25,36 +21,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// No streaming. No content filtering — explicit content is allowed.
 /// DeepSeek 'deepseek-chat' model handles explicit / NSFW content.
 class ChatRepository {
-  final Dio _dio;
   final DatabaseHelper _db;
   final SharedPreferences _prefs;
   final SummarizationService _summarizationService;
 
   ChatRepository._({
-    required Dio dio,
     required DatabaseHelper db,
     required SharedPreferences prefs,
     required SummarizationService summarizationService,
-  })  : _dio = Dio(BaseOptions(
-    baseUrl: dio.options.baseUrl,
-    validateStatus: (status) => true, // не кидать DioException для любого статуса
-  )),
-        _db = db,
+  })  : _db = db,
         _prefs = prefs,
         _summarizationService = summarizationService;
 
   /// Factory constructor — must be called with [create()] to get an instance.
-  static Future<ChatRepository> create({Dio? dio, DatabaseHelper? db}) async {
+  static Future<ChatRepository> create({DatabaseHelper? db}) async {
     final prefs = await SharedPreferences.getInstance();
     return ChatRepository._(
-      dio: dio ?? DioFactory.create(),
       db: db ?? DatabaseHelper.instance,
       prefs: prefs,
-      summarizationService: SummarizationService.create(dio: dio ?? DioFactory.create()),
+      summarizationService: SummarizationService.create(),
     );
   }
 
-  // ── REMINDER COUNTER ───────────────────────────────────────────────────
+
+    // ── REMINDER COUNTER ───────────────────────────────────────────────────
 
   Future<void> setReminderCounter(int value) async {
     await _prefs.setInt('reminder_counter', value);
@@ -94,29 +84,24 @@ class ChatRepository {
     if (toSummarize.isEmpty) return;
 
     try {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
       final summary = await _summarizationService.summarize(
         toSummarize,
-        apiKey,
         AppConfig.deepSeekV4FlashModel,
       );
 
       final nextBlockNumber = await _db.getNextBlockNumber(branchId);
-      final blockId = '${branchId}_summary_${DateTime.now().millisecondsSinceEpoch}';
+      final blockId =
+          '${branchId}_summary_${DateTime.now().millisecondsSinceEpoch}';
       final messagesCovered = alreadyCovered + toSummarize.length;
 
       await _db.insertSummaryBlock(
-        blockId,
-        branchId,
-        nextBlockNumber,
-        summary,
-        DateTime.now().millisecondsSinceEpoch,
-        messagesCovered,
+        blockId, branchId, nextBlockNumber, summary,
+        DateTime.now().millisecondsSinceEpoch, messagesCovered,
       );
     } on SummarizationException catch (_) {
-      // summary_too_short — не сохраняем, не сдвигаем covered.
-      // При следующем sendMessage цикл повторится на тех же сообщениях.
+      // summary_too_short — не сохраняем, не сдвигаем covered, повтор при след. sendMessage
     } catch (e) {
+      // прочее тоже гасим молча — фон
     }
   }
 
@@ -180,105 +165,49 @@ class ChatRepository {
     bool suppressHidden = false,
   }) async {
     try {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) {
-        throw DeepSeekApiException('key_not_set');
-      }
-
-      final reminderEnabled =
-          _prefs.getBool('settings_reminder_enabled') ?? true;
-      final reminderInterval =
-          _prefs.getInt('settings_reminder_interval') ?? 10;
-      final summarizationEnabled =
-          _prefs.getBool('settings_summarization_enabled') ?? true;
-      final threshold =
-          _prefs.getInt('settings_summarization_threshold') ?? 50;
+      final reminderEnabled = _prefs.getBool('settings_reminder_enabled') ?? true;
+      final reminderInterval = _prefs.getInt('settings_reminder_interval') ?? 10;
+      final summarizationEnabled = _prefs.getBool('settings_summarization_enabled') ?? true;
+      final threshold = _prefs.getInt('settings_summarization_threshold') ?? 50;
 
       final systemPrompt = await _buildSingleSystemPrompt(persona);
       final maxBlocks = _prefs.getInt('settings_summary_max_blocks') ?? 4;
       final messages = await _buildMessagesWithSummary(
-        branchId,
-        systemPrompt,
-        history,
-        suppressHidden: suppressHidden,
-        maxBlocks: maxBlocks,
-
+        branchId, systemPrompt, history,
+        suppressHidden: suppressHidden, maxBlocks: maxBlocks,
       );
 
-      // Add greeting if needed
       if (history.isEmpty || history.first.isUser) {
-        messages.insert(1, {
-          'role': 'assistant',
-          'content': persona.greeting,
-        });
+        messages.insert(1, {'role': 'assistant', 'content': persona.greeting});
       }
 
-      // ── Reminder injection ───────────────────────────────────────────────
-      if (reminderEnabled &&
-          persona.behavior != null &&
-          persona.behavior!.isNotEmpty) {
+      if (reminderEnabled && persona.behavior != null && persona.behavior!.isNotEmpty) {
         final counter = _getReminderCounter() + 1;
         _setReminderCounter(counter);
         if (counter >= reminderInterval) {
           _setReminderCounter(0);
-          final reminderText =
-              'Remember your identity and behavior: ${persona.behavior}\n';
-          messages.add({'role': 'system', 'content': reminderText});
+          messages.add({
+            'role': 'system',
+            'content': 'Remember your identity and behavior: ${persona.behavior}\n',
+          });
         }
       }
 
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
-      final requestBody = {
-        'model': AppConfig.deepSeekV4FlashModel,
-        'messages': messages,
-        'max_tokens': maxTokens,
-        'temperature': temperature,
-        'thinking': {'type': 'disabled'},  // <-- вот это
-
-      };
-      log(jsonEncode(requestBody), name: 'API_REQUEST');
-
-      final response = await _dio.post('/chat/completions',
-        data: requestBody,
-        options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
+      final content = await DeepSeekConnector.instance.callChat(
+        messages: messages,
+        maxTokens: maxTokens,
+        temperature: temperature,
       );
 
-      if (response.statusCode == 401) {
-        throw const DeepSeekApiException('key_invalid');
-      }
-
-      if (response.statusCode == 402) {
-        throw const DeepSeekApiException('insufficient_balance');
-      }
-
-      if (response.statusCode == 504 || response.statusCode == 503) {
-        throw const DeepSeekApiException('service_unavailable');
-      }
-      log(jsonEncode(response.data), name: 'API_RESPONSE');
-
-      final content =
-          response.data['choices'][0]['message']['content'] as String;
-
-      // Trigger summarization check (fire-and-forget)
-      unawaited(_checkAndSummarize(
-        branchId,
-        history,
-        summarizationEnabled,
-        threshold,
-      ));
-
-      return content.trim();
+      unawaited(_checkAndSummarize(branchId, history, summarizationEnabled, threshold));
+      return content;
     } catch (e) {
-      if (e is SocketException ||
-          e is http.ClientException ||
-          e is DioException && e.type == DioExceptionType.connectionError) {
-        throw const NetworkException();
-      }
-      if (e is DeepSeekApiException) rethrow;
+      if (e is DeepSeekApiException || e is NetworkException) rethrow;
       throw const DeepSeekApiException('invalid_response');
+    }
   }
-}
   // ── MULTI PERSONA CHAT ─────────────────────────────────────────────────
 
   /// Sends the conversation history to DeepSeek for a multi-persona chat.
@@ -293,108 +222,61 @@ class ChatRepository {
     required int maxTokens,
     required String branchId,
     bool suppressHidden = false,
+    String? directorContext,
   }) async {
     try {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) {
-        throw DeepSeekApiException('key_not_set');
-      }
+      final reminderEnabled = _prefs.getBool('settings_reminder_enabled') ?? true;
+      final reminderInterval = _prefs.getInt('settings_reminder_interval') ?? 10;
+      final summarizationEnabled = _prefs.getBool('settings_summarization_enabled') ?? true;
+      final threshold = _prefs.getInt('settings_summarization_threshold') ?? 50;
 
-      final reminderEnabled =
-          _prefs.getBool('settings_reminder_enabled') ?? true;
-      final reminderInterval =
-          _prefs.getInt('settings_reminder_interval') ?? 10;
-      final summarizationEnabled =
-          _prefs.getBool('settings_summarization_enabled') ?? true;
-      final threshold =
-          _prefs.getInt('settings_summarization_threshold') ?? 50;
-
-      // Combined behavior for the reminder — all personas' behaviors joined.
-      final behaviorReminder =
-          personas.map((p) => p.behavior ?? '').where((b) => b.isNotEmpty).join(' ');
+      final behaviorReminder = personas
+          .map((p) => p.behavior ?? '')
+          .where((b) => b.isNotEmpty)
+          .join(' ');
 
       final systemPrompt = _buildMultiSystemPrompt(personas, behavior);
       final maxBlocks = _prefs.getInt('settings_summary_max_blocks') ?? 4;
 
       final messages = await _buildMessagesWithSummary(
-        branchId,
-        systemPrompt,
-        history,
-        suppressHidden: suppressHidden,
-        maxBlocks: maxBlocks,
+        branchId, systemPrompt, history,
+        suppressHidden: suppressHidden, maxBlocks: maxBlocks,
       );
 
       // Format multi-persona messages with [Name]: prefix
       for (int i = 1; i < messages.length; i++) {
         final msg = messages[i];
         if (msg['role'] == 'assistant') {
-          // Find which persona sent this message
           final originalMsg = history[i - 1]; // -1 because messages[0] is system
           msg['content'] = '[${originalMsg.senderName}]: ${msg['content']}';
         }
       }
 
-      // ── Reminder injection ───────────────────────────────────────────────
+      // ── Reminder injection ──
       if (reminderEnabled && behaviorReminder.isNotEmpty) {
         final counter = _getReminderCounter() + 1;
         _setReminderCounter(counter);
         if (counter >= reminderInterval) {
           _setReminderCounter(0);
-          final reminderText =
-              'Remember your identity and behavior: $behaviorReminder\n';
-          messages.add({'role': 'system', 'content': reminderText});
+          messages.add({
+            'role': 'system',
+            'content': 'Remember your identity and behavior: $behaviorReminder\n',
+          });
         }
       }
 
       final temperature = _prefs.getDouble('generation_temperature') ?? 0.9;
 
-      final requestBody = {
-        'model': AppConfig.deepSeekV4FlashModel,
-        'messages': messages,
-        "thinking": {"type": "disabled"},
-        "stream": false,
-        'max_tokens': maxTokens,
-        'temperature': temperature,
-      };
-      log(jsonEncode(requestBody), name: 'API_REQUEST');
-
-      final response = await _dio.post(
-          '/chat/completions',
-        data: requestBody,
-        options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
+      final content = await DeepSeekConnector.instance.callChat(
+        messages: messages,
+        maxTokens: maxTokens,
+        temperature: temperature,
       );
-      if (response.statusCode == 401) {
-        throw const DeepSeekApiException('key_invalid');
-      }
 
-      if (response.statusCode == 402) {
-        throw const DeepSeekApiException('insufficient_balance');
-      }
-
-      if (response.statusCode == 504 || response.statusCode == 503) {
-        throw const DeepSeekApiException('service_unavailable');
-      }
-      log(jsonEncode(response.data), name: 'API_RESPONSE');
-
-      final content =
-          response.data['choices'][0]['message']['content'] as String;
-
-      // Trigger summarization check (fire-and-forget)
-      unawaited(_checkAndSummarize(
-        branchId,
-        history,
-        summarizationEnabled,
-        threshold,
-      ));
-
-      return content.trim();
+      unawaited(_checkAndSummarize(branchId, history, summarizationEnabled, threshold));
+      return content;
     } catch (e) {
-      if (e is SocketException ||
-          e is http.ClientException ||
-          e is DioException && e.type == DioExceptionType.connectionError) {
-        throw const NetworkException();
-      }
-      if (e is DeepSeekApiException) rethrow;
+      if (e is DeepSeekApiException || e is NetworkException) rethrow;
       throw const DeepSeekApiException('invalid_response');
     }
   }

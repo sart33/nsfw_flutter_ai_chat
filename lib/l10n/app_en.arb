@@ -162,6 +162,7 @@
   "errorDeepSeekNotSet": "DeepSeek key not set. Please add it in settings.",
   "errorDeepSeekInsufficientBalance": "Insufficient balance on DeepSeek account. Please top up.",
   "errorDeepseekServiceUnavailable": "DeepSeek service is temporarily unavailable. Please try again later.",
+  "errorDeepSeekResponseTruncated": "The response was too long and got cut off. Try again.",
   "errorNovitaKeyInvalid": "Novita key is invalid. Please update it in settings.",
   "errorNovitaKeyNotSet": "Novita key not set. Please add it in settings.",
   "errorNovitaInsufficientBalance": "Insufficient balance on Novita account. Please top up.",
@@ -432,5 +433,8 @@
     "placeholders": {
       "size": { "type": "double" }
     }
-  }
+  },
+
+  "close": "Close"
 }
+

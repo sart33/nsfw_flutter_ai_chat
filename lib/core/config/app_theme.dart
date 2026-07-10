@@ -22,9 +22,12 @@ class AppTheme {
   static const Color userIcon      = Color(0xFF919191);
   static const Color aiBubble      = Color(0xFF111111);
   static const Color primaryAccent = Color(0xFFAA7EF4); // фиолетовый акцент
+  static const Color primaryAccentRole = Color(0xFF7E60E6); // фиолетовый акцент
   static const Color accentVivid   = Color(0xBE7C3AED);
   static const Color accentVividButton   = Color(0xBE8B4FF4);
   static const Color bottomSheetBackground   = Color(0xFF0D0D10);
+  static const Color overlayDark = Color(0xCC000000); // 80% чёрный — подложка под кнопки/виджеты на тёмном фоне
+
   // FAB / иконки AppBar
   static const Color accentVividInputBorder   = Color(0x7C39FF6A); // FAB / иконки AppBar
   static const Color accentLight   = Color(0xFFAB76FF); // иконки в карточках
@@ -40,6 +43,7 @@ class AppTheme {
   static const Color warning       = Color(0xFFE65100);
   static const Color textWarning       = Color(0xFFD97436);
   static const Color unVerified       = Color(0xFFD97436);
+  static const Color defaultEmphasis = Color(0xFF6EA8FF);
 
   // ── Shared card decoration ────────────────────────────────────────────
   /// Используй для всех карточек на Settings / Home

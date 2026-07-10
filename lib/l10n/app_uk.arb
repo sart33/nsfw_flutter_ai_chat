@@ -171,6 +171,8 @@
   "errorDeepSeekNotSet": "Ключ DeepSeek не встановлено. Додайте його в налаштуваннях.",
   "errorDeepSeekInsufficientBalance": "Недостатньо коштів на рахунку DeepSeek. Поповніть баланс.",
   "errorDeepseekServiceUnavailable": "Сервіс DeepSeek тимчасово недоступний. Спробуйте пізніше.",
+  "errorDeepSeekResponseTruncated": "Відповідь виявилася надто довгою й обірвалася. Спробуйте ще раз.",
+
   "errorNovitaKeyInvalid": "Ключ Novita недійсний. Оновіть його в налаштуваннях.",
   "errorNovitaKeyNotSet": "Ключ Novita не встановлено. Додайте його в налаштуваннях.",
   "errorNovitaInsufficientBalance": "Недостатньо коштів на рахунку Novita. Поповніть баланс.",
@@ -489,6 +491,7 @@
     "placeholders": {
       "size": { "type": "double" }
     }
-  }
+  },
+    "close": "Закрити"
 
 }

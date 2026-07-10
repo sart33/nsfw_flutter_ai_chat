@@ -211,6 +211,7 @@ class AppSnackBar {
       'service_unavailable'  => (l10n.errorDeepseekServiceUnavailable,  false, false),
       'http_error'           => ('DeepSeek error ${e.statusCode}',      false, false),
       'network_error'        => (l10n.networkError,                     false, false),
+      'response_truncated'   => (l10n.errorDeepSeekResponseTruncated,   false, false),
       _                      => ('l10n.errorGeneric',                   false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
@@ -251,6 +252,13 @@ class AppSnackBar {
     show(msg, isError: isError, withSettings: withSettings);
   }
 
+  static void showFormatError(FormatException e, AppLocalizations l10n) {
+    final (msg, isError, withSettings) = switch (e) {
+
+      _                      => (e,      true, false)
+    };
+    show(msg as String, isError: isError, withSettings: withSettings);
+  }
 
 
   static void showAgeConflictSingle(

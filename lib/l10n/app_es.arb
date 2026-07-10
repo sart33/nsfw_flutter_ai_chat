@@ -168,6 +168,8 @@
   "errorDeepSeekNotSet": "La clave de DeepSeek no está configurada. Por favor, añádela en configuración.",
   "errorDeepSeekInsufficientBalance": "Saldo insuficiente en la cuenta de DeepSeek. Por favor, recarga.",
   "errorDeepseekServiceUnavailable": "El servicio de DeepSeek no está disponible temporalmente. Intenta más tarde.",
+  "errorDeepSeekResponseTruncated": "La respuesta era demasiado larga y se interrumpió. Inténtalo de nuevo.",
+
   "errorNovitaKeyInvalid": "La clave de Novita no es válida. Por favor, actualízala en configuración.",
   "errorNovitaKeyNotSet": "La clave de Novita no está configurada. Por favor, añádela en configuración.",
   "errorNovitaInsufficientBalance": "Saldo insuficiente en la cuenta de Novita. Por favor, recarga.",
@@ -487,8 +489,12 @@
     "placeholders": {
       "size": { "type": "double" }
     }
-  }
+  },
 
+  "close": "Cerrar"
 
 }
+
+
+
 

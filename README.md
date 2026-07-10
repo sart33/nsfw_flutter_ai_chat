@@ -1,7 +1,7 @@
 # Uncensored Flutter AI Roleplay Chat
 
-A fully local, privacy-first Flutter app for uncensored NSFW roleplay 
-chats with AI. Uses your own API keys for text and image generation. 
+A fully local, privacy-first Flutter app for uncensored NSFW roleplay
+chats with AI. Uses your own API keys for text and image generation.
 Everything stored on-device. No servers, no tracking.
 
 ## Features
@@ -14,7 +14,6 @@ Everything stored on-device. No servers, no tracking.
 - Message editing, deletion (cascade), and regeneration
 - Persistent chat history (SQLite)
 - Character personality reminder system (anti-drift)
-- YAML persona profiles support
 - Dark theme, adjustable font size and generation parameters
 - Secure API key storage (flutter_secure_storage)
 
@@ -28,13 +27,13 @@ Everything stored on-device. No servers, no tracking.
 ## API Keys
 
 - **DeepSeek** (required for chat): https://platform.deepseek.com/api_keys
-- **Novita AI** (required for image generation): https://novita.ai/dashboard/api-keys
+- **Novita AI** (required for image generation): https://novita.ai/user/register
 
 No hardcoded keys — everything entered through the in-app API Keys screen.
 
 ## Status
 
-Early WIP. Core chat and image generation work. 
+Early WIP. Core chat and image generation work.
 Active development.
 
 ## License

@@ -326,7 +326,7 @@ class BackupService {
       );
       await DatabaseHelper.instance.reopenDatabase();
       ref.invalidate(personaProvider);
-      ref.invalidate(recentChatsProvider);
+      ref.invalidate(recentItemsProvider);
       ref.invalidate(multiPresetProvider);
       if (context.mounted) {
         if (Platform.isAndroid) {

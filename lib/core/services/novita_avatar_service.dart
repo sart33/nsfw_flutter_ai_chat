@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/exceptions/app_exceptions.dart';
@@ -27,8 +28,13 @@ class NovitaAvatarService {
   static Future<String> generateAvatarFromPrompt(
       String prompt,
       String saveDir, {
-        int seed = 101,
+        int seed = AppConfig.bigImageDefaultSeed,
+
       }) async {
+    assert(() {
+      debugPrint('seed: $seed');
+      return true;
+    }());
     final apiKey = await AppConfig.getNovitaApiKey();
     if (apiKey.isEmpty) throw NovitaApiException('api_key_not_set');
     final prefs = await SharedPreferences.getInstance();

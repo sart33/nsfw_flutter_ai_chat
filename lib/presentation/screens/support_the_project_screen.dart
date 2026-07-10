@@ -1,16 +1,13 @@
-import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/extensions/context_extensions.dart';
 import 'package:nsfw_chat/presentation/widgets/custom_app_bar_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_theme.dart';
-import '../../core/services/engagement_service.dart';
 
 class SupportProjectScreen extends StatelessWidget {
   const SupportProjectScreen({Key? key}) : super(key: key);
@@ -153,476 +150,403 @@ class _TelegramButton extends StatelessWidget {
     );
   }
 }
-
+// Disabled: donation page is temporarily offline.
 // ===================== AMOUNT BUTTON =====================
 
-class _LightningAmountButton extends StatelessWidget {
-  final int amount;
-  final bool isLoading;
-  final bool isDisabled;
-  final VoidCallback onTap;
-
-  const _LightningAmountButton({
-    required this.amount,
-    required this.isLoading,
-    required this.isDisabled,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isMacOS  = Platform.isMacOS;
-    return GestureDetector(
-      onTap: isDisabled ? null : onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppTheme.textPrimary,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color:
-                isDisabled
-                    ? AppTheme.cardBorder.withValues(alpha: 0.4)
-                    : AppTheme.cardBorder,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            if (isLoading) ...[
-              const SizedBox(width: 28),
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 28),
-            ] else ...[
-              (isMacOS)
-                  ? Image.asset('assets/icons/blink_all.webp', height: 20)
-                  : Image.asset('assets/icons/blink_all.webp', height: 22),
-              const SizedBox(width: 10),
-            ],
-            Text(
-              context.l10n.supportLightningDonateAmount(amount),
-              style: TextStyle(
-                color:
-                    isDisabled
-                        ? AppTheme.background.withValues(alpha: 0.4)
-                        : AppTheme.background,
-                fontSize: isMacOS ? 15 : 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ===================== LIGHTNING WIDGET =====================
-
-class _LightningDonateWidget extends StatefulWidget {
-  final bool isDesktop;
-
-  const _LightningDonateWidget({required this.isDesktop});
-
-  @override
-  State<_LightningDonateWidget> createState() => _LightningDonateWidgetState();
-}
-
-class _LightningDonateWidgetState extends State<_LightningDonateWidget> {
-  bool _isLoading = false;
-  int? _loadingAmount;
-
-  // данные инвойса
-  String? _paymentRequest;
-  String? _deepLink;
-  String? _qrUrl;
-  int? _invoiceAmount;
-
-  Future<void> _donate(int amountUsd) async {
-    setState(() {
-      _isLoading = true;
-      _loadingAmount = amountUsd;
-      // сбрасываем предыдущий инвойс
-      _paymentRequest = null;
-      _deepLink = null;
-      _qrUrl = null;
-      _invoiceAmount = null;
-    });
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://beauty-finder.com.ua/api/donate/lightning'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'amount': amountUsd}),
-      );
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _paymentRequest = data['payment_request'] as String;
-          _deepLink = data['deep_link'] as String;
-          _qrUrl = data['qr_url'] as String;
-          _invoiceAmount = amountUsd;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.supportLightningError)),
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.supportLightningError)),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _loadingAmount = null;
-        });
-      }
-    }
-  }
-
-  void _copyInvoice(BuildContext context) {
-    if (_paymentRequest == null) return;
-    Clipboard.setData(ClipboardData(text: _paymentRequest!));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          context.l10n.supportLightningCopied,
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: AppTheme.success,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  Future<void> _openWallet(BuildContext context) async {
-    if (_deepLink == null) return;
-    try {
-      await launchUrl(
-        Uri.parse(_deepLink!),
-        mode: LaunchMode.externalApplication,
-      );
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.supportLightningNoWallet)),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final amounts = [2, 5, 10];
-    final hasInvoice = _paymentRequest != null;
-
-    Widget buttons = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children:
-          amounts.map((amount) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: amount != amounts.last ? 16.0 : 0,
-              ),
-              child: _LightningAmountButton(
-                amount: amount,
-                isLoading: _isLoading && _loadingAmount == amount,
-                isDisabled: _isLoading,
-                onTap: () => _donate(amount),
-              ),
-            );
-          }).toList(),
-    );
-
-    if (widget.isDesktop) {
-      buttons = Center(child: SizedBox(width: 260, child: buttons));
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        buttons,
-        if (_isLoading) ...[
-          const SizedBox(height: 16),
-          const Center(child: CircularProgressIndicator()),
-        ],
-        if (hasInvoice) ...[
-          const SizedBox(height: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                '\$${_invoiceAmount} ${context.l10n.viaLightning}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                context.l10n.supportLightningScanOrOpen,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-                Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: Image.network(
-                    _qrUrl!,
-                    fit: BoxFit.contain,
-                    loadingBuilder:
-                        (_, child, progress) =>
-                            progress == null
-                                ? child
-                                : const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                    errorBuilder:
-                        (_, __, ___) => const Icon(Icons.qr_code, size: 60),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-              widget.isDesktop
-                  ? Center(
-                    child: SizedBox(
-                      width: 350,
-                      child: GestureDetector(
-                        onTap: () => _copyInvoice(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.cardBorder),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _paymentRequest!,
-                                  style: const TextStyle(
-                                    color: AppTheme.textPrimary,
-                                    fontSize: 12,
-                                    fontFamily: 'monospace',
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.copy,
-                                size: 16,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  : GestureDetector(
-                    onTap: () => _copyInvoice(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.cardBorder),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _paymentRequest!,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 12,
-                                fontFamily: 'monospace',
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.copy,
-                            size: 16,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              if (!widget.isDesktop) ...[
-                const SizedBox(height: 16),
-
-                SizedBox(
-                  width: 260,
-                  child: GestureDetector(
-                    onTap: () => _openWallet(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentVivid,
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      child: Center(
-                        child: Text(
-                          context.l10n.supportLightningOpenWallet,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                SizedBox(
-                  width: 260,
-                  child: GestureDetector(
-                    onTap: () => _copyInvoice(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: AppTheme.accentVivid),
-                      ),
-                      child: Center(
-                        child: Text(
-                          context.l10n.supportLightningCopyInvoice,
-                          style: const TextStyle(
-                            color: AppTheme.accentVivid,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _KofiButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _KofiButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/icons/ko_fi.webp', width: 28, height: 28),
-              const SizedBox(width: 10),
-              Text(
-                context.l10n.supportKofiButton,
-                style: const TextStyle(
-                  color: Color(0xFF434B57),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// class _BoostyButton extends StatelessWidget {
+// class _LightningAmountButton extends StatelessWidget {
+//   final int amount;
+//   final bool isLoading;
+//   final bool isDisabled;
 //   final VoidCallback onTap;
 //
-//   const _BoostyButton({required this.onTap});
+//   const _LightningAmountButton({
+//     required this.amount,
+//     required this.isLoading,
+//     required this.isDisabled,
+//     required this.onTap,
+//   });
 //
 //   @override
 //   Widget build(BuildContext context) {
-//     return Material(
-//       color: AppTheme.textPrimary,
-//       borderRadius: BorderRadius.circular(14),
-//       child: InkWell(
-//         onTap: onTap,
-//         borderRadius: BorderRadius.circular(14),
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(vertical: 14),
-//           child: Row(
-//             mainAxisAlignment: MainAxisAlignment.start,
-//             children: [
-//               Image.asset(
-//                 'assets/icons/boosty_logo.webp',
-//                 width: 100,
+//     final bool isMacOS  = Platform.isMacOS;
+//     return GestureDetector(
+//       onTap: isDisabled ? null : onTap,
+//       child: AnimatedContainer(
+//         duration: const Duration(milliseconds: 200),
+//         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//         decoration: BoxDecoration(
+//           color: AppTheme.textPrimary,
+//           borderRadius: BorderRadius.circular(12),
+//           border: Border.all(
+//             color:
+//                 isDisabled
+//                     ? AppTheme.cardBorder.withValues(alpha: 0.4)
+//                     : AppTheme.cardBorder,
+//             width: 1,
+//           ),
+//         ),
+//         child: Row(
+//           mainAxisSize: MainAxisSize.min,
+//           mainAxisAlignment: MainAxisAlignment.start,
+//           children: [
+//             if (isLoading) ...[
+//               const SizedBox(width: 28),
+//               const SizedBox(
+//                 width: 24,
 //                 height: 24,
-//               ),
-//               // const SizedBox(width: 10),
-//               const Text(
-//                 'Donate on Boosty',
-//                 style: TextStyle(
-//                   color: AppTheme.background,
-//                   fontSize: 16,
-//                   fontWeight: FontWeight.w600,
-//                   letterSpacing: 0.2,
+//                 child: CircularProgressIndicator(
+//                   strokeWidth: 2,
+//                   color: AppTheme.textSecondary,
 //                 ),
 //               ),
+//               const SizedBox(width: 28),
+//             ] else ...[
+//               (isMacOS)
+//                   ? Image.asset('assets/icons/blink_all.webp', height: 20)
+//                   : Image.asset('assets/icons/blink_all.webp', height: 22),
+//               const SizedBox(width: 10),
 //             ],
-//           ),
+//             Text(
+//               context.l10n.supportLightningDonateAmount(amount),
+//               style: TextStyle(
+//                 color:
+//                     isDisabled
+//                         ? AppTheme.background.withValues(alpha: 0.4)
+//                         : AppTheme.background,
+//                 fontSize: isMacOS ? 15 : 16,
+//                 fontWeight: FontWeight.w600,
+//               ),
+//             ),
+//           ],
 //         ),
 //       ),
 //     );
 //   }
 // }
+// Disabled: donation page is temporarily offline.
+// ===================== LIGHTNING WIDGET =====================
+
+// class _LightningDonateWidget extends StatefulWidget {
+//   final bool isDesktop;
+//
+//   const _LightningDonateWidget({required this.isDesktop});
+//
+//   @override
+//   State<_LightningDonateWidget> createState() => _LightningDonateWidgetState();
+// }
+
+// class _LightningDonateWidgetState extends State<_LightningDonateWidget> {
+//   bool _isLoading = false;
+//   int? _loadingAmount;
+//
+//   // данные инвойса
+//   String? _paymentRequest;
+//   String? _deepLink;
+//   String? _qrUrl;
+//   int? _invoiceAmount;
+//
+//   Future<void> _donate(int amountUsd) async {
+//     setState(() {
+//       _isLoading = true;
+//       _loadingAmount = amountUsd;
+//       // сбрасываем предыдущий инвойс
+//       _paymentRequest = null;
+//       _deepLink = null;
+//       _qrUrl = null;
+//       _invoiceAmount = null;
+//     });
+//
+//     try {
+//       final response = await http.post(
+//         Uri.parse('https://beauty-finder.com.ua/api/donate/lightning'),
+//         headers: {'Content-Type': 'application/json'},
+//         body: jsonEncode({'amount': amountUsd}),
+//       );
+//
+//       if (!mounted) return;
+//
+//       if (response.statusCode == 200) {
+//         final data = jsonDecode(response.body);
+//         setState(() {
+//           _paymentRequest = data['payment_request'] as String;
+//           _deepLink = data['deep_link'] as String;
+//           _qrUrl = data['qr_url'] as String;
+//           _invoiceAmount = amountUsd;
+//         });
+//       } else {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text(context.l10n.supportLightningError)),
+//         );
+//       }
+//     } catch (_) {
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text(context.l10n.supportLightningError)),
+//         );
+//       }
+//     } finally {
+//       if (mounted) {
+//         setState(() {
+//           _isLoading = false;
+//           _loadingAmount = null;
+//         });
+//       }
+//     }
+//   }
+//
+//   void _copyInvoice(BuildContext context) {
+//     if (_paymentRequest == null) return;
+//     Clipboard.setData(ClipboardData(text: _paymentRequest!));
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(
+//           context.l10n.supportLightningCopied,
+//           style: const TextStyle(color: Colors.white),
+//         ),
+//         backgroundColor: AppTheme.success,
+//         duration: const Duration(seconds: 2),
+//       ),
+//     );
+//   }
+//
+//   Future<void> _openWallet(BuildContext context) async {
+//     if (_deepLink == null) return;
+//     try {
+//       await launchUrl(
+//         Uri.parse(_deepLink!),
+//         mode: LaunchMode.externalApplication,
+//       );
+//     } catch (_) {
+//       if (context.mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text(context.l10n.supportLightningNoWallet)),
+//         );
+//       }
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final amounts = [2, 5, 10];
+//     final hasInvoice = _paymentRequest != null;
+//
+//     Widget buttons = Column(
+//       crossAxisAlignment: CrossAxisAlignment.stretch,
+//       children:
+//           amounts.map((amount) {
+//             return Padding(
+//               padding: EdgeInsets.only(
+//                 bottom: amount != amounts.last ? 16.0 : 0,
+//               ),
+//               child: _LightningAmountButton(
+//                 amount: amount,
+//                 isLoading: _isLoading && _loadingAmount == amount,
+//                 isDisabled: _isLoading,
+//                 onTap: () => _donate(amount),
+//               ),
+//             );
+//           }).toList(),
+//     );
+//
+//     if (widget.isDesktop) {
+//       buttons = Center(child: SizedBox(width: 260, child: buttons));
+//     }
+//
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.stretch,
+//       children: [
+//         buttons,
+//         if (_isLoading) ...[
+//           const SizedBox(height: 16),
+//           const Center(child: CircularProgressIndicator()),
+//         ],
+//         if (hasInvoice) ...[
+//           const SizedBox(height: 20),
+//           Column(
+//             crossAxisAlignment: CrossAxisAlignment.center,
+//             children: [
+//               Text(
+//                 '\$${_invoiceAmount} ${context.l10n.viaLightning}',
+//                 style: const TextStyle(
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.w700,
+//                   color: AppTheme.textPrimary,
+//                 ),
+//               ),
+//               const SizedBox(height: 4),
+//               Text(
+//                 context.l10n.supportLightningScanOrOpen,
+//                 style: const TextStyle(
+//                   fontSize: 13,
+//                   color: AppTheme.textSecondary,
+//                 ),
+//               ),
+//               const SizedBox(height: 16),
+//
+//                 Container(
+//                   width: 180,
+//                   height: 180,
+//                   decoration: BoxDecoration(
+//                     color: Colors.white,
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   padding: const EdgeInsets.all(8),
+//                   child: Image.network(
+//                     _qrUrl!,
+//                     fit: BoxFit.contain,
+//                     loadingBuilder:
+//                         (_, child, progress) =>
+//                             progress == null
+//                                 ? child
+//                                 : const Center(
+//                                   child: CircularProgressIndicator(),
+//                                 ),
+//                     errorBuilder:
+//                         (_, __, ___) => const Icon(Icons.qr_code, size: 60),
+//                   ),
+//                 ),
+//                 const SizedBox(height: 16),
+//
+//               widget.isDesktop
+//                   ? Center(
+//                     child: SizedBox(
+//                       width: 350,
+//                       child: GestureDetector(
+//                         onTap: () => _copyInvoice(context),
+//                         child: Container(
+//                           padding: const EdgeInsets.symmetric(
+//                             horizontal: 12,
+//                             vertical: 10,
+//                           ),
+//                           decoration: BoxDecoration(
+//                             color: Colors.black,
+//                             borderRadius: BorderRadius.circular(10),
+//                             border: Border.all(color: AppTheme.cardBorder),
+//                           ),
+//                           child: Row(
+//                             children: [
+//                               Expanded(
+//                                 child: Text(
+//                                   _paymentRequest!,
+//                                   style: const TextStyle(
+//                                     color: AppTheme.textPrimary,
+//                                     fontSize: 12,
+//                                     fontFamily: 'monospace',
+//                                   ),
+//                                   overflow: TextOverflow.ellipsis,
+//                                 ),
+//                               ),
+//                               const SizedBox(width: 8),
+//                               const Icon(
+//                                 Icons.copy,
+//                                 size: 16,
+//                                 color: AppTheme.textSecondary,
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   )
+//                   : GestureDetector(
+//                     onTap: () => _copyInvoice(context),
+//                     child: Container(
+//                       padding: const EdgeInsets.symmetric(
+//                         horizontal: 12,
+//                         vertical: 10,
+//                       ),
+//                       decoration: BoxDecoration(
+//                         color: Colors.black,
+//                         borderRadius: BorderRadius.circular(10),
+//                         border: Border.all(color: AppTheme.cardBorder),
+//                       ),
+//                       child: Row(
+//                         children: [
+//                           Expanded(
+//                             child: Text(
+//                               _paymentRequest!,
+//                               style: const TextStyle(
+//                                 color: AppTheme.textPrimary,
+//                                 fontSize: 12,
+//                                 fontFamily: 'monospace',
+//                               ),
+//                               overflow: TextOverflow.ellipsis,
+//                             ),
+//                           ),
+//                           const SizedBox(width: 8),
+//                           const Icon(
+//                             Icons.copy,
+//                             size: 16,
+//                             color: AppTheme.textSecondary,
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//               if (!widget.isDesktop) ...[
+//                 const SizedBox(height: 16),
+//
+//                 SizedBox(
+//                   width: 260,
+//                   child: GestureDetector(
+//                     onTap: () => _openWallet(context),
+//                     child: Container(
+//                       padding: const EdgeInsets.symmetric(vertical: 14),
+//                       decoration: BoxDecoration(
+//                         color: AppTheme.accentVivid,
+//                         borderRadius: BorderRadius.circular(32),
+//                       ),
+//                       child: Center(
+//                         child: Text(
+//                           context.l10n.supportLightningOpenWallet,
+//                           style: const TextStyle(
+//                             color: Colors.white,
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.w600,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 const SizedBox(height: 12),
+//
+//                 SizedBox(
+//                   width: 260,
+//                   child: GestureDetector(
+//                     onTap: () => _copyInvoice(context),
+//                     child: Container(
+//                       padding: const EdgeInsets.symmetric(vertical: 13),
+//                       decoration: BoxDecoration(
+//                         color: Colors.transparent,
+//                         borderRadius: BorderRadius.circular(32),
+//                         border: Border.all(color: AppTheme.accentVivid),
+//                       ),
+//                       child: Center(
+//                         child: Text(
+//                           context.l10n.supportLightningCopyInvoice,
+//                           style: const TextStyle(
+//                             color: AppTheme.accentVivid,
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.w600,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ],
+//           ),
+//         ],
+//       ],
+//     );
+//   }
+// }
+
+
+
+
 
 class SupportProjectContent extends StatefulWidget {
   const SupportProjectContent({Key? key}) : super(key: key);
@@ -632,14 +556,14 @@ class SupportProjectContent extends StatefulWidget {
 }
 
 class _SupportProjectContentState extends State<SupportProjectContent> {
-  bool? _isRealUser;
+  // bool? _isRealUser;
 
   @override
   void initState() {
     super.initState();
-    EngagementService.instance.isRealUser().then((v) {
-      if (mounted) setState(() => _isRealUser = v);
-    });
+    // EngagementService.instance.isRealUser().then((v) {
+    //   if (mounted) setState(() => _isRealUser = v);
+    // });
   }
 
 
@@ -708,16 +632,12 @@ class _SupportProjectContentState extends State<SupportProjectContent> {
                         _Divider(),
                         _buildSupportOptionsSection(context),
                         _Divider(),
-                        if (_isRealUser == true) ...[
-                          _buildWaysToSupportSectionKofiCard(context),
-                          _Divider(),
-                        ],
                         Center(
                           child: _buildParagraphBold(
                             context.l10n.supportCryptoTitle,
                           ),
                         ),
-                        _buildWaysToSupportSectionLightningCard(context),
+                        // _buildWaysToSupportSectionLightningCard(context),
                         _Divider(),
                         _buildWaysToSupportSectionUSDT(context),
                         _Divider(),
@@ -912,52 +832,21 @@ class _SupportProjectContentState extends State<SupportProjectContent> {
     );
   }
 
-  Widget _buildWaysToSupportSectionKofiCard(BuildContext context) {
-    final desktop = _isDesktop(context);
 
-    return _buildSection(
-      context.l10n.supportKofiTitle,
-      children: [
-        _buildParagraph(context.l10n.supportKofiDescription),
-        const SizedBox(height: 20),
-        if (!desktop) _KofiButton(onTap: () => _openKofi(context)),
-        if (desktop)
-          Center(
-            child: SizedBox(
-              width: 260,
-              child: _KofiButton(onTap: () => _openKofi(context)),
-            ),
-          ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
+// Disabled: donation page is temporarily offline.
 
-  Future<void> _openKofi(BuildContext context) async {
-    final uri = Uri.parse('https://ko-fi.com/usoulsai');
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Could not open Ko-fi')));
-      }
-    }
-  }
-
-  Widget _buildWaysToSupportSectionLightningCard(BuildContext context) {
-    final desktop = _isDesktop(context);
-    return _buildSection(
-      'Lightning',
-      children: [
-        _buildParagraph(context.l10n.supportLightningDescription),
-        const SizedBox(height: 20),
-        _LightningDonateWidget(isDesktop: desktop),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
+  // Widget _buildWaysToSupportSectionLightningCard(BuildContext context) {
+  //   final desktop = _isDesktop(context);
+  //   return _buildSection(
+  //     'Lightning',
+  //     children: [
+  //       _buildParagraph(context.l10n.supportLightningDescription),
+  //       const SizedBox(height: 20),
+  //       _LightningDonateWidget(isDesktop: desktop),
+  //       const SizedBox(height: 8),
+  //     ],
+  //   );
+  // }
 
   Widget _buildWaysToSupportSectionNOWPayments(BuildContext context) {
     return _buildSection(

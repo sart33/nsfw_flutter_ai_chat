@@ -12,18 +12,37 @@ import '../../domain/entities/persona_entity.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/persona_provider.dart';
 import '../providers/settings_provider.dart';
+class AppearanceData {
+  final bool enabled;
+  final String gender;
+  final String age;
+  final String ethnicity;
+  final String hairColor;
+  const AppearanceData({
+    required this.enabled,
+    required this.gender,
+    required this.age,
+    required this.ethnicity,
+    required this.hairColor,
+  });
+}
 
 class UserAppearanceCard extends ConsumerStatefulWidget {
   const UserAppearanceCard({
     this.expanded = false,
     this.onSaved,
+    this.onAdventureChanged, // ← новый: отдаёт значения наверх
     super.key,
-    this.persona, // null → режим Settings
+    this.persona,
+    this.adventureMode = false, // ← новый
+
   });
 
   final PersonaEntity? persona;
   final bool expanded; // для коллапсибла — влияет на отображение заголовка и отступы
   final VoidCallback? onSaved;
+  final bool adventureMode; // ← новый
+  final void Function(AppearanceData data)? onAdventureChanged;
 
 
   @override
@@ -40,6 +59,9 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
 
   bool get _expanded => widget.expanded;
   bool get _isPersonaMode => widget.persona != null;
+  bool get _isAdventureMode => widget.adventureMode;
+  bool get _isSettingsMode  => !_isPersonaMode && !_isAdventureMode;
+  bool _reportedInitial = false;
 
   bool _isDesktop(BuildContext context) {
     if (kIsWeb) return false;
@@ -57,6 +79,25 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _initFromSources();
+    if (_isAdventureMode && !_reportedInitial) {
+      _reportedInitial = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _reportAdventure();
+      });
+    }
+  }
+
+  void _reportAdventure() {
+    if (!_isAdventureMode) return;
+    widget.onAdventureChanged?.call(AppearanceData(
+      enabled: _enabled, gender: _gender, age: _age,
+      ethnicity: _ethnicity, hairColor: _hairColor,
+    ));
+  }
+
+  void _setLocal(void Function() apply) {
+    setState(apply);
+    _reportAdventure(); // guard внутри → в persona-режиме no-op
   }
 
   void _initFromSources() {
@@ -102,14 +143,14 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
   Widget build(BuildContext context) {
     // В режиме Settings — реагируем на изменения снаружи (другой экран и т.д.)
     // В режиме Persona — читаем только при инициализации, локальный стейт правится вручную
-    if (!_isPersonaMode) {
+    if (_isSettingsMode) {
       final settings = ref.watch(settingsProvider);
       _enabled   = settings.userAppearanceEnabled;
       _gender    = settings.userGender;
       _age       = settings.userAge;
       _ethnicity = settings.userEthnicity;
       _hairColor = settings.userHairColor;
-    } else {
+    } else if (_isPersonaMode) {
       ref.listen<AsyncValue<List<PersonaEntity>>>(personaProvider, (_, next) {
         final fresh = next.valueOrNull?.firstWhere(
               (p) => p.id == widget.persona!.id,
@@ -135,10 +176,10 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
         subtitle: context.l10n.userShowInImagesSubtitle,
         value: _enabled,
         onChanged: (v) {
-          if (_isPersonaMode) {
-            setState(() => _enabled = v);
-          } else {
+          if (_isSettingsMode) {
             ref.read(settingsProvider.notifier).setUserAppearanceEnabled(v);
+          } else {
+            _setLocal(() => _enabled = v);
           }
         },
         isDesktop: _isDesktop(context),
@@ -149,9 +190,9 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
           options: const ['man', 'woman'],
           labels: [context.l10n.userGenderMan, context.l10n.userGenderWoman],
           value: _gender,
-          onChanged: (v) => _isPersonaMode
-              ? setState(() => _gender = v)
-              : ref.read(settingsProvider.notifier).setUserGender(v),
+          onChanged: (v) => _isSettingsMode
+              ? ref.read(settingsProvider.notifier).setUserGender(v)
+              : _setLocal(() => _gender = v),
         ),
         _Divider(),
         _AppearanceToggleRow(
@@ -159,23 +200,24 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
           options: const ['young', 'adult', 'mature', 'senior', 'elderly'],
           labels: [context.l10n.userAgeYoung, context.l10n.userAgeAdult, context.l10n.userAgeMature, context.l10n.userAgeSenior, context.l10n.userAgeElderly],
           value: _age,
-          onChanged: (v) => _isPersonaMode
-              ? setState(() => _age = v)
-              : ref.read(settingsProvider.notifier).setUserAge(v),
+          onChanged: (v) => _isSettingsMode
+              ? ref.read(settingsProvider.notifier).setUserAge(v)
+              : _setLocal(() => _age = v),
+
         ),
         _Divider(),
         _EthnicityRow(
           value: _ethnicity,
-          onChanged: (v) => _isPersonaMode
-              ? setState(() => _ethnicity = v)
-              : ref.read(settingsProvider.notifier).setUserEthnicity(v),
+          onChanged: (v) => _isSettingsMode
+              ? ref.read(settingsProvider.notifier).setUserEthnicity(v)
+              : _setLocal(() => _ethnicity = v),
         ),
         _Divider(),
         _HairColorRow(
           value: _hairColor,
-          onChanged: (v) => _isPersonaMode
-              ? setState(() => _hairColor = v)
-              : ref.read(settingsProvider.notifier).setUserHairColor(v),
+          onChanged: (v) => _isSettingsMode
+              ? ref.read(settingsProvider.notifier).setUserHairColor(v)
+              : _setLocal(() => _hairColor = v),
         ),
         // Кнопка Save — только в режиме персонажа
         if (_isPersonaMode) ...[
@@ -208,7 +250,7 @@ class _UserAppearanceCardState extends ConsumerState<UserAppearanceCard> {
         ],
 
     ];
-    final card = _isPersonaMode
+    final card = !_isSettingsMode
         ? _PlainCard(children: items)
         : _SettingsCard(children: items);
     return card;

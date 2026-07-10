@@ -18,7 +18,14 @@ import 'package:nsfw_chat/presentation/widgets/avatar_widget.dart';
 import 'package:nsfw_chat/presentation/widgets/persona_card_home.dart';
 
 import '../../core/config/app_config.dart';
-
+import '../../domain/entities/recent_multichat_entity.dart';
+String _formatRecentTime(BuildContext context, DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inMinutes < 60) return '${diff.inMinutes}${context.l10n.minutesAgo}';
+  if (diff.inHours < 24) return '${diff.inHours}${context.l10n.hoursAgo}';
+  if (diff.inDays == 1) return context.l10n.yesterday;
+  return '${diff.inDays}${context.l10n.daysAgo}';
+}
 // ─────────────────────────────────────────────
 //  HomeScreen
 // ─────────────────────────────────────────────
@@ -277,7 +284,7 @@ class _DesktopNavCards extends ConsumerWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const PersonaListScreen()),
-              ).then((_) => ref.invalidate(recentChatsProvider)),
+              ).then((_) => ref.invalidate(recentItemsProvider)),
             ),
           ),
           const SizedBox(width: 16),
@@ -290,7 +297,7 @@ class _DesktopNavCards extends ConsumerWidget {
                 context,
                 MaterialPageRoute(
                     builder: (_) => const MultiPresetListScreen()),
-              ).then((_) => ref.invalidate(recentChatsProvider)),
+              ).then((_) => ref.invalidate(recentItemsProvider)),
             ),
           ),
           const SizedBox(width: 16),
@@ -316,25 +323,21 @@ class _DesktopRecentChatsGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncChats = ref.watch(recentChatsProvider);
+    final asyncItems = ref.watch(recentItemsProvider);
 
-    return asyncChats.when(
+    return asyncItems.when(
       skipLoadingOnReload: true,
       loading: () => const SizedBox(
         height: 80,
-        child:
-        Center(child: CircularProgressIndicator(color: AppTheme.accentVivid)),
+        child: Center(child: CircularProgressIndicator(color: AppTheme.accentVivid)),
       ),
       error: (_, __) => const SizedBox.shrink(),
-      data: (chats) {
-        if (chats.isEmpty) {
+      data: (items) {
+        if (items.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              context.l10n.noRecentChats,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 14),
-            ),
+            child: Text(context.l10n.noRecentChats,
+                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
           );
         }
         return GridView.builder(
@@ -346,8 +349,11 @@ class _DesktopRecentChatsGrid extends ConsumerWidget {
             mainAxisSpacing: 16,
             childAspectRatio: 0.62,
           ),
-          itemCount: chats.length,
-          itemBuilder: (_, i) => _DesktopRecentChatCard(chat: chats[i]),
+          itemCount: items.length,
+          itemBuilder: (_, i) => switch (items[i]) {
+            RecentSingleItem(:final chat) => _DesktopRecentChatCard(chat: chat),
+            RecentMultiItem(:final chat) => _DesktopRecentMultiCard(chat: chat),
+          },
         );
       },
     );
@@ -384,7 +390,7 @@ class _DesktopRecentChatCard extends ConsumerWidget {
               title: chat.personaName,
             ),
           ),
-        ).then((_) => ref.invalidate(recentChatsProvider)),
+        ).then((_) => ref.invalidate(recentItemsProvider)),
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
@@ -502,7 +508,107 @@ class _DesktopRecentChatCard extends ConsumerWidget {
     );
   }
 }
+class _DesktopRecentMultiCard extends ConsumerWidget {
+  final RecentMultiEntity chat;
+  const _DesktopRecentMultiCard({required this.chat});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final all = ref.watch(personaProvider).valueOrNull ?? const <PersonaEntity>[];
+    final personas = chat.personaIds
+        .map((id) => all.where((p) => p.id == id).firstOrNull)
+        .whereType<PersonaEntity>()
+        .toList();
+    final anyUnverified = personas.any((p) => !p.ageVerified);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(
+              branchId: chat.branchId,
+              entityId: chat.presetId,
+              isMulti: true,
+              greeting: chat.greeting,
+              title: chat.presetName,
+            ),
+          ),
+        ).then((_) => ref.invalidate(recentItemsProvider)),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.cardBorder, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _MultiCover(personas: personas),
+                      if (anyUnverified)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Tooltip(
+                            message: context.l10n.ageNotVerified,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(Icons.warning_amber_rounded,
+                                  color: AppTheme.unVerified, size: 20),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(chat.presetName,
+                        style: const TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Text(chat.preview ?? '...',
+                        style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                            height: 1.4,
+                            fontStyle: FontStyle.italic),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 8),
+                    Text(_formatRecentTime(context, chat.updatedAt),
+                        style: const TextStyle(
+                            color: AppTheme.textSecondary, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 // ─────────────────────────────────────────────
 //  Mobile body (unchanged)
 // ─────────────────────────────────────────────
@@ -526,7 +632,7 @@ class _MobileHomeBody extends ConsumerWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const PersonaListScreen()),
-          ).then((_) => ref.invalidate(recentChatsProvider)),
+          ).then((_) => ref.invalidate(recentItemsProvider)),
         ),
         const SizedBox(height: 12),
         _NavCard(
@@ -537,7 +643,7 @@ class _MobileHomeBody extends ConsumerWidget {
             context,
             MaterialPageRoute(
                 builder: (_) => const MultiPresetListScreen()),
-          ).then((_) => ref.invalidate(recentChatsProvider)),
+          ).then((_) => ref.invalidate(recentItemsProvider)),
         ),
         const SizedBox(height: 12),
         _NavCard(
@@ -718,28 +824,28 @@ class _RecentChatsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncChats = ref.watch(recentChatsProvider);
+    final asyncItems = ref.watch(recentItemsProvider);
 
-    return asyncChats.when(
+    return asyncItems.when(
       skipLoadingOnReload: true,
       loading: () => const SizedBox(
         height: 80,
         child: Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const SizedBox.shrink(),
-      data: (chats) {
-        if (chats.isEmpty) {
+      data: (items) {
+        if (items.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              context.l10n.noRecentChats,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 14),
-            ),
+            child: Text(context.l10n.noRecentChats,
+                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
           );
         }
         return Column(
-          children: chats.map((c) => _RecentChatCard(chat: c)).toList(),
+          children: items.map((item) => switch (item) {
+            RecentSingleItem(:final chat) => _RecentChatCard(chat: chat),
+            RecentMultiItem(:final chat) => _RecentMultiCard(chat: chat),
+          }).toList(),
         );
       },
     );
@@ -760,6 +866,8 @@ class _RecentChatCard extends ConsumerWidget {
     return '${diff.inDays}${context.l10n.daysAgo}';
   }
 
+
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
@@ -778,7 +886,7 @@ class _RecentChatCard extends ConsumerWidget {
                 title: chat.personaName,
               ),
             ),
-          ).then((_) => ref.invalidate(recentChatsProvider)),
+          ).then((_) => ref.invalidate(recentItemsProvider)),
           borderRadius: BorderRadius.circular(14),
           child: Container(
             decoration: AppTheme.cardDecoration(radius: 14),
@@ -863,6 +971,224 @@ class _RecentChatCard extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RecentMultiCard extends ConsumerWidget {
+  final RecentMultiEntity chat;
+  const _RecentMultiCard({required this.chat});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final all = ref.watch(personaProvider).valueOrNull ?? const <PersonaEntity>[];
+    final personas = chat.personaIds
+        .map((id) => all.where((p) => p.id == id).firstOrNull)
+        .whereType<PersonaEntity>()
+        .toList();
+    final anyUnverified = personas.any((p) => !p.ageVerified);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                branchId: chat.branchId,
+                entityId: chat.presetId,
+                isMulti: true,
+                greeting: chat.greeting,
+                title: chat.presetName,
+              ),
+            ),
+          ).then((_) => ref.invalidate(recentItemsProvider)),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            decoration: AppTheme.cardDecoration(radius: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                _MultiFan(personas: personas),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(chat.presetName,
+                                style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                          Text(_formatRecentTime(context, chat.updatedAt),
+                              style: const TextStyle(
+                                  color: AppTheme.textSecondary, fontSize: 12),
+                              textAlign: TextAlign.right),
+                          if (anyUnverified) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.warning_amber_rounded,
+                                color: AppTheme.unVerified, size: 20),
+                          ],
+                          const SizedBox(width: 4),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(chat.preview ?? '...',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MultiCover extends StatelessWidget {
+  final List<PersonaEntity> personas;
+  const _MultiCover({required this.personas});
+
+  @override
+  Widget build(BuildContext context) {
+    final count = personas.length.clamp(0, 4);
+
+    if (count == 0) {
+      return Container(
+        color: AppTheme.cardBg,
+        child: const Center(
+          child: Icon(Icons.group, color: AppTheme.textSecondary, size: 48),
+        ),
+      );
+    }
+
+    if (personas.length > 4) {
+      return Container(
+        color: AppTheme.cardBg,
+        child: Center(
+          child: Text('${personas.length}',
+              style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold)),
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        switch (count) {
+          case 1:
+            return _tile(personas[0], w, h);
+          case 2:
+            return Column(children: [
+              Expanded(child: _tile(personas[0], w, h / 2)),
+              Expanded(child: _tile(personas[1], w, h / 2)),
+            ]);
+          case 3:
+            return Column(children: [
+              Expanded(child: Row(children: [
+                Expanded(child: _tile(personas[0], w / 2, h / 2)),
+                Expanded(child: _tile(personas[1], w / 2, h / 2)),
+              ])),
+              Expanded(child: Row(children: [
+                Expanded(child: _tile(personas[2], w, h / 2)),
+              ])),
+            ]);
+          case 4:
+          default:
+            return Column(children: [
+              Expanded(child: Row(children: [
+                Expanded(child: _tile(personas[0], w / 2, h / 2)),
+                Expanded(child: _tile(personas[1], w / 2, h / 2)),
+              ])),
+              Expanded(child: Row(children: [
+                Expanded(child: _tile(personas[2], w / 2, h / 2)),
+                Expanded(child: _tile(personas[3], w / 2, h / 2)),
+              ])),
+            ]);
+        }
+      },
+    );
+  }
+
+  Widget _tile(PersonaEntity p, double w, double h) {
+    final hasFile =
+        p.avatarPath != null && p.avatarPath!.isNotEmpty && File(p.avatarPath!).existsSync();
+    if (hasFile) {
+      return Image.file(File(p.avatarPath!),
+          fit: BoxFit.cover, width: w, height: h, alignment: Alignment.topCenter);
+    }
+    if (p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty) {
+      return Image.asset(p.avatarAssetPath!,
+          fit: BoxFit.cover, width: w, height: h, alignment: Alignment.topCenter);
+    }
+    return Container(
+      width: w,
+      height: h,
+      color: AppTheme.cardBg,
+      child: Center(
+        child: Text(p.name.isNotEmpty ? p.name.characters.first.toUpperCase() : '?',
+            style: const TextStyle(
+                color: AppTheme.textSecondary, fontSize: 22, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+}
+
+class _MultiFan extends StatelessWidget {
+  final List<PersonaEntity> personas;
+  const _MultiFan({required this.personas});
+
+  @override
+  Widget build(BuildContext context) {
+    const double size = 52, overlap = 36;
+    final display = personas.take(3).toList();
+    final count = display.length;
+    if (count == 0) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+            color: AppTheme.iconBg, borderRadius: BorderRadius.circular(10)),
+        child: const Icon(Icons.group, color: AppTheme.accentLight, size: 26),
+      );
+    }
+    final width = size + (count - 1) * overlap;
+    return SizedBox(
+      width: width,
+      height: size,
+      child: Stack(children: [
+        for (int i = count - 1; i >= 0; i--)
+          Positioned(
+            left: i * overlap,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: AvatarWidget(
+                imagePath: display[i].avatarPath,
+                assetPath: display[i].avatarAssetPath,
+                name: display[i].name,
+                size: size,
+              ),
+            ),
+          ),
+      ]),
     );
   }
 }

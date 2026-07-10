@@ -34,32 +34,45 @@ class DatabaseHelper {
       final path = p.join(dbPath, 'chat_history.db');
       _db = await openDatabase(
         path,
-        version: 19,
+        version: 28,
         onCreate: (db, version) async {
           await _createAllTables(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
+
+          if (oldVersion < 27) {
+            await db.execute('ALTER TABLE personas ADD COLUMN seed INTEGER');
+          }
+          if (oldVersion < 22) {
+            await db.execute('ALTER TABLE personas ADD COLUMN role TEXT');
+          }
           if (oldVersion < 19) {
             await db.execute(
               'ALTER TABLE personas ADD COLUMN user_gender TEXT',
             );
-            await db.execute(
-              'ALTER TABLE personas ADD COLUMN user_age TEXT',
-            );
+            await db.execute('ALTER TABLE personas ADD COLUMN user_age TEXT');
             await db.execute(
               'ALTER TABLE personas ADD COLUMN user_hair_color TEXT',
             );
             await db.execute(
               'ALTER TABLE personas ADD COLUMN user_ethnicity TEXT',
             );
-            await db.execute('ALTER TABLE personas ADD COLUMN user_appearance_enabled INTEGER');
-
+            await db.execute(
+              'ALTER TABLE personas ADD COLUMN user_appearance_enabled INTEGER',
+            );
           }
+
         },
       );
-      await _db!.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
-      await _db!.execute('CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)');
-      await _db!.execute('CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)');
+      await _db!.execute(
+        'CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)',
+      );
+      await _db!.execute(
+        'CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)',
+      );
+      await _db!.execute(
+        'CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)',
+      );
       _initCompleter!.complete();
     } catch (e) {
       _initCompleter!.completeError(e);
@@ -163,6 +176,8 @@ class DatabaseHelper {
     user_age          TEXT,
     user_hair_color   TEXT,
     user_ethnicity    TEXT,
+    role              TEXT,
+    seed              INTEGER,
     created_at       INTEGER NOT NULL,
     updated_at       INTEGER NOT NULL
   )
@@ -180,9 +195,16 @@ class DatabaseHelper {
     )
   ''');
 
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)');
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_branches_entity ON branches(entity_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_messages_branch ON messages(branch_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)',
+    );
   }
 
   // ── BRANCHES ────────────────────────────────────────────────────────────
@@ -253,6 +275,42 @@ class DatabaseHelper {
     }
   }
 
+
+
+  /// Up to [limit] most recently updated branches whose entity_id starts with 'multi:'.
+  Future<List<Map<String, dynamic>>> getRecentMultiBranches({
+    int limit = 8,
+  }) async {
+    try {
+      final db = await database;
+      final results = await db.rawQuery(
+        '''
+      SELECT
+        b.id,
+        b.entity_id,
+        b.preview,
+        b.updated_at,
+        COALESCE(MAX(m.timestamp), b.updated_at) AS real_updated_at,
+        mp.name        AS preset_name,
+        mp.persona_ids AS persona_ids,
+        mp.greeting    AS greeting
+      FROM branches b
+      LEFT JOIN messages m       ON m.branch_id = b.id
+      LEFT JOIN multi_presets mp ON mp.id = REPLACE(b.entity_id, 'multi:', '')
+      WHERE b.entity_id LIKE 'multi:%'
+        AND mp.id IS NOT NULL
+      GROUP BY b.id
+      ORDER BY real_updated_at DESC
+      LIMIT ?
+      ''',
+        [limit],
+      );
+      return results;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Inserts a new branch row.
   Future<void> insertBranch(String id, String entityId, String? preview) async {
     try {
@@ -306,12 +364,17 @@ class DatabaseHelper {
     try {
       final db = await database;
       await db.transaction((txn) async {
-        await txn.delete('messages',
-            where: 'branch_id = ?', whereArgs: [branchId]);
-        await txn.delete('summaries',
-            where: 'branch_id = ?', whereArgs: [branchId]);
-        await txn
-            .delete('branches', where: 'id = ?', whereArgs: [branchId]);
+        await txn.delete(
+          'messages',
+          where: 'branch_id = ?',
+          whereArgs: [branchId],
+        );
+        await txn.delete(
+          'summaries',
+          where: 'branch_id = ?',
+          whereArgs: [branchId],
+        );
+        await txn.delete('branches', where: 'id = ?', whereArgs: [branchId]);
       });
     } catch (e) {
       rethrow;
@@ -332,13 +395,22 @@ class DatabaseHelper {
         );
         for (final branch in branches) {
           final branchId = branch['id'] as String;
-          await txn.delete('messages',
-              where: 'branch_id = ?', whereArgs: [branchId]);
-          await txn.delete('summaries',
-              where: 'branch_id = ?', whereArgs: [branchId]);
+          await txn.delete(
+            'messages',
+            where: 'branch_id = ?',
+            whereArgs: [branchId],
+          );
+          await txn.delete(
+            'summaries',
+            where: 'branch_id = ?',
+            whereArgs: [branchId],
+          );
         }
-        await txn.delete('branches',
-            where: 'entity_id = ?', whereArgs: [entityId]);
+        await txn.delete(
+          'branches',
+          where: 'entity_id = ?',
+          whereArgs: [entityId],
+        );
       });
     } catch (e) {
       rethrow;
@@ -396,14 +468,15 @@ class DatabaseHelper {
       );
       return results;
     } catch (e) {
-
       rethrow;
     }
   }
 
   /// Inserts a single message row.
   Future<void> insertMessage(
-      Map<String, dynamic> message, String branchId) async {
+    Map<String, dynamic> message,
+    String branchId,
+  ) async {
     try {
       final db = await database;
       final row = Map<String, dynamic>.from(message);
@@ -438,7 +511,10 @@ class DatabaseHelper {
   }
 
   /// Deletes all summary blocks for [branchId] that cover more than [messageCount] messages.
-  Future<void> deleteSummaryBlocksAfter(String branchId, int messageCount) async {
+  Future<void> deleteSummaryBlocksAfter(
+    String branchId,
+    int messageCount,
+  ) async {
     final db = await database;
     await db.delete(
       'summaries',
@@ -449,8 +525,7 @@ class DatabaseHelper {
 
   /// Deletes the message with [messageId] and every message after it
   /// (by timestamp) within the same branch.
-  Future<void> deleteMessagesFromId(
-      String messageId, String branchId) async {
+  Future<void> deleteMessagesFromId(String messageId, String branchId) async {
     try {
       final db = await database;
       // Find the target message's timestamp.
@@ -474,8 +549,7 @@ class DatabaseHelper {
   }
 
   /// Updates the content of an existing message.
-  Future<void> updateMessageContent(
-      String messageId, String newContent) async {
+  Future<void> updateMessageContent(String messageId, String newContent) async {
     try {
       final db = await database;
       await db.update(
@@ -493,7 +567,8 @@ class DatabaseHelper {
 
   /// Returns all gallery image rows for [personaId].
   Future<List<Map<String, dynamic>>> getGalleryForPersona(
-      String personaId) async {
+    String personaId,
+  ) async {
     try {
       final db = await database;
       return await db.query(
@@ -579,9 +654,7 @@ class DatabaseHelper {
         where: 'persona_id = ?',
         whereArgs: [personaId],
       );
-      return rows
-          .map((r) => r['template_id'] as int)
-          .toList();
+      return rows.map((r) => r['template_id'] as int).toList();
     } catch (e) {
       rethrow;
     }
@@ -590,7 +663,10 @@ class DatabaseHelper {
   // ── SUMMARY BLOCKS ──────────────────────────────────────────────────────
 
   /// Returns all summary blocks for a branch, ordered by block_number ascending.
-  Future<List<Map<String, dynamic>>> getSummaryBlocks(String branchId, {int? limit}) async {
+  Future<List<Map<String, dynamic>>> getSummaryBlocks(
+    String branchId, {
+    int? limit,
+  }) async {
     try {
       final db = await database;
       List<Map<String, dynamic>> results;
@@ -785,8 +861,7 @@ class DatabaseHelper {
         'final_prompt': finalPrompt,
         'image_path': imagePath,
       });
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   /// Returns all messages where imageLocalPath IS NOT NULL and timestamp < cutoffMs
@@ -852,6 +927,8 @@ class DatabaseHelper {
         'behavior': persona.behavior,
         'gallery_mode': persona.galleryMode,
         'age_verified': persona.ageVerified ? 1 : 0,
+        'role': persona.role,
+        'seed': persona.seed,        // NEW
         'created_at': now,
         'updated_at': now,
       };
@@ -875,13 +952,16 @@ class DatabaseHelper {
         'gallery_mode': persona.galleryMode,
         'age_verified': persona.ageVerified ? 1 : 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
-        'user_appearance_enabled': persona.userAppearanceEnabled == null
-            ? null
-            : (persona.userAppearanceEnabled! ? 1 : 0),
+        'user_appearance_enabled':
+            persona.userAppearanceEnabled == null
+                ? null
+                : (persona.userAppearanceEnabled! ? 1 : 0),
         'user_gender': persona.userGender,
         'user_age': persona.userAge,
         'user_hair_color': persona.userHairColor,
         'user_ethnicity': persona.userEthnicity,
+        'seed': persona.seed,        // NEW
+
       };
       await db.update(
         'personas',
@@ -899,6 +979,19 @@ class DatabaseHelper {
     await db.update(
       'personas',
       {'age_verified': verified ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> setPersonaAvatarPath(String id, String path) async {
+    final db = await database;
+    await db.update(
+      'personas',
+      {
+        'avatar_path': path,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
       where: 'id = ?',
       whereArgs: [id],
     );

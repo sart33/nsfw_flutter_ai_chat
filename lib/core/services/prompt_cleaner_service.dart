@@ -1,25 +1,24 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:nsfw_chat/core/factory/database_helper.dart';
 
 import '../../domain/exceptions/app_exceptions.dart';
+import '../factory/deep_seek_connector.dart';
 
 
 class PromptCleanerService {
   PromptCleanerService._();
+
   static final PromptCleanerService instance = PromptCleanerService._();
 
-  static const _endpoint = '${AppConfig.deepSeekBaseUrl}/chat/completions';
+
 
   // Builds the cleaning prompt sent to DeepSeek.
   // nude is NOT requested — caller copies raw description.
   // beach is NOT requested — caller copies erotic result.
   // romantic2 is NOT requested — caller copies office result.
-  static String _buildPrompt(String description) => '''
 
-Rules:
+  static String _buildPrompt(String description) => '''
+  Rules:
 
 erotic:
 - remove nipples and all adjectives directly before them
@@ -55,7 +54,7 @@ office:
 - remove any phrases implying seduction, sexual intent, or provocative use of the body
 - append "properly dressed" at the end
 
-Input: "$description"
+  Input: "$description"
 
 Return only this JSON, nothing else:
 {"erotic":"...","romantic":"...","office":"..."}
@@ -66,110 +65,56 @@ Return only this JSON, nothing else:
   /// beach = copy of erotic
   /// romantic2 = copy of office
   Future<void> cleanAndSave(String personaId, String description) async {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) {
-        throw const DeepSeekApiException('key_not_set');
-
-        // AppSnackBar.showCriticalWithLang(
-        //   'DeepSeek API key not set. Gallery prompts and chat scene descriptions will not be generated.',
-        //   'Ключ DeepSeek не установлен. Обновление описаний для галереи и сцен чата пропущено.',
-        // );
-        //return;
-      }
-
-      final response = await http.post(
-        Uri.parse(_endpoint),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': AppConfig.deepSeekV4RroModel,
-          'messages': [
-            {
-              'role': 'system',
-              'content': 'You are a prompt cleaner for AI image generation. Given a character description (may be in any language), return 3 cleaned versions as a single JSON object.',
-            },
-            {
-              'role': 'user',
-              'content': _buildPrompt(description),
-            }
-          ],
-          'response_format':{
-            'type': 'json_object'
-          },
-         'max_tokens': 800,
-          'temperature': 0.1,
-          "thinking": {"type": "disabled"},
-          "stream": false
-
-        }),
+    final String raw;
+    try {
+      raw = await DeepSeekConnector.instance.callDeepSeek(
+        prompt:
+        'You are a prompt cleaner for AI image generation. '
+            'Given a character description (may be in any language), '
+            'return 3 cleaned versions as a single JSON object.',   // инструкция → system
+        input: _buildPrompt(description),                            // данные → user
+        model: AppConfig.deepSeekV4ProModel,
+        reasoning: false,
+        temperature: 0.1,
+        maxTokens: 1500,
+        jsonResponse: true,
       );
-
-      if (response.statusCode == 401) {
-        throw const DeepSeekApiException('key_invalid');
-      }
-      if (response.statusCode == 402) {
-        throw const DeepSeekApiException('insufficient_balance');
-      }
-      if (response.statusCode == 504 || response.statusCode == 503) {
-        throw const DeepSeekApiException('service_unavailable');
-      }
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw DeepSeekApiException('http_error', statusCode: response.statusCode);
-      }
-
-      try {
-      final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-      final content = (responseJson['choices'] as List)
-          .first['message']['content'] as String;
-
-      // Strip markdown code fences if present
-      final cleaned = content
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
-
-      final Map<String, dynamic> result =
-          jsonDecode(cleaned) as Map<String, dynamic>;
-      final erotic   = (result['erotic']   as String?) ?? description;
-      final romantic = (result['romantic'] as String?) ?? description;
-      final office   = (result['office']   as String?) ?? description;
-
-      await DatabaseHelper.instance.upsertPersonaPrompts(
-        personaId:  personaId,
-        nsfw:       description,   // raw, no cleaning
-        erotic:     erotic,
-        beach:      erotic,        // copy of erotic
-        romantic:   romantic,
-        romantic2:  office,        // copy of office
-        office:     office,
-      );
-    } catch (e) {
-        if (e is SocketException || e is http.ClientException) {
-          throw const NetworkException();
-        }
-      throw const DeepSeekApiException('parse_error');
-      // AppSnackBar.showErrorWithLang(
-      //   'Gallery prompts and chat scene update failed. Please try again.',
-      //   'Ошибка обновления описаний для галереи и сцен чата. Попробуйте снова.',
-      // );
+    } on NetworkException {
+      rethrow;
+    } on DeepSeekApiException {
+      rethrow;
     }
+
+    final Map<String, dynamic> result;
+    try {
+      result =
+          DeepSeekConnector.instance.parseJson(raw, context: 'PromptCleaner');
+    } catch (_) {
+      throw const DeepSeekApiException('parse_error');
+    }
+
+    final nsfw = description;
+    final erotic = (result['erotic'] as String?) ?? description;
+    final romantic = (result['romantic'] as String?) ?? description;
+    final office = (result['office'] as String?) ?? description;
+
+    await DatabaseHelper.instance.upsertPersonaPrompts(
+      personaId: personaId,
+      nsfw: nsfw,
+      erotic: erotic,
+      beach: erotic,      // копия erotic
+      romantic: romantic,
+      romantic2: office,  // копия office
+      office: office,
+    );
   }
-    /// Checks the character description for signs of underage.
-    /// Returns hasConflict, severity ('low'/'medium'/'high'), reason.
-    /// Call only if the API key is present.
+
+  /// Checks the character description for signs of underage.
+  /// Returns hasConflict, severity ('low'/'medium'/'high'), reason.
+  /// Call only if the API key is present.
   Future<({bool hasConflict, String? severity, String reason, bool hasAge})>
   checkForMinorSignals(String description) async {
-
-    try {
-      final apiKey = await AppConfig.getDeepSeekApiKey();
-      if (apiKey.isEmpty) {
-        throw const DeepSeekApiException('key_not_set');
-      }
-
-
-      const prompt = '''
+    const prompt = '''
 Analyze the following character description.
 The character is defined as an adult (18+).
 
@@ -287,67 +232,35 @@ Answer in English regardless of description language.
 ''';
 
 
-      final response = await http.post(
-        Uri.parse(_endpoint),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': AppConfig.deepSeekV4FlashModel,
-          'messages': [
-            {'role': 'system', 'content': prompt},
-            {'role': 'user', 'content': description},
-          ],
-          'max_tokens': 1000,
-          'thinking': {'type': 'enabled'},
-          'reasoning_effort': 'high',
-          'temperature': 0.0,
-        }),
+    final String raw;
+    try {
+      raw = await DeepSeekConnector.instance.callDeepSeek(
+        prompt: prompt,
+        // инструкция → system
+        input: description,
+        // данные → user
+        reasoning: true,
+        // thinking on
+        maxTokens: 1000,
+        jsonResponse: true,
+        // model не передаём → flash
       );
+    } on NetworkException {
+      rethrow;
+    } on DeepSeekApiException {
+      rethrow;
+    }
 
+    try {
+      final result =
+      DeepSeekConnector.instance.parseJson(raw, context: 'MinorCheck');
 
-      if (response.statusCode == 401) {
-        throw const DeepSeekApiException('key_invalid');
-      }
-
-      if (response.statusCode == 402) {
-        throw const DeepSeekApiException('insufficient_balance');
-      }
-
-      if (response.statusCode == 504 || response.statusCode == 503) {
-        throw const DeepSeekApiException('service_unavailable');
-      }
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw DeepSeekApiException('http_error', statusCode: response.statusCode);
-      }
-
-
-      final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-      final finishReason = (responseJson['choices'] as List)
-          .first['finish_reason'] as String?;
-
-      if (finishReason == 'length') {
-        throw const DeepSeekApiException('invalid_response');
-      }
-
-      final content = ((responseJson['choices'] as List)
-          .first['message']['content'] as String)
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
-
-      final result = jsonDecode(content) as Map<String, dynamic>;
-
-      final hasConflict = (result['has_conflict'] as bool?)
-          ?? (throw const DeepSeekApiException('invalid_response'));
-
+      final hasConflict = (result['has_conflict'] as bool?) ??
+          (throw const DeepSeekApiException('invalid_response'));
       final severity = result['severity'] as String?;
-
       final reason = (result['reason'] as String?) ?? '';
-
-      final hasAge = (result['has_age'] as bool?)
-          ?? (throw const DeepSeekApiException('invalid_response'));
+      final hasAge = (result['has_age'] as bool?) ??
+          (throw const DeepSeekApiException('invalid_response'));
 
       return (
       hasConflict: hasConflict,
@@ -355,13 +268,11 @@ Answer in English regardless of description language.
       reason: reason,
       hasAge: hasAge,
       );
-
-    } catch (e) {
-      if (e is SocketException || e is http.ClientException) {
-        throw const NetworkException();
-      }
-      if (e is DeepSeekApiException) rethrow;
-     throw const DeepSeekApiException('invalid_response');
-    }
+    } on DeepSeekApiException {
+      rethrow;
+    } catch (_) {
+      // битый/пустой JSON → невалидно → блок (безопасный дефолт для самого строгого метода)
+      throw const DeepSeekApiException('invalid_response');
     }
   }
+}

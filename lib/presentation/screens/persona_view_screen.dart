@@ -453,7 +453,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
               Text(
                 p.name,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -597,7 +597,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
     final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
 
     return SizedBox(
-      height: 320,
+      height: 360,
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,
@@ -664,7 +664,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: 140,
+            height: 170,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -693,7 +693,7 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
                 ),
                 if (p.behavior != null && p.behavior!.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       p.behavior!,
                       maxLines: 2,

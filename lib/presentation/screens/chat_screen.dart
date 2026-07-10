@@ -26,10 +26,10 @@ import 'package:nsfw_chat/presentation/widgets/chat_bubble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/factory/database_helper.dart';
-import '../../core/services/demo_serviece.dart';
 import '../../core/utils/app_snack_bar.dart';
 import '../../data/models/persona_model.dart';
 import '../../domain/mappers/persona_mapper.dart';
+
 import '../widgets/avatar_widget.dart';
 import '../widgets/donate_banner_bubble.dart';
 import 'about_app_screen.dart';
@@ -45,8 +45,6 @@ class ChatScreen extends ConsumerStatefulWidget {
   final bool isMulti;
   final String greeting;
   final String title;
-  final String? demoJsonPath; // ← NEW
-
 
   const ChatScreen({
     super.key,
@@ -55,7 +53,6 @@ class ChatScreen extends ConsumerStatefulWidget {
     this.isMulti = false,
     this.greeting = '',
     this.title = '',
-    this.demoJsonPath, // ← NEW
   });
 
   @override
@@ -68,8 +65,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   bool _initialized = false;
 
   bool _sidePanelCollapsed = false;
-  DemoConfig? _demoConfig;
-
 
   PersonaEntity? _singlePersona;
   List<PersonaEntity> _multiPersonas = [];
@@ -148,18 +143,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
       } else {
         notifier.init();
       }
-// // ← NEW: загрузить demo config если путь передан
-//       if (widget.demoJsonPath != null) {
-//         debugPrint('[ChatScreen] demoJsonPath = ${widget.demoJsonPath}');
-//
-//         DemoService.instance.load(widget.demoJsonPath!).then((cfg) {
-//           debugPrint('[ChatScreen] demo loaded: ${cfg.demoId}');
-//
-//           if (mounted) setState(() => _demoConfig = cfg);
-//         }).catchError((e) {
-//           debugPrint('[ChatScreen] demo load FAILED: $e');
-//         });
-//       }
     });
   }
 
@@ -260,16 +243,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
           case NetworkException():
             AppSnackBar.show(l10n.networkError, isError: true);
           case DeepSeekApiException():
-            AppSnackBar.showDeepSeekError(next.error! as DeepSeekApiException, l10n);
+            AppSnackBar.showDeepSeekError(
+              next.error! as DeepSeekApiException,
+              l10n,
+            );
 
           case NovitaApiException():
-            AppSnackBar.showNovitaError(next.error! as NovitaApiException, l10n);
+            AppSnackBar.showNovitaError(
+              next.error! as NovitaApiException,
+              l10n,
+            );
 
           case AgeVerificationException(:final reason):
             final failedPersonas = next.failedPersonas;
-              widget.isMulti
-                  ? AppSnackBar.showAgeConflictMulti(l10n, failedPersonas, reason)
-                  : AppSnackBar.showAgeConflictSingle(l10n, _singlePersona!.id, reason);
+            widget.isMulti
+                ? AppSnackBar.showAgeConflictMulti(l10n, failedPersonas, reason)
+                : AppSnackBar.showAgeConflictSingle(
+                  l10n,
+                  _singlePersona!.id,
+                  reason,
+                );
 
           case HistoryException():
             AppSnackBar.show(l10n.errorHistory);
@@ -423,8 +416,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   Widget _buildDesktopBody(
     BuildContext context,
     ChatState chatState,
-    SettingsState settings,
-  ) {
+    SettingsState settings,  // ← добавил
+
+      ) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Align(
@@ -698,7 +692,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                     Text(
                       p.name,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppTheme.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1071,7 +1065,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                                       ? null
                                       : () => _generateSceneImage(settings),
                             ),
-
                         ],
                       ),
                     ),
@@ -1190,16 +1183,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     }
 
     if (widget.isMulti && _multiPersonas.isNotEmpty) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children:
-                    _multiPersonas.take(3).map((p) {
-                      return Padding(
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children:
+                  _multiPersonas.take(3).map((p) {
+                    return Expanded(
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: GestureDetector(
                           onTap:
@@ -1225,6 +1220,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                               const SizedBox(height: 6),
                               Text(
                                 p.name,
+                                textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   color: AppTheme.textPrimary,
                                   fontSize: 13,
@@ -1234,10 +1230,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                             ],
                           ),
                         ),
-                      );
-                    }).toList(),
-              ),
-              const SizedBox(height: 12),
+                      ),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 14),
               Text(
                 widget.title,
                 style: const TextStyle(
@@ -1245,10 +1242,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
                   fontSize: 13,
                 ),
               ),
-            ],
-          ),
-        );
-      }
+          ],
+        ),
+      );
+    }
 
     return const SizedBox.shrink();
   }
@@ -1260,19 +1257,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     if (content.isEmpty) return;
     _inputCtrl.clear();
     setState(() {});
-
-    // // ← NEW: demo mode intercept
-    // final demo = _demoConfig;
-    // if (demo != null && demo.textSequence != null) {
-    //   ref.read(chatProvider(widget.branchId).notifier).addDemoExchange(
-    //     userText: content,
-    //     aiText: demo.textSequence!.aiResponse,
-    //     personaName: _singlePersona?.name ?? 'Kristina',
-    //     personaId: _singlePersona?.id ?? demo.personaId,
-    //     thinkingMs: demo.textSequence!.thinkingDelayMs,
-    //   );
-    //   return; // не идём в реальный API
-    // }
 
     final tokens = _maxTokens(settings);
     final notifier = ref.read(chatProvider(widget.branchId).notifier);
@@ -1342,23 +1326,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
 
   void _generateSceneImage(SettingsState settings) async {
     if (_singlePersona == null) return;
-    // Demo mode: use pre-made images instead of real generation
-    assert(() {
-      debugPrint('[ChatScreen] demo config: $_demoConfig');
-      return true;
-    }());
-    // final demo = _demoConfig;
-    // if (demo != null && demo.photoSequence != null) {
-    //   ref.read(chatProvider(widget.branchId).notifier).addDemoImageSequence(
-    //     personaName: _singlePersona!.name,
-    //     personaId: _singlePersona!.id,
-    //     imagePaths: demo.photoSequence!.images,
-    //     spinnerMs: demo.photoSequence!.spinnerDurationMs,
-    //   );
-    //   return;
-    // }
-
-    // Normal mode
     ref
         .read(chatProvider(widget.branchId).notifier)
         .generateSceneImage(persona: _singlePersona!, settings: settings);
@@ -1520,9 +1487,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
   void _openGalleryFromAvatar(BuildContext context) {
     if (_singlePersona == null) return;
     final p = _singlePersona!;
-    final gs = ref.read(
-      galleryProvider(GalleryKey(p.id, p.galleryMode)),
-    );
+    final gs = ref.read(galleryProvider(GalleryKey(p.id, p.galleryMode)));
 
     final hasFile = p.avatarPath != null && File(p.avatarPath!).existsSync();
     final hasAsset = p.avatarAssetPath != null && p.avatarAssetPath!.isNotEmpty;
@@ -1595,12 +1560,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatImageFullscreenScreen(
-          imageProviders: imagePaths
-          .map((p) => FileImage(File(p)) as ImageProvider)
-          .toList(),
-          initialIndex: initialIndex < 0 ? 0 : initialIndex,
-        ),
+        builder:
+            (_) => ChatImageFullscreenScreen(
+              imageProviders:
+                  imagePaths
+                      .map((p) => FileImage(File(p)) as ImageProvider)
+                      .toList(),
+              initialIndex: initialIndex < 0 ? 0 : initialIndex,
+            ),
       ),
     );
   }
@@ -1648,8 +1615,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
-
-
 }
 
 // ── Quick action button ────────────────────────────────────────────────────

@@ -33,7 +33,8 @@ void main() async {
   await DatabaseHelper.instance.initDB();
   await langdetect.initLangDetect();
   await SceneSwitchPatterns.load(); // ← сюда
-
+  final dbPath = await getDatabasesPath();
+  debugPrint('DB PATH: $dbPath');
 
   // Прогреваем провайдеры ДО runApp, чтобы первый кадр
   // не блокировался их инициализацией
@@ -42,7 +43,7 @@ void main() async {
   await settingsNotifier.ready;
   await Future.wait([
     container.read(personaProvider.future),
-    container.read(recentChatsProvider.future),
+    container.read(recentItemsProvider.future),
   ]);
 
   runApp(

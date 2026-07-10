@@ -10,6 +10,7 @@ import 'package:nsfw_chat/data/models/chat_message_model.dart';
 
 import '../../domain/exceptions/app_exceptions.dart';
 import '../config/scene_switch_patterns.dart';
+import '../factory/deep_seek_connector.dart';
 
 class SceneSnapshot {
   final String? location;
@@ -975,7 +976,7 @@ class SceneExtractorService {
 
   // ── DeepSeek prompt ─────────────────────────────────────────────────
 
-  static String _buildExtractionPrompt(String current, String context) => '''
+  static const _extractionSystem = '''
 You are a scene extraction engine for image generation.
 
 INPUT STRUCTURE:
@@ -1047,8 +1048,9 @@ OUTPUT — ONLY JSON:
   "intimacyLevel": 0
 }
 
-INPUT:
+''';
 
+  static String _buildExtractionInput(String current, String context) => '''
 CURRENT MESSAGE:
 $current
 
@@ -1209,70 +1211,26 @@ $context
   // ── LLM extraction ──────────────────────────────────────────────────
 
   Future<SceneSnapshot> _extractWithLLM(
-    String currentText,
-    String contextText,
-  ) async {
-    final apiKey = await AppConfig.getDeepSeekApiKey();
-    if (apiKey.isEmpty) throw const DeepSeekApiException('key_not_set');
-
-    final response = await http.post(
-      Uri.parse('${AppConfig.deepSeekBaseUrl}/chat/completions'),
-      headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': 'deepseek-chat',
-        'messages': [
-          {
-            'role': 'user',
-            'content': _buildExtractionPrompt(currentText, contextText),
-          },
-        ],
-        'max_tokens': 800,
-        'temperature': 0.1,
-      }),
+      String currentText,
+      String contextText,
+      ) async {
+    final raw = await DeepSeekConnector.instance.callDeepSeek(
+      prompt: _extractionSystem,                              // инструкция → system
+      input: _buildExtractionInput(currentText, contextText), // Current+Context → user
+      reasoning: false,
+      temperature: 0.1,
+      maxTokens: 800,
+      jsonResponse: true,
+      // model не передаём → flash (раньше тут был захардкоженный deepseek-chat)
     );
 
-    if (response.statusCode == 401) {
-      throw const DeepSeekApiException('key_invalid');
-    }
-    if (response.statusCode == 402) {
-      throw const DeepSeekApiException('insufficient_balance');
-    }
-    if (response.statusCode == 504 || response.statusCode == 503) {
-      throw const DeepSeekApiException('service_unavailable');
-    }
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw DeepSeekApiException('http_error', statusCode: response.statusCode);
-    }
-
-    /// ----demonstration Snapshot for presentation----
-    ///
-//     final demoJson = '''
-// {
-//   "choices": [
-//     {
-//       "message": {
-// "content": "{\\"location\\":\\"cafe\\",\\"locationDetails\\":\\"a cozy cafe with a blue awning, quiet late afternoon\\",\\"pose\\":\\"sitting\\",\\"activity\\":\\"sliding into the seat across from you, setting down her bag\\",\\"clothingState\\":\\"fully_dressed\\",\\"clothingDetails\\":\\"worn denim jacket over a simple sweater, messenger bag slung across her body\\",\\"intimacyLevel\\":0,\\"charactersPositioning\\":\\"she sits across the table from you, facing you\\",\\"timeOfDay\\":\\"afternoon\\",\\"confidence\\":0.0}"
-//       }
-//     }
-//   ]
-// }''';
-
-    final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-    final rawContent =
-        (responseJson['choices'] as List).first['message']['content'] as String;
-
     assert(() {
-      debugPrint('[SceneExtractor] Raw LLM response: $rawContent');
+      debugPrint('[SceneExtractor] Raw LLM response: $raw');
       return true;
     }());
 
-    final cleaned =
-        rawContent.replaceAll('```json', '').replaceAll('```', '').trim();
-
-    final map = jsonDecode(cleaned) as Map<String, dynamic>;
+    final map =
+    DeepSeekConnector.instance.parseJson(raw, context: 'SceneExtractor');
     return SceneSnapshot.fromJson(map);
   }
 

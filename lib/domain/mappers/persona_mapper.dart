@@ -20,6 +20,8 @@ class PersonaMapper {
     userEthnicity: model.userEthnicity,
     userGender: model.userGender,
     userHairColor: model.userHairColor,
+    role: model.role,
+    seed: model.seed,
   );
 
   static PersonaModel toModel(PersonaEntity entity) => PersonaModel(
@@ -37,6 +39,8 @@ class PersonaMapper {
     userEthnicity: entity.userEthnicity,
     userGender: entity.userGender,
     userHairColor: entity.userHairColor,
+    role: entity.role,
+    seed: entity.seed,
   );
 
   static List<PersonaEntity> toEntityList(List<PersonaModel> models) =>

@@ -76,6 +76,8 @@ class GalleryRepository {
       final String effectiveDescription;
       final prompts =
       await DatabaseHelper.instance.getPersonaPrompts(personaId);
+      final personaRow = await _db.getPersonaById(personaId);
+      final int? personaSeed = personaRow?['seed'] as int?;
 
       if (prompts != null) {
         effectiveDescription = switch (galleryMode) {
@@ -99,7 +101,12 @@ class GalleryRepository {
       final prefs = await SharedPreferences.getInstance();
       final size = AppConfig.novitaImageSize(
           prefs.getString('settings_image_size_gallery') ?? 'standard');
-      final tempPath = await _novita.generateImageTo(
+      // personaSeed != null -> пин (101) как есть, без рандома (первый показ).
+      // personaSeed == null -> аргумент не передаём, сервис сам берёт defaultSeed (старое поведение).
+      final tempPath = personaSeed != null
+          ? await _novita.generateImageTo(
+          prompt, tempDir, saveId, seed: personaSeed, size: size)
+          : await _novita.generateImageTo(
           prompt, tempDir, saveId, size: size);
 
 
@@ -141,6 +148,8 @@ class GalleryRepository {
       final String effectiveDescription;
       final prompts =
       await DatabaseHelper.instance.getPersonaPrompts(personaId);
+      final personaRow = await _db.getPersonaById(personaId);
+      final int? personaSeed = personaRow?['seed'] as int?;
 
       if (prompts != null) {
         effectiveDescription = switch (galleryMode) {
@@ -164,7 +173,7 @@ class GalleryRepository {
       final size = AppConfig.novitaImageSize(
           prefs.getString('settings_image_size_gallery') ?? 'standard');
       final tempPath =
-      await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed(), size: size);
+      await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed(personaSeed: personaSeed), size: size);
 
       return PreviewResult(
         tempPath: tempPath,
@@ -216,6 +225,8 @@ class GalleryRepository {
       final String effectiveDescription;
       final prompts =
           await DatabaseHelper.instance.getPersonaPrompts(personaId);
+      final personaRow = await _db.getPersonaById(personaId);
+      final int? personaSeed = personaRow?['seed'] as int?;
 
       if (prompts != null) {
         effectiveDescription = switch (galleryMode) {
@@ -239,7 +250,7 @@ class GalleryRepository {
       final size = AppConfig.novitaImageSize(
           prefs.getString('settings_image_size_gallery') ?? 'standard');
       final localPath =
-          await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed(), size: size);
+          await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed(personaSeed: personaSeed), size: size);
 
       final now = DateTime.now();
       await _db.insertGalleryImage(

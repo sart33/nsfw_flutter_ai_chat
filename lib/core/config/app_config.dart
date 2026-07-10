@@ -5,7 +5,7 @@ class AppConfig {
   AppConfig._();
 
   static const String appTitle = 'Uncensored Souls';
-  static const String appVersion = '1.2.1';
+  static const String appVersion = '1.2.3';
 
   // ── DeepSeek API ──────────────────────────────────────────────────────
   /// Base URL for the DeepSeek chat completions endpoint.
@@ -15,7 +15,7 @@ class AppConfig {
 
   /// Model identifier sent in every request.
   static const String deepSeekV4FlashModel = 'deepseek-v4-flash';
-  static const String deepSeekV4RroModel = 'deepseek-v4-pro';
+  static const String deepSeekV4ProModel = 'deepseek-v4-pro';
 
   /// Image size setting mapping for Novita API.
   static String novitaImageSize(String setting) =>
@@ -35,6 +35,13 @@ class AppConfig {
   // static const int defaultSeed = 101;
   // static const int defaultSeed = 261;
   static const int defaultSeed = 219;
+  static const int bigImageDefaultSeed = 101;
+
+
+  static int novitaImageSeed(String setting) =>
+      setting == 'large' ? bigImageDefaultSeed : defaultSeed;
+
+
   // static const int defaultSeed = 38;
   // static const int defaultSeed = 188;
 
