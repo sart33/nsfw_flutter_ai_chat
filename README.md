@@ -72,7 +72,7 @@ All characters are adults. Age verification gates 18+ content, and a multi-stage
  
 ## Status
  
-v1.2.2 (Android, Windows) · v1.2.0 (macOS) · in active development
+v1.2.3 (Android, Windows) · v1.2.0 (macOS) · in active development
  
 ## License
  
