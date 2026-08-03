@@ -76,7 +76,7 @@ Return only this JSON, nothing else:
         model: AppConfig.deepSeekV4ProModel,
         reasoning: false,
         temperature: 0.1,
-        maxTokens: 1500,
+        maxTokens: 2500,
         jsonResponse: true,
       );
     } on NetworkException {
@@ -241,7 +241,7 @@ Answer in English regardless of description language.
         // данные → user
         reasoning: true,
         // thinking on
-        maxTokens: 1000,
+        maxTokens: 3500,
         jsonResponse: true,
         // model не передаём → flash
       );
