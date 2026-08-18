@@ -3,7 +3,7 @@
   "apiKeys": "API keys",
   "deepSeekApi": "DeepSeek API",
   "requiredForChat": "Chat के लिए required",
-  "novitaAi": "Novita AI",
+  "waveSpeedAi": "WaveSpeed AI",
   "requiredForImageGeneration": "Image generation के लिए required (optional)",
 
   "keySaved": "Key save हो गई",
@@ -17,15 +17,15 @@
   "chatWillStopWorking": "Chat काम करना बंद कर देगा। क्या आप key delete करना चाहते हैं?",
   "keyDeleted": "Key delete हो गई",
 
-  "novitaKeySaved": "Novita key save हो गई",
-  "deleteNovitaKey": "Novita key delete करें",
+  "waveSpeedKeySaved": "WaveSpeed key save हो गई",
+  "deleteWaveSpeedKey": "WaveSpeed key delete करें",
   "imageGenerationWillStop": "Image generation काम करना बंद कर देगा। क्या आप sure हैं?",
 
   "goToApp": "App खोलें",
   "keysStoredSecurely": "Keys secure device storage में store होती हैं।",
 
   "pasteDeepSeekKey": "DeepSeek API key paste करें",
-  "pasteNovitaKey": "Novita API key paste करें",
+  "pasteWaveSpeedKey": "WaveSpeed API key paste करें",
 
   "noBranches": "कोई branch नहीं है। शुरू करने के लिए + दबाएं।",
   "emptyBranch": "खाली branch",
@@ -134,7 +134,7 @@
   "yamlProfileNote": "अगर enabled है और assets/characters/character_id.yaml file मौजूद है — इसे system prompt के रूप में use किया जाएगा",
 
   "creativity": "Response creativity",
-  "manageApiKeys": "DeepSeek और Novita AI keys manage करें",
+  "manageApiKeys": "DeepSeek और WaveSpeed AI keys manage करें",
 
   "allTemplatesGenerated": "सभी 20 templates पहले से generate हो चुके हैं",
   "generationError": "Generation error",
@@ -186,9 +186,9 @@
   "errorDeepseekServiceUnavailable": "DeepSeek service temporarily unavailable. बाद में try करें.",
   "errorDeepSeekResponseTruncated": "Response बहुत लंबा था और बीच में ही cut हो गया। फिर से try करें।",
 
-  "errorNovitaKeyInvalid": "Novita key invalid है। कृपया settings में अपडेट करें।",
-  "errorNovitaKeyNotSet": "Novita key सेट नहीं है। कृपया settings में जोड़ें।",
-  "errorNovitaInsufficientBalance": "Novita account में balance कम है। कृपया recharge करें।",
+  "errorWaveSpeedKeyInvalid": "WaveSpeed key invalid है। कृपया settings में अपडेट करें।",
+  "errorWaveSpeedKeyNotSet": "WaveSpeed key सेट नहीं है। कृपया settings में जोड़ें।",
+  "errorWaveSpeedInsufficientBalance": "WaveSpeed account में balance कम है। कृपया recharge करें।",
   "errorApiKeyInvalid": "API key invalid है। कृपया settings में अपडेट करें।",
   "errorConnectionFailed": "Connection error। अपनी internet चेक करें।",
   "errorImageGeneration": "Image generate करने में error आया। फिर से try करें।",
@@ -214,13 +214,13 @@
 
   "howToStartTitle": "🚀 कैसे शुरू करें",
   "howToStart1": "अपनी DeepSeek API key डालें (required)",
-  "howToStart2": "(Optional) Image generation के लिए Novita AI key जोड़ें",
+  "howToStart2": "(Optional) Image generation के लिए WaveSpeed AI key जोड़ें",
   "howToStart3": "कोई character चुनें या अपना बनाएं",
   "howToStart4": "Chat शुरू करें या multi-chat try करें",
 
   "privacyTitle": "🔒 Privacy",
   "privacyNoDataToDev": "आपका data कभी developer को नहीं भेजा जाता",
-  "privacyDirectApi": "API requests सीधे DeepSeek / Novita AI को जाते हैं",
+  "privacyDirectApi": "API requests सीधे DeepSeek / WaveSpeed AI को जाते हैं",
   "privacyNoAccess": "Developer को आपके chats, characters या images का कोई access नहीं है",
   "privacyImagesHidden": "Generated images Android gallery में नहीं दिखते — सिर्फ app के अंदर",
 

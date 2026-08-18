@@ -809,7 +809,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isGeneratingImage: false,
         error: e,
       );
-    } on NovitaApiException catch (e) {
+    } on WaveSpeedApiException catch (e) {
       state = state.copyWith(
         isLoading: false,
         isGeneratingImage: false,
@@ -821,7 +821,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isGeneratingImage: false,
         error: e is AppException
             ? e
-            : NovitaApiException(e.toString()),
+            : WaveSpeedApiException(e.toString()),
       );
     }
   }

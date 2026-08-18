@@ -207,7 +207,7 @@ class ChatImageService {
 
     // 5. Generate via NovitaImageService (no HTTP code here)
     final prefs = await SharedPreferences.getInstance();
-    final size = AppConfig.novitaImageSize(
+    final size = AppConfig.waveSpeedImageSize(
         prefs.getString('settings_image_size_chat') ?? 'standard');
     final localPath = await NovitaImageService.instance
         .generateImageTo(prompt, saveDir, saveId, seed: seed, size: size);

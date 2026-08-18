@@ -113,9 +113,9 @@ class _PersonaViewScreenState extends ConsumerState<PersonaViewScreen> {
             case GalleryFullException():
               AppSnackBar.show(l10n.galleryFull);
 
-            case NovitaApiException():
-              AppSnackBar.showNovitaError(
-                next.error as NovitaApiException,
+            case WaveSpeedApiException():
+              AppSnackBar.showWaveSpeedError(
+                next.error as WaveSpeedApiException,
                 l10n,
               );
 

@@ -74,8 +74,8 @@ class _GalleryFullscreenScreenState
           case DeepSeekApiException():
             AppSnackBar.showDeepSeekError(next.error! as DeepSeekApiException, l10n);
 
-          case NovitaApiException():
-            AppSnackBar.showNovitaError(next.error! as NovitaApiException, l10n);
+          case WaveSpeedApiException():
+            AppSnackBar.showWaveSpeedError(next.error! as WaveSpeedApiException, l10n);
 
           case GalleryFullException():
             AppSnackBar.show(l10n.galleryFull);

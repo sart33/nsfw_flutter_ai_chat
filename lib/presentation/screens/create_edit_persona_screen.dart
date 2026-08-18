@@ -344,9 +344,9 @@ class _CreateEditPersonaScreenState
     } on DeepSeekApiException catch (e) {
       if (!mounted) return;
       AppSnackBar.showDeepSeekError(e, context.l10n);
-    } on NovitaApiException catch (e) {
+    } on WaveSpeedApiException catch (e) {
       if (!mounted) return;
-      AppSnackBar.showNovitaError(e, context.l10n);
+      AppSnackBar.showWaveSpeedError(e, context.l10n);
     } catch (e) {
       if (!mounted) return;
       AppSnackBar.show(context.l10n.errorImageGeneration);
@@ -403,9 +403,9 @@ class _CreateEditPersonaScreenState
         );
 
         if (mounted) setState(() => _generatedAvatarPreviewPath = path);
-      } on NovitaApiException catch (e) {
+      } on WaveSpeedApiException catch (e) {
         if (!mounted) return;
-        AppSnackBar.showNovitaError(e, context.l10n);
+        AppSnackBar.showWaveSpeedError(e, context.l10n);
       } catch (e) {
         if (!mounted) return;
         AppSnackBar.show(context.l10n.errorImageGeneration);
