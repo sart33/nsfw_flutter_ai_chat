@@ -248,9 +248,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with RouteAware {
               l10n,
             );
 
-          case NovitaApiException():
-            AppSnackBar.showNovitaError(
-              next.error! as NovitaApiException,
+          case WaveSpeedApiException():
+            AppSnackBar.showWaveSpeedError(
+              next.error! as WaveSpeedApiException,
               l10n,
             );
 

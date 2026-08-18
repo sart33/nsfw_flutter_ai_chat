@@ -1,24 +1,31 @@
 
 import '../services/key_storage_service.dart';
 
+
+
 class AppConfig {
   AppConfig._();
 
   static const String appTitle = 'Uncensored Souls';
-  static const String appVersion = '1.2.3';
+  static const String appVersion = '1.2.5';
 
   // ── DeepSeek API ──────────────────────────────────────────────────────
   /// Base URL for the DeepSeek chat completions endpoint.
   static const String deepSeekBaseUrl = 'https://api.deepseek.com';
 
-  static const String novitaBaseUrl = 'https://api.novita.ai/v3/async';
-
   /// Model identifier sent in every request.
   static const String deepSeekV4FlashModel = 'deepseek-v4-flash';
   static const String deepSeekV4ProModel = 'deepseek-v4-pro';
 
+  // ── waveSpeed API ───────────────────────────────────────────────────────────
+  static const String waveSpeedBaseUrl = 'https://api.wavespeed.ai/api/v3';
+  static const String waveSpeedZImageUrl =
+      '$waveSpeedBaseUrl/wavespeed-ai/z-image/turbo';
+
+
+
   /// Image size setting mapping for Novita API.
-  static String novitaImageSize(String setting) =>
+  static String waveSpeedImageSize(String setting) =>
       setting == 'large' ? '1088*1408' : '768*1024';
 
   // ── Input / output limits ─────────────────────────────────────────────
@@ -38,7 +45,7 @@ class AppConfig {
   static const int bigImageDefaultSeed = 101;
 
 
-  static int novitaImageSeed(String setting) =>
+  static int waveSpeedImageSeed(String setting) =>
       setting == 'large' ? bigImageDefaultSeed : defaultSeed;
 
 
@@ -65,9 +72,10 @@ class AppConfig {
     return await KeyStorageService.read('deepseek_api_key');
   }
 
-  /// Reads
-  static Future<String> getNovitaApiKey() async {
-    return await KeyStorageService.read('novita_api_key');
+  /// Reads Kie API key from secure storage.
+  /// Returns empty string if key is not set.
+  static Future<String> getWaveSpeedApiKey() async {
+    return await KeyStorageService.read('waveSpeed_api_key');
   }
 
   // SECURITY NOTE: flutter_secure_storage uses Android Keystore / iOS Keychain.

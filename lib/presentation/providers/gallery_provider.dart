@@ -142,7 +142,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         isGenerating: false,
         error: const GalleryFullException(),
       );
-    } on NovitaApiException catch (e) {
+    } on WaveSpeedApiException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
     } on DeepSeekApiException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
@@ -302,7 +302,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       );
     } on NetworkException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
-    } on NovitaApiException catch (e) {
+    } on WaveSpeedApiException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
     } on DeepSeekApiException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
@@ -348,7 +348,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
               return img.id == imageId ? entity : img;
             }).toList();
         state = state.copyWith(images: outdated, isGenerating: false);
-    } on NovitaApiException catch (e) {
+    } on WaveSpeedApiException catch (e) {
       state = state.copyWith(isGenerating: false, error: e);
     } catch (e) {
       state = state.copyWith(isGenerating: false, error: SaveException(e.toString()));

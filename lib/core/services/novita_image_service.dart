@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nsfw_chat/core/config/app_config.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,7 +16,6 @@ class NovitaImageService {
   NovitaImageService._();
   static final NovitaImageService instance = NovitaImageService._();
 
-  static const _baseUrl = AppConfig.novitaBaseUrl;
   // ignore: unused_field
   static const _negativePrompt =
       'blurry, lowres, deformed, ugly, bad anatomy, bad hands, extra limbs, watermark, text, censored';
@@ -47,106 +47,195 @@ class NovitaImageService {
   }
 
   /// Core generation logic: submit → poll → download bytes.
-  Future<List<int>> _generateBytes(String promptTemplate,
-      {int seed = AppConfig.defaultSeed, String size = '768*1024'}) async {
-      // 0. Get API key from secure storage
-      final apiKey = await AppConfig.getNovitaApiKey();
-      if (apiKey.isEmpty) {
-        throw NovitaApiException('api_key_not_set');
-      }
+  Future<List<int>> _generateBytes(
+      String promptTemplate, {
+        int seed = AppConfig.defaultSeed,
+        String size = '768*1024',
+      }) async {
+    final apiKey = await AppConfig.getWaveSpeedApiKey();
 
-      // 1. Build final prompt
-      // final finalPrompt = '$promptTemplate, $_enhancers';
-
-      // 2. Submit generation task
-      final submitResponse = await http.post(
-        Uri.parse('$_baseUrl/z-image-turbo'),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'seed': seed,
-          'size': size,        // было хардкод
-          'prompt': promptTemplate,
-        }),
-      );
-      final submitJson =
-      jsonDecode(submitResponse.body) as Map<String, dynamic>;
-
-      if (submitResponse.statusCode == 401) {
-        throw NovitaApiException('api_key_invalid');
-      }
-      if (submitResponse.statusCode == 403) {
-        // Парсим reason из тела
-        final reason = submitJson['reason'] as String? ?? '';
-        if (reason == 'NOT_ENOUGH_BALANCE') {
-          throw NovitaApiException('insufficient_balance');
-        }
-        throw NovitaApiException('api_key_invalid'); // INVALID_API_KEY или неизвестная 403
-      }
-      if (submitResponse.statusCode != 200) {
-        throw NovitaApiException('http_${submitResponse.statusCode}');
-      }
-
-      // 3. Parse task_id
-
-      final taskId = submitJson['task_id'] as String?;
-      if (taskId == null || taskId.isEmpty) {
-
-        throw NovitaApiException('task_id_missing');
-      }
-
-      // 4. Poll for result — every 3 s, max 40 attempts (~2 min total)
-      Map<String, dynamic>? resultJson;
-      final pollUri = Uri.parse('$_baseUrl/task-result')
-          .replace(queryParameters: {'task_id': taskId});
-
-      for (int attempt = 0; attempt < 40; attempt++) {
-        await Future.delayed(const Duration(seconds: 3));
-
-        final pollResponse = await http.get(
-          pollUri,
-          headers: {'Authorization': 'Bearer $apiKey'},
-        );
-
-        final pollJson =
-            jsonDecode(pollResponse.body) as Map<String, dynamic>;
-        final status =
-            (pollJson['task'] as Map<String, dynamic>?)?['status'] as String? ??
-                '';
-
-        if (status == 'TASK_STATUS_SUCCEED') {
-          resultJson = pollJson;
-          break;
-        } else if (status == 'TASK_STATUS_FAILED') {
-          throw NovitaApiException('generation_failed');
-        }
-      }
-
-      if (resultJson == null) throw NovitaApiException('timeout');
-
-      // 5. Extract image URL
-      final images = resultJson['images'] as List<dynamic>?;
-      if (images == null || images.isEmpty) throw NovitaApiException('no_images');
-
-      final imageUrl =
-          (images[0] as Map<String, dynamic>)['image_url'] as String?;
-      if (imageUrl == null || imageUrl.isEmpty) throw NovitaApiException('no_image_url');
-
-
-      // 6. Download bytes
-      final downloadResponse = await http.get(Uri.parse(imageUrl));
-      if (downloadResponse.statusCode < 200 ||
-          downloadResponse.statusCode >= 300) {
-        throw NovitaApiException('download_failed_${downloadResponse.statusCode}');
-
-      }
-      final bytes = downloadResponse.bodyBytes;
-      if (bytes.isEmpty) throw NovitaApiException('empty_image');
-
-      return bytes;
-
+    if (apiKey.isEmpty) {
+      throw WaveSpeedApiException('api_key_not_set');
     }
+
+    final response = await http
+        .post(
+      Uri.parse(AppConfig.waveSpeedZImageUrl),
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'prompt': promptTemplate,
+        'seed': seed,
+        'size': size,
+        'strength': 0.6,
+        'output_format': 'webp',
+        'enable_sync_mode': true,
+        'enable_base64_output': false,
+      }),
+    )
+        .timeout(
+      const Duration(seconds: 150),
+      onTimeout: () {
+        throw WaveSpeedApiException('timeout');
+      },
+    );
+    assert(() {
+      debugPrint('[NovitaImageService] WaveSpeedApiException: ${response.statusCode}');
+      return true;
+    }());
+    assert(() {
+      debugPrint('[NovitaImageService] WaveSpeedApiException: ${response.body}');
+      return true;
+    }());
+
+
+    final root =
+    jsonDecode(response.body) as Map<String, dynamic>;
+
+    _throwHttpError(
+      response.statusCode,
+      response.body,
+    );
+
+
+    final rawData = root['data'];
+    if (rawData is! Map) {
+      throw WaveSpeedApiException('invalid_response');
+    }
+
+    final data = Map<String, dynamic>.from(rawData);
+
+    final status = data['status'] as String? ?? '';
+    final code = (data['code'] as num?)?.toInt() ?? 0;
+
+    if (code != 0) {
+      _throwPredictionError(code);
+    }
+
+    if (status != 'completed') {
+      if (status == 'processing' ||
+          status == 'created' ||
+          status == 'timeout') {
+        throw WaveSpeedApiException('timeout');
+      }
+
+      throw WaveSpeedApiException('generation_failed');
+    }
+
+    final outputs = data['outputs'] as List<dynamic>?;
+    if (outputs == null || outputs.isEmpty) {
+      throw WaveSpeedApiException('no_images');
+    }
+
+    final imageUrl = outputs.first as String?;
+    if (imageUrl == null || imageUrl.isEmpty) {
+      throw WaveSpeedApiException('no_image_url');
+    }
+
+    final downloadResponse = await http
+        .get(Uri.parse(imageUrl))
+        .timeout(
+      const Duration(seconds: 30),
+      onTimeout: () {
+        throw WaveSpeedApiException('download_timeout');
+      },
+    );
+
+    if (downloadResponse.statusCode < 200 ||
+        downloadResponse.statusCode >= 300) {
+      throw WaveSpeedApiException(
+        'download_failed_${downloadResponse.statusCode}',
+      );
+    }
+
+    final bytes = downloadResponse.bodyBytes;
+
+    if (bytes.isEmpty) {
+      throw WaveSpeedApiException('empty_image');
+    }
+
+    return bytes;
+  }
+
+  static void _throwHttpError(
+      int statusCode,
+      String body,
+      ) {
+    String message = '';
+
+    try {
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      message = json['message']?.toString().toLowerCase() ?? '';
+    } catch (_) {}
+
+    if (message.contains('insufficient credits')) {
+      throw WaveSpeedApiException('insufficient_balance');
+    }
+
+    switch (statusCode) {
+      case 200:
+        return;
+
+      case 400:
+        throw WaveSpeedApiException('invalid_request');
+
+      case 401:
+        throw WaveSpeedApiException('api_key_invalid');
+
+      case 403:
+        throw WaveSpeedApiException('access_forbidden');
+
+      case 429:
+        throw WaveSpeedApiException('rate_limited');
+
+      case 500:
+        throw WaveSpeedApiException('server_error');
+
+      default:
+        throw WaveSpeedApiException('http_$statusCode');
+    }
+  }
+
+  static void _throwPredictionError(int code) {
+    switch (code) {
+      case 1200:
+        throw WaveSpeedApiException('content_moderation');
+
+      case 1400:
+        throw WaveSpeedApiException('missing_parameter');
+
+      case 1401:
+        throw WaveSpeedApiException('invalid_parameter');
+
+      case 1402:
+        throw WaveSpeedApiException('media_access_failed');
+
+      case 1403:
+        throw WaveSpeedApiException('generation_failed');
+
+      case 1405:
+        throw WaveSpeedApiException('unknown_error');
+
+      case 1406:
+        throw WaveSpeedApiException('retry_exhausted');
+
+      case 1407:
+        throw WaveSpeedApiException('insufficient_balance');
+
+      case 5000:
+        throw WaveSpeedApiException('server_error');
+
+      case 5003:
+        throw WaveSpeedApiException('service_unavailable');
+
+      case 5004:
+        throw WaveSpeedApiException('timeout');
+
+      default:
+        throw WaveSpeedApiException('api_error_$code');
+    }
+  }
   }
 

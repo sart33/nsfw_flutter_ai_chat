@@ -19,14 +19,14 @@ class ApiKeysScreen extends StatefulWidget {
 
 class _ApiKeysScreenState extends State<ApiKeysScreen> {
   final TextEditingController _deepSeekController = TextEditingController();
-  final TextEditingController _novitaController = TextEditingController();
+  final TextEditingController _waveSpeedController = TextEditingController();
   bool _deepSeekObscure = true;
-  bool _novitaObscure = true;
+  bool _waveSpeedObscure = true;
   bool _deepSeekSaved = false;
-  bool _novitaSaved = false;
+  bool _waveSpeedSaved = false;
   bool _loading = true;
   bool _deepSeekChanged = false;
-  bool _novitaChanged = false;
+  bool _waveSpeedChanged = false;
 
   bool _isDesktop(BuildContext context) {
     if (kIsWeb) return false;
@@ -49,14 +49,14 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   Future<void> _loadKeys() async {
     try {
       final deepSeekKey = await KeyStorageService.read('deepseek_api_key');
-      final novitaKey = await KeyStorageService.read('novita_api_key');
+      final waveSpeedKey = await KeyStorageService.read('waveSpeed_api_key');
       setState(() {
         _deepSeekSaved = deepSeekKey.isNotEmpty;
-        _novitaSaved = novitaKey.isNotEmpty;
+        _waveSpeedSaved = waveSpeedKey.isNotEmpty;
         _deepSeekController.text =
         deepSeekKey.isNotEmpty ? _maskKey(deepSeekKey) : '';
-        _novitaController.text =
-        novitaKey.isNotEmpty ? _maskKey(novitaKey) : '';
+        _waveSpeedController.text =
+        waveSpeedKey.isNotEmpty ? _maskKey(waveSpeedKey) : '';
       });
     } finally {
       setState(() => _loading = false);
@@ -96,30 +96,30 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     AppSnackBar.showSuccess(context.l10n.keyDeleted);
   }
 
-  Future<void> _saveNovitaKey() async {
-    final trimmed = _novitaController.text.trim();
+  Future<void> _saveWaveSpeedKey() async {
+    final trimmed = _waveSpeedController.text.trim();
     if (trimmed.isEmpty) return;
-    await KeyStorageService.write('novita_api_key', trimmed);
+    await KeyStorageService.write('waveSpeed_api_key', trimmed);
     setState(() {
-      _novitaSaved = true;
-      _novitaController.text = _maskKey(trimmed);
-      _novitaObscure = true;
-      _novitaChanged = false;
+      _waveSpeedSaved = true;
+      _waveSpeedController.text = _maskKey(trimmed);
+      _waveSpeedObscure = true;
+      _waveSpeedChanged = false;
     });
-    AppSnackBar.showSuccess(context.l10n.novitaKeySaved);
+    AppSnackBar.showSuccess(context.l10n.waveSpeedKeySaved);
   }
 
-  Future<void> _deleteNovitaKey() async {
+  Future<void> _deleteWaveSpeedKey() async {
     final confirmed = await _confirmDelete(
-      title: context.l10n.deleteNovitaKey,
+      title: context.l10n.deleteWaveSpeedKey,
       content: context.l10n.imageGenerationWillStop,
     );
     if (!confirmed) return;
-    await KeyStorageService.delete('novita_api_key');
+    await KeyStorageService.delete('waveSpeed_api_key');
     setState(() {
-      _novitaSaved = false;
-      _novitaController.clear();
-      _novitaChanged = false;
+      _waveSpeedSaved = false;
+      _waveSpeedController.clear();
+      _waveSpeedChanged = false;
     });
     AppSnackBar.showSuccess(context.l10n.keyDeleted);
   }
@@ -332,20 +332,20 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       emptyHint: context.l10n.pasteDeepSeekKey,
     );
 
-    Widget novitaCard() => _buildKeyCard(
-      title: context.l10n.novitaAi,
+    Widget waveSpeedCard() => _buildKeyCard(
+      title: context.l10n.waveSpeedAi,
       subtitle: context.l10n.requiredForImageGeneration,
-      isSaved: _novitaSaved,
-      controller: _novitaController,
-      obscure: _novitaObscure,
+      isSaved: _waveSpeedSaved,
+      controller: _waveSpeedController,
+      obscure: _waveSpeedObscure,
       toggleObscure: () =>
-          setState(() => _novitaObscure = !_novitaObscure),
-      onSave: _saveNovitaKey,
-      onChanged: (_) => setState(() => _novitaChanged = true),
-      canSave: _novitaChanged && _novitaController.text.trim().isNotEmpty,
-      onDelete: _deleteNovitaKey,
-      canDelete: _novitaSaved,
-      emptyHint: context.l10n.pasteNovitaKey,
+          setState(() => _waveSpeedObscure = !_waveSpeedObscure),
+      onSave: _saveWaveSpeedKey,
+      onChanged: (_) => setState(() => _waveSpeedChanged = true),
+      canSave: _waveSpeedChanged && _waveSpeedController.text.trim().isNotEmpty,
+      onDelete: _deleteWaveSpeedKey,
+      canDelete: _waveSpeedSaved,
+      emptyHint: context.l10n.pasteWaveSpeedKey,
     );
 
     final footNote = Padding(
@@ -380,14 +380,14 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                         children: [
                           Expanded(child: deepSeekCard()),
                           const SizedBox(width: 16),
-                          Expanded(child: novitaCard()),
+                          Expanded(child: waveSpeedCard()),
                         ],
                       ),
                     )
                   else ...[
                     deepSeekCard(),
                     const SizedBox(height: 16),
-                    novitaCard(),
+                    waveSpeedCard(),
                   ],
                   const SizedBox(height: 20),
                   footNote,

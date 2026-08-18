@@ -99,7 +99,7 @@ class GalleryRepository {
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
       final prefs = await SharedPreferences.getInstance();
-      final size = AppConfig.novitaImageSize(
+      final size = AppConfig.waveSpeedImageSize(
           prefs.getString('settings_image_size_gallery') ?? 'standard');
       // personaSeed != null -> пин (101) как есть, без рандома (первый показ).
       // personaSeed == null -> аргумент не передаём, сервис сам берёт defaultSeed (старое поведение).
@@ -118,7 +118,7 @@ class GalleryRepository {
       rethrow;
     } on GalleryFullException {
       rethrow; // провайдер поймает и покажет galleryFull
-    } on NovitaApiException {
+    } on WaveSpeedApiException {
       rethrow; // провайдер поймает и покажет novita error
     } on DeepSeekApiException {
       rethrow; // если cleanAndSave кинул
@@ -170,7 +170,7 @@ class GalleryRepository {
       final tempDir = '${docsDir.path}/gallery_temp';
       final saveId = _uuid.v4();
       final prefs = await SharedPreferences.getInstance();
-      final size = AppConfig.novitaImageSize(
+      final size = AppConfig.waveSpeedImageSize(
           prefs.getString('settings_image_size_gallery') ?? 'standard');
       final tempPath =
       await _novita.generateImageTo(prompt, tempDir, saveId, seed: regenSeed(personaSeed: personaSeed), size: size);
@@ -181,7 +181,7 @@ class GalleryRepository {
       );
     } on GalleryFullException {
       rethrow; // провайдер поймает и покажет galleryFull
-    } on NovitaApiException {
+    } on WaveSpeedApiException {
       rethrow; // провайдер поймает и покажет novita error
     } on DeepSeekApiException {
       rethrow; // если cleanAndSave кинул
@@ -247,7 +247,7 @@ class GalleryRepository {
       final saveId = _uuid.v4();
 
       final prefs = await SharedPreferences.getInstance();
-      final size = AppConfig.novitaImageSize(
+      final size = AppConfig.waveSpeedImageSize(
           prefs.getString('settings_image_size_gallery') ?? 'standard');
       final localPath =
           await _novita.generateImage(prompt, personaId, saveId, seed: regenSeed(personaSeed: personaSeed), size: size);
@@ -268,7 +268,7 @@ class GalleryRepository {
 
     } on GalleryFullException {
       rethrow; // провайдер поймает и покажет galleryFull
-    } on NovitaApiException {
+    } on WaveSpeedApiException {
       rethrow; // провайдер поймает и покажет novita error
     } catch (e) {
       throw SaveException(e.toString());

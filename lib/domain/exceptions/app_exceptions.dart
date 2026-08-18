@@ -61,8 +61,17 @@ class DeepSeekApiException extends AppException {
 /// Thrown when a Novita AI generation task fails or times out.
 /// [technicalMessage]: 'api_key_not_set' | 'api_key_invalid' | 'insufficient_balance' |
 ///                     'generation_failed' | 'timeout' | 'no_images' | etc.
-class NovitaApiException extends AppException {
-  const NovitaApiException(super.technicalMessage);
+// class NovitaApiException extends AppException {
+//   const NovitaApiException(super.technicalMessage);
+// }
+
+
+
+/// Thrown when a Kie AI generation task fails or times out.
+/// [technicalMessage]: 'api_key_not_set' | 'api_key_invalid' | 'insufficient_balance' |
+///                     'generation_failed' | 'timeout' | 'no_images' | etc.
+class WaveSpeedApiException extends AppException {
+  const WaveSpeedApiException(super.technicalMessage);
 }
 
 /// Interface for gallery-related exceptions.

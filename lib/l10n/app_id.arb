@@ -4,7 +4,7 @@
   "apiKeys": "Kunci API",
   "deepSeekApi": "DeepSeek API",
   "requiredForChat": "Diperlukan agar chat berfungsi",
-  "novitaAi": "Novita AI",
+  "waveSpeedAi": "WaveSpeed AI",
   "requiredForImageGeneration": "Diperlukan untuk генераasi gambar (opsional)",
 
   "keySaved": "Kunci disimpan",
@@ -18,15 +18,15 @@
   "chatWillStopWorking": "Chat akan berhenti berfungsi. Yakin ingin menghapus kunci?",
   "keyDeleted": "Kunci dihapus",
 
-  "novitaKeySaved": "Kunci Novita disimpan",
-  "deleteNovitaKey": "Hapus kunci Novita",
+  "waveSpeedKeySaved": "Kunci WaveSpeed disimpan",
+  "deleteWaveSpeedKey": "Hapus kunci WaveSpeed",
   "imageGenerationWillStop": "Generasi gambar akan berhenti berfungsi. Yakin?",
 
   "goToApp": "Buka aplikasi",
   "keysStoredSecurely": "Kunci disimpan di penyimpanan aman perangkat.",
 
   "pasteDeepSeekKey": "Tempel kunci API DeepSeek",
-  "pasteNovitaKey": "Tempel kunci API Novita",
+  "pasteWaveSpeedKey": "Tempel kunci API WaveSpeed",
 
   "noBranches": "Tidak ada branch. Tekan + untuk mulai.",
   "emptyBranch": "Branch kosong",
@@ -164,7 +164,7 @@
 
   "creativity": "Tingkat kreativitas respons",
 
-  "manageApiKeys": "Kelola kunci DeepSeek dan Novita AI",
+  "manageApiKeys": "Kelola kunci DeepSeek dan WaveSpeed AI",
 
   "allTemplatesGenerated": "Semua 20 template sudah dibuat",
   "generationError": "Gagal membuat",
@@ -224,9 +224,9 @@
   "errorDeepseekServiceUnavailable": "Layanan DeepSeek sedang tidak tersedia untuk sementara. Coba lagi nanti.",
   "errorDeepSeekResponseTruncated": "La réponse était trop longue et a été coupée. Réessayez.",
 
-  "errorNovitaKeyInvalid": "Kunci Novita tidak valid. Perbarui di pengaturan.",
-  "errorNovitaKeyNotSet": "Kunci Novita belum diset. Tambahkan di pengaturan.",
-  "errorNovitaInsufficientBalance": "Saldo Novita tidak cukup. Silakan isi ulang.",
+  "errorWaveSpeedKeyInvalid": "Kunci WaveSpeed tidak valid. Perbarui di pengaturan.",
+  "errorWaveSpeedKeyNotSet": "Kunci WaveSpeed belum diset. Tambahkan di pengaturan.",
+  "errorWaveSpeedInsufficientBalance": "Saldo WaveSpeed tidak cukup. Silakan isi ulang.",
 
 
   "errorApiKeyInvalid": "Kunci API tidak valid. Perbarui di pengaturan.",
@@ -259,13 +259,13 @@
 
   "howToStartTitle": "🚀 Cara mulai",
   "howToStart1": "Masukkan kunci DeepSeek (wajib)",
-  "howToStart2": "(Optional) Tambahkan Novita AI key untuk image generation",
+  "howToStart2": "(Optional) Tambahkan WaveSpeed AI key untuk image generation",
   "howToStart3": "Pilih karakter atau buat sendiri",
   "howToStart4": "Mulai chat atau coba multi-chat",
 
   "privacyTitle": "🔒 Privasi",
   "privacyNoDataToDev": "Data kamu tidak pernah dikirim ke developer",
-  "privacyDirectApi": "API request langsung menuju DeepSeek / Novita AI",
+  "privacyDirectApi": "API request langsung menuju DeepSeek / WaveSpeed AI",
   "privacyNoAccess": "Developer tidak punya akses ke chat, karakter, atau gambar kamu",
   "privacyImagesHidden": "Gambar tidak muncul di galeri Android — hanya di dalam aplikasi",
 

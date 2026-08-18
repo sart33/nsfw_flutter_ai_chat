@@ -242,11 +242,11 @@ class AppSnackBar {
     showExtended(msg1, msg2, isError: isError, withSettings: withSettings);
   }
 
-  static void showNovitaError(NovitaApiException e, AppLocalizations l10n) {
+  static void showWaveSpeedError(WaveSpeedApiException e, AppLocalizations l10n) {
     final (msg, isError, withSettings) = switch (e.technicalMessage) {
-      'api_key_not_set'      => (l10n.errorNovitaKeyNotSet,            true,  true),
-      'api_key_invalid'      => (l10n.errorNovitaKeyInvalid,           true,  true),
-      'insufficient_balance' => (l10n.errorNovitaInsufficientBalance,  true,  false),
+      'api_key_not_set'      => (l10n.errorWaveSpeedKeyNotSet,            true,  true),
+      'api_key_invalid'      => (l10n.errorWaveSpeedKeyInvalid,           true,  true),
+      'insufficient_balance' => (l10n.errorWaveSpeedInsufficientBalance,  true,  false),
       _                      => (l10n.errorImageGeneration,            false, false),
     };
     show(msg, isError: isError, withSettings: withSettings);
